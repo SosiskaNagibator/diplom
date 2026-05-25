@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { pizzas, categories } from '../data/pizzas'
 import './Catalog.css'
 
-function Catalog() {
+function Catalog({ addToCart }) {
   const [activeCategory, setActiveCategory] = useState('Все')
 
   const filtered = activeCategory === 'Все'
@@ -34,7 +34,9 @@ function Catalog() {
               <div className="pizza-card-desc">{pizza.description}</div>
               <div className="pizza-card-bottom">
                 <span className="pizza-card-price">{pizza.price} ₽</span>
-                <button className="pizza-card-btn">В корзину</button>
+                <button className="pizza-card-btn" onClick={() => addToCart(pizza)}>
+                  В корзину
+                </button>
               </div>
             </div>
           </div>
@@ -44,4 +46,4 @@ function Catalog() {
   )
 }
 
-export default Catalog;
+export default Catalog

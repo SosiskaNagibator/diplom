@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { pizzas } from '../data/pizzas'
 import './Home.css'
 
-function Home() {
+function Home({ addToCart }) {
   const popularPizzas = pizzas.slice(0, 4)
 
   return (
@@ -25,9 +25,9 @@ function Home() {
               <div className="pizza-card-desc">{pizza.description}</div>
               <div className="pizza-card-bottom">
                 <span className="pizza-card-price">{pizza.price} ₽</span>
-                <Link to="/catalog">
-                  <button className="pizza-card-btn">В меню</button>
-                </Link>
+                <button className="pizza-card-btn" onClick={() => addToCart(pizza)}>
+                  В корзину
+                </button>
               </div>
             </div>
           </div>
@@ -37,4 +37,4 @@ function Home() {
   )
 }
 
-export default Home;
+export default Home

@@ -45,8 +45,26 @@
   font-size: 14px;
   font-weight: 600;
   transition: background 0.2s;
+  position: relative;
 }
 
 .header-cart:hover {
   background: #a93226;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #e74c3c;
+  color: white;
+  font-size: 11px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  border: 2px solid white;
 }

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import './Header.css'
 
-function Header() {
+function Header({ cartCount }) {
   return (
     <header className="header">
       <Link to="/" className="header-logo">
@@ -12,7 +12,10 @@ function Header() {
         <Link to="/constructor" className="header-link">Конструктор</Link>
         <Link to="/tracking" className="header-link">Заказы</Link>
         <Link to="/profile" className="header-link">Профиль</Link>
-        <Link to="/cart" className="header-cart">Корзина</Link>
+        <Link to="/cart" className="header-cart">
+          Корзина
+          {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+        </Link>
       </nav>
     </header>
   )
