@@ -1,8 +1,29 @@
-import { Link } from 'react-router-dom'
-import './Cart.css'
+import { Link, useNavigate } from 'react-router-dom';
+import '../styles/Cart.css';
 
 function Cart({ cart, removeFromCart, updateQuantity }) {
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const navigate = useNavigate();
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const handleCheckout = () => {
+    if (cart.length === 0) return;
+
+    const order = {
+      id: Date.now(),
+      items: cart,
+      total: total,
+      date: new Date().toLocaleString(),
+      status: 'Принят'
+    };
+
+    const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]');
+    existingOrders.push(order);
+    localStorage.setItem('orders', JSON.stringify(existingOrders));
+
+    cart.forEach(item => removeFromCart(item.id));
+
+    navigate('/tracking');
+  };
 
   if (cart.length === 0) {
     return (
@@ -15,7 +36,7 @@ function Cart({ cart, removeFromCart, updateQuantity }) {
           <Link to="/catalog" className="go-to-menu">Перейти в меню</Link>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -43,12 +64,10 @@ function Cart({ cart, removeFromCart, updateQuantity }) {
       </div>
       <div className="cart-footer">
         <div className="cart-total">Итого: {total} ₽</div>
-        <Link to="/checkout">
-          <button className="checkout-btn">Оформить заказ</button>
-        </Link>
+        <button onClick={handleCheckout} className="checkout-btn">Оформить заказ</button>
       </div>
     </div>
-  )
+  );
 }
 
 export default Cart;

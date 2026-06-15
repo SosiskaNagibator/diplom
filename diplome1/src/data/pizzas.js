@@ -13,7 +13,7 @@ export const pizzas = [
     category: 'Мясные',
     description: 'Томатный соус, моцарелла, пепперони, перец чили',
     price: 600,
-    image: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400'
+    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400'
   },
   {
     id: 3,
@@ -21,7 +21,7 @@ export const pizzas = [
     category: 'Вегетарианские',
     description: 'Моцарелла, горгонзола, пармезан, рикотта',
     price: 650,
-    image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400'
+    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400'
   },
   {
     id: 4,
@@ -29,7 +29,7 @@ export const pizzas = [
     category: 'Острые',
     description: 'Томатный соус, моцарелла, салями, перец чили, чеснок',
     price: 620,
-    image: 'https://images.unsplash.com/photo-1458642849426-cfb724f15ef7?w=400'
+    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400'
   },
   {
     id: 5,
@@ -37,7 +37,7 @@ export const pizzas = [
     category: 'Мясные',
     description: 'Томатный соус, моцарелла, курица, ананас',
     price: 580,
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400'
+    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400'
   },
   {
     id: 6,
@@ -45,8 +45,72 @@ export const pizzas = [
     category: 'Сладкие',
     description: 'Нутелла, бананы, сахарная пудра, мята',
     price: 500,
-    image: 'https://images.unsplash.com/photo-1511672717779-908ad8eb18a7?w=400'
+    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400'
+  },
+  {
+    id: 7,
+    name: 'Карбонара',
+    category: 'Классика',
+    description: 'Сливочный соус, бекон, пармезан, яйцо, чёрный перец',
+    price: 680,
+    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400'
+  },
+  {
+    id: 8,
+    name: 'Мясная',
+    category: 'Мясные',
+    description: 'Томатный соус, пепперони, бекон, ветчина, охотничьи колбаски, моцарелла',
+    price: 720,
+    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400'
+  },
+  {
+    id: 9,
+    name: 'Морепродукты',
+    category: 'Рыбные',
+    description: 'Томатный соус, креветки, мидии, кальмары, моцарелла',
+    price: 750,
+    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400'
+  },
+  {
+    id: 10,
+    name: 'Вегетарианская',
+    category: 'Вегетарианские',
+    description: 'Томатный соус, перец, грибы, лук, оливки, кукуруза, моцарелла',
+    price: 590,
+    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400'
+  },
+  {
+    id: 11,
+    name: 'Сырная',
+    category: 'Вегетарианские',
+    description: 'Сливочный соус, моцарелла, пармезан, горгонзола, чеддер',
+    price: 640,
+    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400'
+  },
+  {
+    id: 12,
+    name: 'Баварская',
+    category: 'Мясные',
+    description: 'Томатный соус, баварские колбаски, квашеная капуста, моцарелла',
+    price: 670,
+    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400'
+  },
+  {
+    id: 13,
+    name: 'Томатная',
+    category: 'Вегетарианские',
+    description: 'Томатный соус, черри, базилик, моцарелла, орегано',
+    price: 560,
+    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400'
+  },
+  {
+    id: 14,
+    name: 'Острая салями',
+    category: 'Острые',
+    description: 'Томатный соус, салями, халапеньо, перец чили, моцарелла',
+    price: 660,
+    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400'
   }
 ]
 
-export const categories = ['Все', 'Классика', 'Мясные', 'Вегетарианские', 'Острые', 'Сладкие']
+export const categories = ['Все', 'Классика', 'Мясные', 'Вегетарианские', 'Острые', 'Сладкие', 'Рыбные']

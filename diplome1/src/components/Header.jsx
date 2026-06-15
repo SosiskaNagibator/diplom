@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom'
-import './Header.css'
+import '../styles/Header.css'
 
 function Header({ cartCount }) {
   return (
     <header className="header">
       <Link to="/" className="header-logo">
-        Sapore<span className="header-logo-accent">.</span>
+        Sapore<span className="header-logo-accent"></span>
       </Link>
       <nav className="header-nav">
         <Link to="/catalog" className="header-link">Меню</Link>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { pizzas, categories } from '../data/pizzas'
-import './Catalog.css'
+import '../styles/Catalog.css'
 
 function Catalog({ addToCart }) {
   const [activeCategory, setActiveCategory] = useState('Все')
@@ -46,4 +46,4 @@ function Catalog({ addToCart }) {
   )
 }
 
-export default Catalog
+export default Catalog;

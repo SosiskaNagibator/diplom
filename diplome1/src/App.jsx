@@ -7,6 +7,7 @@ import Constructor from './pages/Constructor'
 import Cart from './pages/Cart'
 import Profile from './pages/Profile'
 import Tracking from './pages/Tracking'
+import './styles/App.css'
 
 function App() {
   const [cart, setCart] = useState([])
@@ -51,7 +52,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home addToCart={addToCart} />} />
           <Route path="/catalog" element={<Catalog addToCart={addToCart} />} />
-          <Route path="/constructor" element={<Constructor />} />
+          <Route path="/constructor" element={<Constructor addToCart={addToCart} />} />
           <Route path="/cart" element={
             <Cart
               cart={cart}
@@ -74,4 +75,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

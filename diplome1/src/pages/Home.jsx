@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { pizzas } from '../data/pizzas'
-import './Home.css'
+import '../styles/Home.css'
 
 function Home({ addToCart }) {
   const popularPizzas = pizzas.slice(0, 4)
@@ -37,4 +37,4 @@ function Home({ addToCart }) {
   )
 }
 
-export default Home
+export default Home;
