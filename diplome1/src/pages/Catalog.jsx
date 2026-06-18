@@ -1,13 +1,40 @@
-import { useState } from 'react'
-import { pizzas, categories } from '../data/pizzas'
-import '../styles/Catalog.css'
+import { useState, useEffect } from 'react';
+import '../styles/Catalog.css';
+
+const API_CATALOG = 'http://localhost/catalog.php';
+
+const categories = ['Все', 'Классика', 'Мясные', 'Вегетарианские', 'Острые', 'Сладкие', 'Рыбные'];
 
 function Catalog({ addToCart }) {
-  const [activeCategory, setActiveCategory] = useState('Все')
+  const [pizzas, setPizzas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState('Все');
 
-  const filtered = activeCategory === 'Все'
-    ? pizzas
-    : pizzas.filter(p => p.category === activeCategory)
+  useEffect(() => {
+    const fetchPizzas = async () => {
+      setLoading(true);
+      try {
+        const url = activeCategory === 'Все'
+          ? API_CATALOG
+          : `${API_CATALOG}?category=${encodeURIComponent(activeCategory)}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Ошибка загрузки');
+        const data = await response.json();
+        setPizzas(data);
+      } catch (err) {
+        console.error(err);
+        setPizzas([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPizzas();
+  }, [activeCategory]);
+
+  if (loading) {
+    return <div className="loading">Загрузка меню...</div>;
+  }
 
   return (
     <div>
@@ -26,7 +53,7 @@ function Catalog({ addToCart }) {
       </div>
 
       <div className="pizza-grid">
-        {filtered.map(pizza => (
+        {pizzas.map(pizza => (
           <div key={pizza.id} className="pizza-card">
             <img src={pizza.image} alt={pizza.name} className="pizza-card-img" />
             <div className="pizza-card-body">
@@ -43,7 +70,7 @@ function Catalog({ addToCart }) {
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 export default Catalog;

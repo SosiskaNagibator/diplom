@@ -50,6 +50,8 @@ function Profile() {
       const formData = new URLSearchParams();
       formData.append('Login', login);
       formData.append('Password', password);
+      const action = isRegister ? 'register' : 'login';
+      formData.append('action', action);
 
       const response = await fetch(API_URL, {
         method: 'POST',
@@ -59,9 +61,9 @@ function Profile() {
         body: formData.toString(),
       });
 
-      const text = await response.text();
+      const data = await response.json();
 
-      if (text.includes('Успешный вход')) {
+      if (data.status === 'success') {
         localStorage.setItem('userLogin', login);
         setUserLogin(login);
         setIsLoggedIn(true);
@@ -69,7 +71,8 @@ function Profile() {
         setLogin('');
         setPassword('');
         setConfirmPassword('');
-      } else if (text.includes('Вы зарегистрированы')) {
+      } 
+      else if (data.status === 'registered') {
         localStorage.setItem('userLogin', login);
         setUserLogin(login);
         setIsLoggedIn(true);
@@ -77,10 +80,17 @@ function Profile() {
         setLogin('');
         setPassword('');
         setConfirmPassword('');
-      } else if (text.includes('Ошибка')) {
-        showMessage('Ошибка сервера. Попробуйте позже.', 'error');
+      } 
+      else if (data.status === 'not_found') {
+        showMessage('Такого аккаунта нет. Пожалуйста, зарегистрируйтесь!', 'error');
+        setIsRegister(true);
+        setPassword('');
+        setConfirmPassword('');
+      } 
+      else if (data.status === 'error') {
+        showMessage(data.message || 'Ошибка сервера', 'error');
       } else {
-        showMessage('Неверный логин или пароль', 'error');
+        showMessage('Неизвестная ошибка', 'error');
       }
     } catch (err) {
       showMessage('Не удалось соединиться с сервером.', 'error');
@@ -144,6 +154,8 @@ function Profile() {
           onClick={() => {
             setIsRegister(!isRegister);
             setMessage({ text: '', type: '' });
+            setPassword('');
+            setConfirmPassword('');
           }}
           className="switch-btn"
         >
