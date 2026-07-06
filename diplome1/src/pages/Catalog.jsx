@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import '../styles/Catalog.css';
 
 const API_CATALOG = 'http://localhost/catalog.php';
-
 const categories = ['Все', 'Классика', 'Мясные', 'Вегетарианские', 'Острые', 'Сладкие', 'Рыбные'];
 
 function Catalog({ addToCart }) {
@@ -28,23 +26,26 @@ function Catalog({ addToCart }) {
         setLoading(false);
       }
     };
-
     fetchPizzas();
   }, [activeCategory]);
 
   if (loading) {
-    return <div className="loading">Загрузка меню...</div>;
+    return <div className="text-center py-12 text-gray-500">Загрузка меню...</div>;
   }
 
   return (
     <div>
-      <h1>Меню</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Меню</h1>
 
-      <div className="filters">
+      <div className="flex flex-wrap gap-2 mb-8">
         {categories.map(cat => (
           <button
             key={cat}
-            className={`filter-btn ${cat === activeCategory ? 'active' : ''}`}
+            className={`px-4 py-2 rounded-full border text-sm font-medium transition ${
+              cat === activeCategory
+                ? 'bg-amber-500 text-white border-amber-500'
+                : 'bg-white text-gray-700 border-gray-200 hover:border-amber-300 hover:text-amber-600'
+            }`}
             onClick={() => setActiveCategory(cat)}
           >
             {cat}
@@ -52,16 +53,19 @@ function Catalog({ addToCart }) {
         ))}
       </div>
 
-      <div className="pizza-grid">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {pizzas.map(pizza => (
-          <div key={pizza.id} className="pizza-card">
-            <img src={pizza.image} alt={pizza.name} className="pizza-card-img" />
-            <div className="pizza-card-body">
-              <div className="pizza-card-title">{pizza.name}</div>
-              <div className="pizza-card-desc">{pizza.description}</div>
-              <div className="pizza-card-bottom">
-                <span className="pizza-card-price">{pizza.price} ₽</span>
-                <button className="pizza-card-btn" onClick={() => addToCart(pizza)}>
+          <div key={pizza.id} className="bg-white rounded-xl shadow-sm hover:shadow-md transition border border-gray-100 overflow-hidden">
+            <img src={pizza.image} alt={pizza.name} className="w-full h-48 object-cover" />
+            <div className="p-4">
+              <div className="font-semibold text-gray-800 text-lg">{pizza.name}</div>
+              <div className="text-sm text-gray-500 mt-1 line-clamp-2">{pizza.description}</div>
+              <div className="flex items-center justify-between mt-3">
+                <span className="text-amber-600 font-bold text-xl">{pizza.price} ₽</span>
+                <button
+                  onClick={() => addToCart(pizza)}
+                  className="bg-amber-500 hover:bg-amber-600 text-white text-sm px-4 py-2 rounded-full transition"
+                >
                   В корзину
                 </button>
               </div>

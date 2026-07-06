@@ -7,7 +7,6 @@ import Constructor from './pages/Constructor'
 import Cart from './pages/Cart'
 import Profile from './pages/Profile'
 import Tracking from './pages/Tracking'
-import './styles/App.css'
 
 function App() {
   const [cart, setCart] = useState([])
@@ -48,7 +47,7 @@ function App() {
   return (
     <>
       <Header cartCount={cartCount} />
-      <main className="main-container">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <Routes>
           <Route path="/" element={<Home addToCart={addToCart} />} />
           <Route path="/catalog" element={<Catalog addToCart={addToCart} />} />
@@ -66,8 +65,8 @@ function App() {
       </main>
 
       {showNotification && (
-        <div className="notification">
-          <span className="notification-icon">✓</span>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-amber-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium animate-slide-up z-50">
+          <span className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full text-white text-xs font-bold">✓</span>
           {lastAdded} добавлена в корзину
         </div>
       )}
@@ -75,4 +74,4 @@ function App() {
   )
 }
 
-export default App;
+export default App

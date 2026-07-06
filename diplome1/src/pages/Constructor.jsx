@@ -1,101 +1,145 @@
-import { useState } from 'react';
-import '../styles/Constructor.css';
+import { useState } from 'react'
 
 function Constructor({ addToCart }) {
-  const [size, setSize] = useState('Маленькая');
-  const [sauce, setSauce] = useState('Томатный');
-  const [toppings, setToppings] = useState([]);
+  const [size, setSize] = useState('Маленькая')
+  const [sauce, setSauce] = useState('Томатный')
+  const [toppings, setToppings] = useState([])
+  
+  const sizeOptions = [
+    { id: 'Маленькая', label: '25 см', icon: '🟤', price: 0 },
+    { id: 'Средняя', label: '30 см', icon: '🟠', price: 50 },
+    { id: 'Большая', label: '35 см', icon: '🔴', price: 100 }
+  ]
+  const sauceOptions = [
+    { id: 'Томатный', icon: '🍅', price: 0 },
+    { id: 'Сливочный', icon: '🥛', price: 30 }
+  ]
+  const toppingOptions = [
+    { id: 'Пепперони', icon: '🌶️', price: 50 },
+    { id: 'Грибы', icon: '🍄', price: 40 },
+    { id: 'Сыр', icon: '🧀', price: 30 },
+    { id: 'Помидоры', icon: '🍅', price: 20 },
+    { id: 'Оливки', icon: '🫒', price: 25 }
+  ]
 
-  const sizes = {
-    'Маленькая': 0,
-    'Средняя': 50,
-    'Большая': 100
-  };
-  const sauces = {
-    'Томатный': 0,
-    'Сливочный': 30
-  };
-  const toppingsList = [
-    { name: 'Пепперони', price: 50 },
-    { name: 'Грибы', price: 40 },
-    { name: 'Сыр', price: 30 },
-    { name: 'Помидоры', price: 20 },
-    { name: 'Оливки', price: 25 }
-  ];
-
-  const basePrice = 350;
-  const totalPrice = basePrice + sizes[size] + sauces[sauce] + toppings.reduce((sum, t) => sum + t.price, 0);
+  const basePrice = 350
+  const totalPrice = basePrice +
+    sizeOptions.find(s => s.id === size).price +
+    sauceOptions.find(s => s.id === sauce).price +
+    toppings.reduce((sum, t) => sum + t.price, 0)
 
   const toggleTopping = (topping) => {
     setToppings(prev =>
-      prev.find(t => t.name === topping.name)
-        ? prev.filter(t => t.name !== topping.name)
+      prev.find(t => t.id === topping.id)
+        ? prev.filter(t => t.id !== topping.id)
         : [...prev, topping]
-    );
-  };
+    )
+  }
 
   const handleAddToCart = () => {
-    const toppingNames = toppings.map(t => t.name).join(', ');
-    const name = `Пицца (${size}, ${sauce}${toppingNames ? ', ' + toppingNames : ''})`;
+    const toppingNames = toppings.map(t => t.id).join(', ')
+    const name = `Пицца ${size} ${sauce}${toppingNames ? ' + ' + toppingNames : ''}`
     const pizza = {
       id: Date.now(),
-      name: name.length > 40 ? name.slice(0, 40) + '…' : name,
+      name: name.slice(0, 40),
       price: totalPrice,
       image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400',
-      description: `${size} основа, ${sauce.toLowerCase()} соус${toppingNames ? ', добавки: ' + toppingNames : ''}`
-    };
-    addToCart(pizza);
-  };
+      description: `${size}, ${sauce}${toppingNames ? ', ' + toppingNames : ''}`
+    }
+    addToCart(pizza)
+  }
 
   return (
-    <div>
-      <h1>Собери свою пиццу</h1>
-      <div className="constructor">
-        <div className="constructor-section">
-          <h3>Размер</h3>
-          <div className="options">
-            {Object.keys(sizes).map(s => (
-              <label key={s}>
-                <input type="radio" name="size" value={s} checked={size === s} onChange={() => setSize(s)} />
-                {s} {sizes[s] > 0 ? `(+${sizes[s]}₽)` : ''}
-              </label>
+    <div className="max-w-2xl mx-auto">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Собери пиццу</h1>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
+        {/* Размер */}
+        <div>
+          <div className="text-sm font-medium text-gray-500 mb-2">Размер</div>
+          <div className="flex gap-3">
+            {sizeOptions.map(s => (
+              <button
+                key={s.id}
+                className={`flex-1 py-3 px-2 rounded-xl border-2 text-center transition ${
+                  size === s.id
+                    ? 'border-amber-500 bg-amber-50 shadow-sm'
+                    : 'border-gray-200 hover:border-amber-300 hover:bg-gray-50'
+                }`}
+                onClick={() => setSize(s.id)}
+              >
+                <div className="text-xl">{s.icon}</div>
+                <div className="text-sm font-medium text-gray-800">{s.label}</div>
+                {s.price > 0 && <div className="text-xs text-amber-600">+{s.price}₽</div>}
+              </button>
             ))}
           </div>
         </div>
 
-        <div className="constructor-section">
-          <h3>Соус</h3>
-          <div className="options">
-            {Object.keys(sauces).map(s => (
-              <label key={s}>
-                <input type="radio" name="sauce" value={s} checked={sauce === s} onChange={() => setSauce(s)} />
-                {s} {sauces[s] > 0 ? `(+${sauces[s]}₽)` : ''}
-              </label>
+        {/* Соус */}
+        <div>
+          <div className="text-sm font-medium text-gray-500 mb-2">Соус</div>
+          <div className="flex gap-3">
+            {sauceOptions.map(s => (
+              <button
+                key={s.id}
+                className={`flex-1 py-3 px-2 rounded-xl border-2 text-center transition ${
+                  sauce === s.id
+                    ? 'border-amber-500 bg-amber-50 shadow-sm'
+                    : 'border-gray-200 hover:border-amber-300 hover:bg-gray-50'
+                }`}
+                onClick={() => setSauce(s.id)}
+              >
+                <div className="text-xl">{s.icon}</div>
+                <div className="text-sm font-medium text-gray-800">{s.id}</div>
+                {s.price > 0 && <div className="text-xs text-amber-600">+{s.price}₽</div>}
+              </button>
             ))}
           </div>
         </div>
 
-        <div className="constructor-section">
-          <h3>Начинки</h3>
-          <div className="options">
-            {toppingsList.map(t => (
-              <label key={t.name}>
-                <input type="checkbox" checked={!!toppings.find(to => to.name === t.name)} onChange={() => toggleTopping(t)} />
-                {t.name} (+{t.price}₽)
-              </label>
-            ))}
+        {/* Начинки */}
+        <div>
+          <div className="text-sm font-medium text-gray-500 mb-2">Начинки</div>
+          <div className="flex flex-wrap gap-2">
+            {toppingOptions.map(t => {
+              const selected = !!toppings.find(to => to.id === t.id)
+              return (
+                <button
+                  key={t.id}
+                  className={`py-2 px-4 rounded-xl border-2 transition flex items-center gap-2 ${
+                    selected
+                      ? 'border-amber-500 bg-amber-50 shadow-sm'
+                      : 'border-gray-200 hover:border-amber-300 hover:bg-gray-50'
+                  }`}
+                  onClick={() => toggleTopping(t)}
+                >
+                  <span className="text-lg">{t.icon}</span>
+                  <span className="text-sm font-medium text-gray-800">{t.id}</span>
+                  <span className="text-xs text-amber-600">+{t.price}₽</span>
+                </button>
+              )
+            })}
           </div>
         </div>
 
-        <div className="constructor-total">
-          Итого: {totalPrice} ₽
+        {/* Итог и кнопка */}
+        <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
+          <div>
+            <span className="text-sm text-gray-500">Итого</span>
+            <div className="text-2xl font-bold text-amber-600">{totalPrice} ₽</div>
+          </div>
+          <button
+            onClick={handleAddToCart}
+            className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-8 py-3 rounded-full transition shadow-md hover:shadow-lg flex items-center gap-2"
+          >
+            <span>В корзину</span>
+            <span>→</span>
+          </button>
         </div>
-        <button className="constructor-add-btn" onClick={handleAddToCart}>
-          Добавить в корзину
-        </button>
       </div>
     </div>
-  );
+  )
 }
 
-export default Constructor;
+export default Constructor
