@@ -4,7 +4,7 @@ import { API_BASE } from '../constants/api';
 import { ORDER_STATUSES } from '../constants/statuses';
 import { STORAGE_KEYS } from '../constants/storage';
 import { Button, Input, Card, Badge, LoadingSpinner } from '../components/ui';
-import { getImageUrl } from '../utils/imageUtils'; // Новая утилита
+import { getImageUrl } from '../utils/imageUtils';
 
 function Admin() {
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ function Admin() {
 
   const [editingPizza, setEditingPizza] = useState(null);
   const [pizzaForm, setPizzaForm] = useState({ name: '', category: '', description: '', price: '', image: '', sizes: '1,2,3' });
-  const [selectedImageFile, setSelectedImageFile] = useState(null); // Новое состояние
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
 
   const [editingSize, setEditingSize] = useState(null);
   const [sizeForm, setSizeForm] = useState({ name: '', label: '', circle_size: '', price: '0', sort_order: '0' });
@@ -55,7 +55,6 @@ function Admin() {
     fetchAll();
   }, []);
 
-  // ---- Запросы к API ----
   const fetchPizzas = async () => {
     const res = await fetch(API_BASE, {
       method: 'POST',
@@ -126,12 +125,10 @@ function Admin() {
     if (data.status === 'success') setCategories(data.categories);
   };
 
-  // ---- Пиццы (с загрузкой файлов) ----
   const handlePizzaSubmit = async (e) => {
     e.preventDefault();
     const action = editingPizza ? 'admin_update_pizza' : 'admin_add_pizza';
     
-    // Используем FormData для отправки файла
     const formData = new FormData();
     formData.append('action', action);
     formData.append('login_admin', 'admin');
@@ -144,12 +141,12 @@ function Admin() {
       formData.append('id', editingPizza.id);
     }
     if (selectedImageFile) {
-      formData.append('image', selectedImageFile); // добавляем файл
+      formData.append('image', selectedImageFile);
     }
 
     const res = await fetch(API_BASE, {
       method: 'POST',
-      body: formData, // браузер сам поставит Content-Type: multipart/form-data
+      body: formData, 
     });
     const data = await res.json();
     alert(data.message);
@@ -164,7 +161,7 @@ function Admin() {
   const handleEditPizza = (p) => {
     setEditingPizza(p);
     setPizzaForm(p);
-    setSelectedImageFile(null); // сбрасываем выбранный файл
+    setSelectedImageFile(null); 
   };
 
   const handleDeletePizza = async (id) => {
@@ -176,7 +173,6 @@ function Admin() {
     if (data.status === 'success') fetchPizzas();
   };
 
-  // ---- Пользователи ----
   const handleUpdateUserBonus = async (login, newBalance) => {
     if (!confirm(`Изменить баланс пользователя ${login} на ${newBalance}?`)) return;
     const payload = new URLSearchParams({ action: 'admin_update_user_bonus', login_admin: 'admin', login, balance: newBalance });
@@ -214,7 +210,6 @@ function Admin() {
     }
   };
 
-  // ---- Размеры ----
   const handleSizeSubmit = async (e) => {
     e.preventDefault();
     const action = editingSize ? 'admin_update_size' : 'admin_add_size';
@@ -244,7 +239,6 @@ function Admin() {
     if (data.status === 'success') fetchSizes();
   };
 
-  // ---- Соусы ----
   const handleSauceSubmit = async (e) => {
     e.preventDefault();
     const action = editingSauce ? 'admin_update_sauce' : 'admin_add_sauce';
@@ -274,7 +268,6 @@ function Admin() {
     if (data.status === 'success') fetchSauces();
   };
 
-  // ---- Начинки ----
   const handleToppingSubmit = async (e) => {
     e.preventDefault();
     const action = editingTopping ? 'admin_update_topping' : 'admin_add_topping';
@@ -304,7 +297,6 @@ function Admin() {
     if (data.status === 'success') fetchToppings();
   };
 
-  // ---- Категории ----
   const handleCategorySubmit = async (e) => {
     e.preventDefault();
     const action = editingCategory ? 'admin_update_category' : 'admin_add_category';
@@ -376,7 +368,6 @@ function Admin() {
         ))}
       </div>
 
-      {/* === Пиццы (обновлено) === */}
       {activeTab === 'pizzas' && (
         <div>
           <div className="bg-white rounded-xl shadow p-6 mb-6">
@@ -438,7 +429,6 @@ function Admin() {
         </div>
       )}
 
-      {/* === Заказы === */}
       {activeTab === 'orders' && (
         <div className="overflow-x-auto bg-white rounded-xl shadow">
           <table className="w-full text-sm">
@@ -461,7 +451,6 @@ function Admin() {
         </div>
       )}
 
-      {/* === Пользователи === */}
       {activeTab === 'users' && (
         <div className="overflow-x-auto bg-white rounded-xl shadow">
           <table className="w-full text-sm">
@@ -500,7 +489,6 @@ function Admin() {
         </div>
       )}
 
-      {/* === Размеры === */}
       {activeTab === 'sizes' && (
         <div>
           <div className="bg-white rounded-xl shadow p-6 mb-6">
@@ -536,7 +524,6 @@ function Admin() {
         </div>
       )}
 
-      {/* === Соусы === */}
       {activeTab === 'sauces' && (
         <div>
           <div className="bg-white rounded-xl shadow p-6 mb-6">
@@ -570,7 +557,6 @@ function Admin() {
         </div>
       )}
 
-      {/* === Начинки === */}
       {activeTab === 'toppings' && (
         <div>
           <div className="bg-white rounded-xl shadow p-6 mb-6">
@@ -604,7 +590,6 @@ function Admin() {
         </div>
       )}
 
-      {/* === Категории === */}
       {activeTab === 'categories' && (
         <div>
           <div className="bg-white rounded-xl shadow p-6 mb-6">

@@ -12,7 +12,6 @@ function Profile() {
   const navigate = useNavigate();
   const { userLogin, userProfile, login, logout, loading: authLoading } = useAuth();
 
-  // Используем React Query для бонусов
   const { data: bonuses = 0, isLoading: isBonusesLoading } = useBonuses(userLogin);
   const { data: bonusHistory = [], isLoading: isHistoryLoading } = useBonusHistory(userLogin);
 
@@ -107,7 +106,6 @@ function Profile() {
   const level = getLevel(bonuses);
   const nextLevel = getNextLevel(bonuses);
 
-  // Анимации
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: (delay = 0) => ({
@@ -196,7 +194,7 @@ function Profile() {
                       initial={{ scale: 0.5 }}
                       animate={{ scale: 1 }}
                       transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
-                      key={bonuses} // Реагирует на изменение бонусов
+                      key={bonuses}
                     >
                       {bonuses} ₽
                     </motion.span>
@@ -272,7 +270,6 @@ function Profile() {
     );
   }
 
-  // Форма входа / регистрации (без изменений)
   return (
     <div className="fade-in py-8">
       <div className="max-w-sm mx-auto">

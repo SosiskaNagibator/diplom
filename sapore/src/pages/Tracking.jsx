@@ -87,7 +87,6 @@ function Tracking() {
     return item.name === 'Пицца на заказ';
   };
 
-  // Анимации – более плавные, с большей задержкой
   const cardVariants = {
     hidden: { opacity: 0, y: 30 },
     visible: (index) => ({
@@ -259,7 +258,6 @@ function Tracking() {
     );
   };
 
-  // --- Рендер для гостя ---
   if (isGuest) {
     return (
       <div className="fade-in">
@@ -301,7 +299,6 @@ function Tracking() {
     );
   }
 
-  // --- Рендер для авторизованного ---
   if (isLoading) return <LoadingSpinner text="Загрузка заказов..." />;
   if (error) return <div className="text-center py-12 text-red-500">Ошибка загрузки: {error.message}</div>;
 

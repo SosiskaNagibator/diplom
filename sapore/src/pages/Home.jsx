@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { API_CATALOG } from '../constants/api';
 import { getPriceWithSize } from '../utils/priceUtils';
 import { Button, Card, LoadingSpinner } from '../components/ui';
-import { getImageUrl } from '../utils/imageUtils'; // Новая утилита
+import { getImageUrl } from '../utils/imageUtils';
 
 function Home({ addToCart }) {
   const [popularPizzas, setPopularPizzas] = useState([]);
@@ -78,7 +78,6 @@ function Home({ addToCart }) {
     addToCart(pizzaWithSize);
   };
 
-  // Анимации
   const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
     visible: (delay = 0) => ({
@@ -112,7 +111,6 @@ function Home({ addToCart }) {
 
   return (
     <div className="fade-in">
-      {/* Hero Section */}
       <motion.section
         initial="hidden"
         animate="visible"
@@ -150,7 +148,6 @@ function Home({ addToCart }) {
         </div>
       </motion.section>
 
-      {/* Почему мы */}
       <section className="mb-16">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
@@ -182,7 +179,6 @@ function Home({ addToCart }) {
         </div>
       </section>
 
-      {/* Популярное */}
       <section>
         <div className="flex items-center justify-between mb-6">
           <motion.h2

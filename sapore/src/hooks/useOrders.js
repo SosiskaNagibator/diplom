@@ -24,7 +24,7 @@ export const useOrders = (login) => {
       return [];
     },
     enabled: !!login,
-    staleTime: 2 * 60 * 1000, // 2 минуты
+    staleTime: 2 * 60 * 1000,
   });
 };
 
@@ -46,7 +46,6 @@ export const useUpdateOrderStatus = () => {
       return data;
     },
     onSuccess: (data, variables) => {
-      // Обновляем кеш заказов
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
   });

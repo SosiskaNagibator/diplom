@@ -7,7 +7,6 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const { userLogin } = useAuth();
 
-  // Загружаем корзину из localStorage при монтировании
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
@@ -19,7 +18,6 @@ export const CartProvider = ({ children }) => {
     }
   }, []);
 
-  // Сохраняем корзину в localStorage при каждом изменении
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);

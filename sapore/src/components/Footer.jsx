@@ -10,7 +10,6 @@ function Footer() {
     <footer className="bg-white border-t border-gray-200 mt-12 shadow-inner">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* О нас */}
           <div>
             <h3 className="text-2xl font-bold text-amber-600 mb-4">Sapore</h3>
             <p className="text-gray-600 text-sm leading-relaxed">
@@ -56,7 +55,6 @@ function Footer() {
             </div>
           </div>
 
-          {/* Быстрые ссылки */}
           <div>
             <h4 className="font-semibold text-gray-800 mb-4">Меню</h4>
             <ul className="space-y-2 text-sm">
@@ -67,7 +65,6 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Контакты */}
           <div>
             <h4 className="font-semibold text-gray-800 mb-4">Контакты</h4>
             <ul className="space-y-3 text-sm text-gray-600">
@@ -90,11 +87,10 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Доставка */}
           <div>
             <h4 className="font-semibold text-gray-800 mb-4">Доставка</h4>
             <ul className="space-y-2 text-sm text-gray-600">
-              <li>🚀 Бесплатная доставка</li>  {/* ← Изменено */}
+              <li>🚀 Бесплатная доставка</li>
               <li>⏱️ Среднее время доставки: 30–45 мин</li>
               <li>💳 Оплата картой или наличными</li>
               <li className="mt-3">

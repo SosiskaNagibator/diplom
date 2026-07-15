@@ -91,7 +91,6 @@ function Constructor({ addToCart }) {
     addToCart(pizza);
   };
 
-  // Анимации
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: (delay = 0) => ({
@@ -127,7 +126,6 @@ function Constructor({ addToCart }) {
       </motion.h1>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
-        {/* Размер */}
         <motion.div
           initial="hidden"
           animate="visible"
@@ -158,7 +156,6 @@ function Constructor({ addToCart }) {
           </div>
         </motion.div>
 
-        {/* Соус */}
         <motion.div
           initial="hidden"
           animate="visible"
@@ -189,7 +186,6 @@ function Constructor({ addToCart }) {
           </div>
         </motion.div>
 
-        {/* Начинки */}
         <motion.div
           initial="hidden"
           animate="visible"
@@ -224,7 +220,6 @@ function Constructor({ addToCart }) {
           </div>
         </motion.div>
 
-        {/* Итог */}
         <motion.div
           initial="hidden"
           animate="visible"

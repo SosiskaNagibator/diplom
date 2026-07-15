@@ -1,12 +1,11 @@
 import { parsePhoneNumberFromString, isValidPhoneNumber } from 'react-phone-number-input';
 
-// Нормализация: приводит к международному формату (например, +79991234567)
 export const normalizePhone = (phone) => {
   if (!phone) return '';
   try {
     const parsed = parsePhoneNumberFromString(phone);
     if (parsed && parsed.isValid()) {
-      return parsed.format('E.164'); // +79991234567
+      return parsed.format('E.164');
     }
     return phone;
   } catch {
@@ -14,7 +13,6 @@ export const normalizePhone = (phone) => {
   }
 };
 
-// Проверка валидности номера (использует библиотеку)
 export const isValidPhone = (phone) => {
   if (!phone) return false;
   try {
@@ -24,7 +22,6 @@ export const isValidPhone = (phone) => {
   }
 };
 
-// Полная валидация с нормализацией
 export const validateAndNormalizePhone = (phone) => {
   const normalized = normalizePhone(phone);
   const isValid = isValidPhone(normalized);

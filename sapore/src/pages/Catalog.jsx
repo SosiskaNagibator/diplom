@@ -1,17 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { usePizzas } from '../hooks/usePizzas';
 import { getPriceWithSize } from '../utils/priceUtils';
 import { Button, Card } from '../components/ui';
 import PizzaSkeleton from '../components/PizzaSkeleton';
-import { getImageUrl } from '../utils/imageUtils'; // <-- добавлен импорт
+import { getImageUrl } from '../utils/imageUtils';
+import Pagination from '../components/Pagination';
 
 function Catalog({ addToCart }) {
   const [activeCategoryId, setActiveCategoryId] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedSizes, setSelectedSizes] = useState({});
   const [priceAnimations, setPriceAnimations] = useState({});
+  const limit = 9;
 
-  const { data, isLoading, error } = usePizzas(activeCategoryId);
+  const { data, isLoading, error } = usePizzas(activeCategoryId, currentPage, limit);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategoryId]);
 
   useEffect(() => {
     if (data?.pizzas) {
@@ -25,18 +32,18 @@ function Catalog({ addToCart }) {
     }
   }, [data]);
 
-  const handleSizeChange = (pizzaId, size) => {
+  const handleSizeChange = useCallback((pizzaId, size) => {
     setSelectedSizes(prev => ({ ...prev, [pizzaId]: size }));
     setPriceAnimations(prev => ({ ...prev, [pizzaId]: 'price-pop-small' }));
     setTimeout(() => setPriceAnimations(prev => ({ ...prev, [pizzaId]: '' })), 400);
-  };
+  }, []);
 
-  const getPrice = (pizza) => {
+  const getPrice = useCallback((pizza) => {
     const selectedSize = selectedSizes[pizza.id];
     return getPriceWithSize(pizza.price, selectedSize);
-  };
+  }, [selectedSizes]);
 
-  const handleAddToCart = (e, pizza) => {
+  const handleAddToCart = useCallback((e, pizza) => {
     e?.preventDefault?.();
     e?.stopPropagation?.();
     const selectedSize = selectedSizes[pizza.id];
@@ -49,7 +56,12 @@ function Catalog({ addToCart }) {
       size_label: selectedSize?.label || '25 см'
     };
     addToCart(pizzaWithSize);
-  };
+  }, [selectedSizes, getPrice, addToCart]);
+
+  const handlePageChange = useCallback((page) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   if (error) {
     return <div className="text-center py-12 text-red-500">Ошибка загрузки: {error.message}</div>;
@@ -57,6 +69,7 @@ function Catalog({ addToCart }) {
 
   const pizzas = data?.pizzas || [];
   const categories = data?.categories || [];
+  const pagination = data?.pagination || { totalPages: 1, total: 0 };
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -64,8 +77,8 @@ function Catalog({ addToCart }) {
       opacity: 1,
       y: 0,
       transition: {
-        delay: index * 0.09,
-        duration: 0.55,
+        delay: index * 0.06,
+        duration: 0.5,
         ease: 'easeOut'
       }
     })
@@ -103,13 +116,13 @@ function Catalog({ addToCart }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
-          Array.from({ length: 6 }).map((_, index) => (
+          Array.from({ length: limit }).map((_, index) => (
             <PizzaSkeleton key={`skeleton-${index}`} />
           ))
         ) : (
           pizzas.map((pizza, index) => (
             <motion.div
-              key={`${pizza.id}-${activeCategoryId}`}
+              key={`${pizza.id}-${activeCategoryId}-${currentPage}`}
               custom={index}
               initial="hidden"
               animate="visible"
@@ -118,7 +131,7 @@ function Catalog({ addToCart }) {
               <Card hover className="overflow-hidden border border-gray-100">
                 <div className="relative overflow-hidden">
                   <img
-                    src={getImageUrl(pizza.image)} // <-- изменено
+                    src={getImageUrl(pizza.image)}
                     alt={pizza.name}
                     className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105"
                   />
@@ -159,6 +172,18 @@ function Catalog({ addToCart }) {
           ))
         )}
       </div>
+
+      {!isLoading && pizzas.length === 0 && (
+        <div className="text-center py-12 text-gray-500">
+          В этой категории пока нет пицц
+        </div>
+      )}
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={pagination.totalPages}
+        onPageChange={handlePageChange}
+      />
     </div>
   );
 }

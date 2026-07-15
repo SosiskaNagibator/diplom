@@ -15,7 +15,6 @@ export const useSaveOrder = () => {
       return data;
     },
     onSuccess: (data, variables) => {
-      // Обновляем бонусы и заказы в кеше
       queryClient.invalidateQueries({ queryKey: ['bonuses'] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },

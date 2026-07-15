@@ -4,7 +4,7 @@ import MapPicker from '../components/MapPicker/MapPicker';
 import { Button, Input } from '../components/ui';
 import { FaTelegramPlane, FaVk, FaYoutube, FaInstagram } from 'react-icons/fa';
 
-const API_CONTACTS = 'http://localhost/api/contacts.php';
+const API_CONTACTS = 'http://localhost/api.php';
 
 function Contacts() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -19,15 +19,26 @@ function Contacts() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus({ type: '', text: '' });
+
+    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
+      setStatus({ type: 'error', text: 'Заполните все поля' });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const response = await fetch(API_CONTACTS, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({ 
+          action: 'contact',
+          ...formData 
+        }),
       });
+
       const data = await response.json();
+
       if (data.status === 'success') {
         setStatus({ type: 'success', text: '✅ Сообщение отправлено! Мы свяжемся с вами.' });
         setFormData({ name: '', email: '', message: '' });
@@ -41,14 +52,13 @@ function Contacts() {
     }
   };
 
-  // Анимации
   const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
     visible: (delay = 0) => ({
       opacity: 1,
       y: 0,
-      transition: { delay, duration: 0.5, ease: 'easeOut' }
-    })
+      transition: { delay, duration: 0.5, ease: 'easeOut' },
+    }),
   };
 
   const cardVariants = {
@@ -56,12 +66,8 @@ function Contacts() {
     visible: (index) => ({
       opacity: 1,
       y: 0,
-      transition: {
-        delay: index * 0.1,
-        duration: 0.4,
-        ease: 'easeOut'
-      }
-    })
+      transition: { delay: index * 0.1, duration: 0.4, ease: 'easeOut' },
+    }),
   };
 
   return (
@@ -81,7 +87,6 @@ function Contacts() {
       </motion.h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Контактная информация */}
         <motion.div
           initial="hidden"
           animate="visible"
@@ -167,7 +172,6 @@ function Contacts() {
           </motion.div>
         </motion.div>
 
-        {/* Форма обратной связи */}
         <motion.div
           initial="hidden"
           animate="visible"
@@ -176,7 +180,7 @@ function Contacts() {
           className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
         >
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Напишите нам</h2>
-          <form onSubmit={handleSubmit} className="space-y-4" data-allow-submit>
+          <form onSubmit={handleSubmit} className="space-y-4">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -238,7 +242,6 @@ function Contacts() {
         </motion.div>
       </div>
 
-      {/* Карта */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}

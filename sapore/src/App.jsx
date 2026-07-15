@@ -26,7 +26,6 @@ function App() {
     setTimeout(() => setShowNotification(false), 2000);
   };
 
-  // Анимация для страниц
   const pageVariants = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
@@ -139,16 +138,18 @@ function App() {
       <Footer />
 
       {showNotification && (
-        <motion.div
-          initial={{ opacity: 0, y: 50, scale: 0.8 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 50, scale: 0.8 }}
-          transition={{ duration: 0.3 }}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-amber-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium z-50"
-        >
-          <span className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full text-white text-xs font-bold">✓</span>
-          {lastAdded} добавлена в корзину
-        </motion.div>
+        <div className="fixed bottom-6 left-1/2 z-50" style={{ transform: 'translateX(-50%)' }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+            className="bg-amber-600 text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium whitespace-nowrap"
+          >
+            <span className="inline-flex items-center justify-center w-6 h-6 bg-green-500 rounded-full text-white text-xs font-bold">✓</span>
+            {lastAdded} добавлена в корзину
+          </motion.div>
+        </div>
       )}
     </div>
   );

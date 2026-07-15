@@ -22,7 +22,7 @@ createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <CartProvider>
           <App />
-        </CartProvider>   {/* ← этот тег должен быть закрыт */}
+        </CartProvider>
       </AuthProvider>
     </QueryClientProvider>
   </BrowserRouter>
