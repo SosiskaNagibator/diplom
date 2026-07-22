@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { API_BASE } from '../constants/api';
 import { STORAGE_KEYS } from '../constants/storage';
@@ -7,6 +7,7 @@ import { getLevel, getNextLevel } from '../utils/bonusUtils';
 import { Button, Input, Card, Badge, LoadingSpinner } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { useBonuses, useBonusHistory } from '../hooks/useProfile';
+import ProfileSkeleton from '../components/skeletons/ProfileSkeleton';
 
 function Profile() {
   const navigate = useNavigate();
@@ -21,10 +22,11 @@ function Profile() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isRegister, setIsRegister] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
-  
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [consentPersonal, setConsentPersonal] = useState(false);
+  const [consentOffer, setConsentOffer] = useState(false);
 
   useEffect(() => {
     setIsLoggedIn(!!userLogin);
@@ -69,6 +71,10 @@ function Profile() {
         showMessage('Введите корректный номер телефона (минимум 10 цифр)', 'error');
         return;
       }
+      if (!consentPersonal || !consentOffer) {
+        showMessage('Необходимо принять условия обработки данных и пользовательское соглашение', 'error');
+        return;
+      }
     }
 
     try {
@@ -76,7 +82,7 @@ function Profile() {
         loginInput,
         password,
         isRegister,
-        { fullName, phone, email }
+        { fullName, phone, email, consentPersonal, consentOffer }
       );
 
       if (result.success) {
@@ -87,6 +93,8 @@ function Profile() {
         setFullName('');
         setPhone('');
         setEmail('');
+        setConsentPersonal(false);
+        setConsentOffer(false);
         if (result.data?.role === 'admin') {
           navigate('/admin');
         }
@@ -126,7 +134,7 @@ function Profile() {
 
   const isLoading = authLoading || isBonusesLoading || isHistoryLoading;
 
-  if (isLoading) return <LoadingSpinner text="Загрузка профиля..." />;
+  if (isLoading) return <ProfileSkeleton />;
 
   if (isLoggedIn) {
     return (
@@ -270,6 +278,7 @@ function Profile() {
     );
   }
 
+  // Форма входа / регистрации с чекбоксами
   return (
     <div className="fade-in py-8">
       <div className="max-w-sm mx-auto">
@@ -304,6 +313,16 @@ function Profile() {
             className="slide-in-right"
             style={{ animationDelay: '0.2s' }}
           />
+
+          {/* Ссылка "Забыли пароль?" (только при входе) */}
+          {!isRegister && (
+            <div className="text-right">
+              <Link to="/forgot-password" className="text-sm text-amber-600 hover:text-amber-700 hover:underline transition">
+                Забыли пароль?
+              </Link>
+            </div>
+          )}
+
           {isRegister && (
             <>
               <Input
@@ -340,6 +359,33 @@ function Profile() {
                 className="slide-in-right"
                 style={{ animationDelay: '0.4s' }}
               />
+              {/* Чекбоксы согласий */}
+              <div className="space-y-2 pt-2">
+                <label className="flex items-start gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={consentPersonal}
+                    onChange={(e) => setConsentPersonal(e.target.checked)}
+                    className="mt-1"
+                    required
+                  />
+                  <span>
+                    Я согласен на <Link to="/privacy" target="_blank" className="text-amber-600 underline hover:text-amber-700">обработку персональных данных</Link>
+                  </span>
+                </label>
+                <label className="flex items-start gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={consentOffer}
+                    onChange={(e) => setConsentOffer(e.target.checked)}
+                    className="mt-1"
+                    required
+                  />
+                  <span>
+                    Я принимаю <Link to="/offer" target="_blank" className="text-amber-600 underline hover:text-amber-700">пользовательское соглашение и оферту</Link>
+                  </span>
+                </label>
+              </div>
             </>
           )}
           {message.text && (
@@ -366,6 +412,8 @@ function Profile() {
               setFullName('');
               setPhone('');
               setEmail('');
+              setConsentPersonal(false);
+              setConsentOffer(false);
             }}
             className="w-full text-sm text-gray-500 hover:text-amber-600 transition-all duration-200 hover:scale-105"
           >

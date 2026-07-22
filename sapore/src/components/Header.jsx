@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
+import MobileMenu from './MobileMenu';
 
 function Header() {
   const { role } = useAuth();
@@ -13,11 +14,12 @@ function Header() {
         <Link to="/" className="text-3xl font-bold text-amber-600 tracking-tight hover:text-amber-700 transition">
           Sapore
         </Link>
-        <nav className="flex items-center gap-8 text-base font-medium">
+        <nav className="hidden lg:flex items-center gap-8 text-base font-medium">
           <Link to="/catalog" className="text-gray-600 hover:text-amber-600 transition">Меню</Link>
           <Link to="/constructor" className="text-gray-600 hover:text-amber-600 transition">Конструктор</Link>
           <Link to="/tracking" className="text-gray-600 hover:text-amber-600 transition">Заказы</Link>
           <Link to="/profile" className="text-gray-600 hover:text-amber-600 transition">Профиль</Link>
+          <Link to="/wishlist" className="text-gray-600 hover:text-amber-600 transition">Избранное</Link>
           {role === 'admin' && (
             <Link to="/admin" className="text-gray-600 hover:text-amber-600 transition">Админка</Link>
           )}
@@ -31,6 +33,7 @@ function Header() {
             )}
           </Link>
         </nav>
+        <MobileMenu />
       </div>
     </header>
   );

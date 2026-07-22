@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Toaster } from 'react-hot-toast';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -11,6 +12,10 @@ import Profile from './pages/Profile';
 import Tracking from './pages/Tracking';
 import Admin from './pages/Admin';
 import Contacts from './pages/Contacts';
+import PizzaDetails from './pages/PizzaDetails';
+import Wishlist from './pages/Wishlist';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import { useCart } from './contexts/CartContext';
 
 function App() {
@@ -45,98 +50,70 @@ function App() {
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={
-              <motion.div
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
                 <Home addToCart={handleAddToCart} />
               </motion.div>
             } />
             <Route path="/catalog" element={
-              <motion.div
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
                 <Catalog addToCart={handleAddToCart} />
               </motion.div>
             } />
             <Route path="/constructor" element={
-              <motion.div
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
                 <Constructor addToCart={handleAddToCart} />
               </motion.div>
             } />
             <Route path="/cart" element={
-              <motion.div
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
                 <Cart />
               </motion.div>
             } />
             <Route path="/profile" element={
-              <motion.div
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
                 <Profile />
               </motion.div>
             } />
             <Route path="/tracking" element={
-              <motion.div
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
                 <Tracking />
               </motion.div>
             } />
             <Route path="/admin" element={
-              <motion.div
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
                 <Admin />
               </motion.div>
             } />
             <Route path="/contacts" element={
-              <motion.div
-                initial="initial"
-                animate="animate"
-                exit="exit"
-                variants={pageVariants}
-                transition={pageTransition}
-              >
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
                 <Contacts />
+              </motion.div>
+            } />
+            <Route path="/pizza/:id" element={
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
+                <PizzaDetails addToCart={handleAddToCart} />
+              </motion.div>
+            } />
+            <Route path="/wishlist" element={
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
+                <Wishlist />
+              </motion.div>
+            } />
+            <Route path="/forgot-password" element={
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
+                <ForgotPassword />
+              </motion.div>
+            } />
+            <Route path="/reset-password" element={
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
+                <ResetPassword />
               </motion.div>
             } />
           </Routes>
         </AnimatePresence>
       </main>
       <Footer />
-
+      <Toaster position="bottom-right" />
       {showNotification && (
         <div className="fixed bottom-6 left-1/2 z-50" style={{ transform: 'translateX(-50%)' }}>
           <motion.div
