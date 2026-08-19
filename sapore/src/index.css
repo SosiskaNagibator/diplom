@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 /* Глобальные анимации */
 @keyframes slide-up {
   from { opacity: 0; transform: translateX(-50%) translateY(20px); }
@@ -222,4 +224,34 @@ tr:hover { background: #f9fafb; }
 .react-phone-input-2 .search input:focus {
   border-color: #f59e0b !important;
   box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2) !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Скрытие скроллбар для колесика */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.leaflet-control-attribution {
+    display: none !important;
 }

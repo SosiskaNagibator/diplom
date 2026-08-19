@@ -170,6 +170,19 @@ function Tracking() {
             </div>
           </div>
           {order.deliveryAddress && <div className="mt-4 text-sm text-gray-500 flex items-center gap-1"><span>📍</span> {order.deliveryAddress}</div>}
+          {order.deliveryTime && (
+            <div className="mt-2 text-sm text-gray-500 flex items-center gap-1">
+              <span>⏰</span> {new Date(order.deliveryTime).toLocaleString()}
+            </div>
+          )}
+          {order.promoCode && (
+            <div className="mt-1 text-sm text-gray-500 flex items-center gap-1">
+              <span>🏷️</span> Промокод: {order.promoCode} (скидка {order.discountAmount} ₽)
+            </div>
+          )}
+          {order.finalTotal && order.finalTotal !== order.total && (
+            <div className="mt-1 text-sm text-green-600">Итого к оплате: {order.finalTotal} ₽</div>
+          )}
           {order.customerName && <div className="mt-1 text-sm text-gray-500 flex items-center gap-1"><span>👤</span> {order.customerName} {order.customerPhone && `(${order.customerPhone})`}</div>}
         </div>
       </motion.div>

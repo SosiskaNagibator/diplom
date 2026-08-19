@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = useCallback(async (login, password, isRegister = false, profileData = {}) => {
+  const login = useCallback(async (login, password, isRegister = false, profileData = {}, referralCode = '') => {
     try {
       const formData = new URLSearchParams();
       formData.append('Login', login);
@@ -50,9 +50,9 @@ export const AuthProvider = ({ children }) => {
         formData.append('FullName', profileData.fullName || '');
         formData.append('Phone', profileData.phone || '');
         formData.append('Email', profileData.email || '');
-        // ДОБАВЛЯЕМ ПЕРЕДАЧУ СОГЛАСИЙ
         formData.append('consent_personal_data', profileData.consentPersonal ? 'true' : 'false');
         formData.append('consent_offer', profileData.consentOffer ? 'true' : 'false');
+        formData.append('ReferralCode', referralCode);
       }
 
       const response = await fetch('http://localhost/api.php', {

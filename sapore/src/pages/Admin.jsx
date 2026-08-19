@@ -59,7 +59,7 @@ function Admin() {
     const res = await fetch(API_BASE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ action: 'admin_get_pizzas', login_admin: 'admin' })
+      body: new URLSearchParams({ action: 'admin_get_pizzas' })
     });
     const data = await res.json();
     if (data.status === 'success') setPizzas(data.pizzas);
@@ -69,7 +69,7 @@ function Admin() {
     const res = await fetch(API_BASE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ action: 'admin_get_orders', login_admin: 'admin' })
+      body: new URLSearchParams({ action: 'admin_get_orders' })
     });
     const data = await res.json();
     if (data.status === 'success') setOrders(data.orders);
@@ -79,7 +79,7 @@ function Admin() {
     const res = await fetch(API_BASE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ action: 'admin_get_users', login_admin: 'admin' })
+      body: new URLSearchParams({ action: 'admin_get_users' })
     });
     const data = await res.json();
     if (data.status === 'success') setUsers(data.users);
@@ -89,7 +89,7 @@ function Admin() {
     const res = await fetch(API_BASE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ action: 'admin_get_sizes', login_admin: 'admin' })
+      body: new URLSearchParams({ action: 'admin_get_sizes' })
     });
     const data = await res.json();
     if (data.status === 'success') setSizes(data.sizes);
@@ -99,7 +99,7 @@ function Admin() {
     const res = await fetch(API_BASE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ action: 'admin_get_sauces', login_admin: 'admin' })
+      body: new URLSearchParams({ action: 'admin_get_sauces' })
     });
     const data = await res.json();
     if (data.status === 'success') setSauces(data.sauces);
@@ -109,7 +109,7 @@ function Admin() {
     const res = await fetch(API_BASE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ action: 'admin_get_toppings', login_admin: 'admin' })
+      body: new URLSearchParams({ action: 'admin_get_toppings' })
     });
     const data = await res.json();
     if (data.status === 'success') setToppings(data.toppings);
@@ -119,7 +119,7 @@ function Admin() {
     const res = await fetch(API_BASE, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ action: 'admin_get_categories', login_admin: 'admin' })
+      body: new URLSearchParams({ action: 'admin_get_categories' })
     });
     const data = await res.json();
     if (data.status === 'success') setCategories(data.categories);
@@ -128,10 +128,8 @@ function Admin() {
   const handlePizzaSubmit = async (e) => {
     e.preventDefault();
     const action = editingPizza ? 'admin_update_pizza' : 'admin_add_pizza';
-    
     const formData = new FormData();
     formData.append('action', action);
-    formData.append('login_admin', 'admin');
     formData.append('name', pizzaForm.name);
     formData.append('category', pizzaForm.category);
     formData.append('description', pizzaForm.description);
@@ -146,7 +144,7 @@ function Admin() {
 
     const res = await fetch(API_BASE, {
       method: 'POST',
-      body: formData, 
+      body: formData,
     });
     const data = await res.json();
     alert(data.message);
@@ -161,12 +159,12 @@ function Admin() {
   const handleEditPizza = (p) => {
     setEditingPizza(p);
     setPizzaForm(p);
-    setSelectedImageFile(null); 
+    setSelectedImageFile(null);
   };
 
   const handleDeletePizza = async (id) => {
     if (!confirm('Удалить пиццу?')) return;
-    const payload = new URLSearchParams({ action: 'admin_delete_pizza', login_admin: 'admin', id });
+    const payload = new URLSearchParams({ action: 'admin_delete_pizza', id });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     const data = await res.json();
     alert(data.message);
@@ -175,7 +173,7 @@ function Admin() {
 
   const handleUpdateUserBonus = async (login, newBalance) => {
     if (!confirm(`Изменить баланс пользователя ${login} на ${newBalance}?`)) return;
-    const payload = new URLSearchParams({ action: 'admin_update_user_bonus', login_admin: 'admin', login, balance: newBalance });
+    const payload = new URLSearchParams({ action: 'admin_update_user_bonus', login, balance: newBalance });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     const data = await res.json();
     alert(data.message);
@@ -187,7 +185,6 @@ function Admin() {
     try {
       const profilePayload = new URLSearchParams({
         action: 'admin_update_user',
-        login_admin: 'admin',
         login,
         fullName,
         phone,
@@ -197,7 +194,6 @@ function Admin() {
       if (balance !== undefined && balance !== null) {
         const bonusPayload = new URLSearchParams({
           action: 'admin_update_user_bonus',
-          login_admin: 'admin',
           login,
           balance
         });
@@ -213,7 +209,7 @@ function Admin() {
   const handleSizeSubmit = async (e) => {
     e.preventDefault();
     const action = editingSize ? 'admin_update_size' : 'admin_add_size';
-    const payload = new URLSearchParams({ action, login_admin: 'admin', ...sizeForm });
+    const payload = new URLSearchParams({ action, ...sizeForm });
     if (editingSize) payload.append('id', editingSize.id);
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     const data = await res.json();
@@ -232,7 +228,7 @@ function Admin() {
 
   const handleDeleteSize = async (id) => {
     if (!confirm('Удалить размер?')) return;
-    const payload = new URLSearchParams({ action: 'admin_delete_size', login_admin: 'admin', id });
+    const payload = new URLSearchParams({ action: 'admin_delete_size', id });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     const data = await res.json();
     alert(data.message);
@@ -242,7 +238,7 @@ function Admin() {
   const handleSauceSubmit = async (e) => {
     e.preventDefault();
     const action = editingSauce ? 'admin_update_sauce' : 'admin_add_sauce';
-    const payload = new URLSearchParams({ action, login_admin: 'admin', ...sauceForm });
+    const payload = new URLSearchParams({ action, ...sauceForm });
     if (editingSauce) payload.append('id', editingSauce.id);
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     const data = await res.json();
@@ -261,7 +257,7 @@ function Admin() {
 
   const handleDeleteSauce = async (id) => {
     if (!confirm('Удалить соус?')) return;
-    const payload = new URLSearchParams({ action: 'admin_delete_sauce', login_admin: 'admin', id });
+    const payload = new URLSearchParams({ action: 'admin_delete_sauce', id });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     const data = await res.json();
     alert(data.message);
@@ -271,7 +267,7 @@ function Admin() {
   const handleToppingSubmit = async (e) => {
     e.preventDefault();
     const action = editingTopping ? 'admin_update_topping' : 'admin_add_topping';
-    const payload = new URLSearchParams({ action, login_admin: 'admin', ...toppingForm });
+    const payload = new URLSearchParams({ action, ...toppingForm });
     if (editingTopping) payload.append('id', editingTopping.id);
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     const data = await res.json();
@@ -290,7 +286,7 @@ function Admin() {
 
   const handleDeleteTopping = async (id) => {
     if (!confirm('Удалить начинку?')) return;
-    const payload = new URLSearchParams({ action: 'admin_delete_topping', login_admin: 'admin', id });
+    const payload = new URLSearchParams({ action: 'admin_delete_topping', id });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     const data = await res.json();
     alert(data.message);
@@ -300,7 +296,7 @@ function Admin() {
   const handleCategorySubmit = async (e) => {
     e.preventDefault();
     const action = editingCategory ? 'admin_update_category' : 'admin_add_category';
-    const payload = new URLSearchParams({ action, login_admin: 'admin', ...categoryForm });
+    const payload = new URLSearchParams({ action, ...categoryForm });
     if (editingCategory) payload.append('id', editingCategory.id);
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     const data = await res.json();
@@ -319,7 +315,7 @@ function Admin() {
 
   const handleDeleteCategory = async (id) => {
     if (!confirm('Удалить категорию? Все пиццы с этой категорией потеряют связь.')) return;
-    const payload = new URLSearchParams({ action: 'admin_delete_category', login_admin: 'admin', id });
+    const payload = new URLSearchParams({ action: 'admin_delete_category', id });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     const data = await res.json();
     alert(data.message);
@@ -327,14 +323,23 @@ function Admin() {
   };
 
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
-    const payload = new URLSearchParams({ action: 'admin_update_order_status', login_admin: 'admin', order_id: orderId, status: newStatus });
+    const payload = new URLSearchParams({ action: 'admin_update_order_status', order_id: orderId, status: newStatus });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') fetchOrders();
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch(API_BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ action: 'admin_logout' })
+      });
+    } catch (e) {
+      console.error(e);
+    }
     localStorage.removeItem(STORAGE_KEYS.USER_ROLE);
     localStorage.removeItem(STORAGE_KEYS.USER_LOGIN);
     navigate('/profile');
@@ -368,6 +373,7 @@ function Admin() {
         ))}
       </div>
 
+      {/* Вкладки (контент без изменений, всё как в оригинале) */}
       {activeTab === 'pizzas' && (
         <div>
           <div className="bg-white rounded-xl shadow p-6 mb-6">
@@ -389,14 +395,10 @@ function Admin() {
                   className="w-full p-2 border border-gray-200 rounded-xl"
                 />
                 {editingPizza && pizzaForm.image && !selectedImageFile && (
-                  <div className="mt-2 text-sm text-gray-500">
-                    Текущее изображение: {pizzaForm.image}
-                  </div>
+                  <div className="mt-2 text-sm text-gray-500">Текущее изображение: {pizzaForm.image}</div>
                 )}
                 {selectedImageFile && (
-                  <div className="mt-2 text-sm text-green-600">
-                    Выбран файл: {selectedImageFile.name}
-                  </div>
+                  <div className="mt-2 text-sm text-green-600">Выбран файл: {selectedImageFile.name}</div>
                 )}
               </div>
               <textarea name="description" value={pizzaForm.description} onChange={e => setPizzaForm({...pizzaForm, description: e.target.value})} placeholder="Описание" className="border p-2 rounded col-span-2" rows="2" />
@@ -413,11 +415,7 @@ function Admin() {
                   <td>{p.name}</td>
                   <td>{p.category}</td>
                   <td>{p.price} ₽</td>
-                  <td>
-                    {p.image && (
-                      <img src={getImageUrl(p.image)} alt={p.name} className="h-12 w-12 object-cover rounded-lg" />
-                    )}
-                  </td>
+                  <td>{p.image && <img src={getImageUrl(p.image)} alt={p.name} className="h-12 w-12 object-cover rounded-lg" />}</td>
                   <td className="flex gap-2">
                     <Button variant="outline" onClick={() => handleEditPizza(p)} className="px-3 py-1 text-sm">✎</Button>
                     <Button variant="danger" onClick={() => handleDeletePizza(p.id)} className="px-3 py-1 text-sm">✕</Button>
@@ -432,7 +430,7 @@ function Admin() {
       {activeTab === 'orders' && (
         <div className="overflow-x-auto bg-white rounded-xl shadow">
           <table className="w-full text-sm">
-            <thead className="bg-gray-100"><tr><th className="p-3 text-left">№</th><th>Пользователь</th><th>Сумма</th><th>Статус</th><th>Адрес</th><th>Действие</th></tr></thead>
+            <thead className="bg-gray-100"><tr><th className="p-3 text-left">№</th><th>Пользователь</th><th>Сумма</th><th>Статус</th><th>Адрес</th><th>Время</th><th>Промокод</th><th>Действие</th></tr></thead>
             <tbody>{orders.map(o => (
               <tr key={o.id} className="border-t">
                 <td className="p-3">{o.order_number}</td>
@@ -440,6 +438,8 @@ function Admin() {
                 <td>{o.total} ₽</td>
                 <td><Badge variant="primary">{o.status}</Badge></td>
                 <td>{o.delivery_address || '—'}</td>
+                <td>{o.delivery_time || '—'}</td>
+                <td>{o.promo_code || '—'}</td>
                 <td>
                   <select value={o.status} onChange={e => handleUpdateOrderStatus(o.id, e.target.value)} className="border p-1 rounded">
                     {ORDER_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -454,25 +454,15 @@ function Admin() {
       {activeTab === 'users' && (
         <div className="overflow-x-auto bg-white rounded-xl shadow">
           <table className="w-full text-sm">
-            <thead className="bg-gray-100">
-              <tr><th>Логин</th><th>Имя</th><th>Телефон</th><th>Email</th><th>Бонусы</th><th>Действия</th></tr>
-            </thead>
+            <thead className="bg-gray-100"><tr><th>Логин</th><th>Имя</th><th>Телефон</th><th>Email</th><th>Бонусы</th><th>Действия</th></tr></thead>
             <tbody>
               {users.map(u => (
                 <tr key={u.Login} className="border-t">
                   <td className="p-3">{u.Login}</td>
-                  <td>
-                    <Input type="text" defaultValue={u.full_name || ''} id={`name-${u.Login}`} className="w-32" />
-                  </td>
-                  <td>
-                    <Input type="text" defaultValue={u.phone || ''} id={`phone-${u.Login}`} className="w-32" />
-                  </td>
-                  <td>
-                    <Input type="email" defaultValue={u.email || ''} id={`email-${u.Login}`} className="w-32" />
-                  </td>
-                  <td>
-                    <Input type="number" defaultValue={u.balance} id={`bonus-${u.Login}`} className="w-24" />
-                  </td>
+                  <td><Input type="text" defaultValue={u.full_name || ''} id={`name-${u.Login}`} className="w-32" /></td>
+                  <td><Input type="text" defaultValue={u.phone || ''} id={`phone-${u.Login}`} className="w-32" /></td>
+                  <td><Input type="email" defaultValue={u.email || ''} id={`email-${u.Login}`} className="w-32" /></td>
+                  <td><Input type="number" defaultValue={u.balance} id={`bonus-${u.Login}`} className="w-24" /></td>
                   <td>
                     <Button variant="primary" onClick={() => {
                       const name = document.getElementById(`name-${u.Login}`).value;
@@ -494,8 +484,8 @@ function Admin() {
           <div className="bg-white rounded-xl shadow p-6 mb-6">
             <h2 className="text-xl font-semibold mb-4">{editingSize ? 'Редактировать размер' : 'Добавить размер'}</h2>
             <form onSubmit={handleSizeSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input name="name" value={sizeForm.name} onChange={e => setSizeForm({...sizeForm, name: e.target.value})} placeholder="Название (например, Маленькая)" required />
-              <Input name="label" value={sizeForm.label} onChange={e => setSizeForm({...sizeForm, label: e.target.value})} placeholder="Метка (например, 25 см)" required />
+              <Input name="name" value={sizeForm.name} onChange={e => setSizeForm({...sizeForm, name: e.target.value})} placeholder="Название" required />
+              <Input name="label" value={sizeForm.label} onChange={e => setSizeForm({...sizeForm, label: e.target.value})} placeholder="Метка" required />
               <Input name="circle_size" value={sizeForm.circle_size} onChange={e => setSizeForm({...sizeForm, circle_size: e.target.value})} placeholder="Диаметр круга (px)" type="number" required />
               <Input name="price" value={sizeForm.price} onChange={e => setSizeForm({...sizeForm, price: e.target.value})} placeholder="Доп. цена" type="number" />
               <Input name="sort_order" value={sizeForm.sort_order} onChange={e => setSizeForm({...sizeForm, sort_order: e.target.value})} placeholder="Порядок" type="number" />
@@ -504,22 +494,10 @@ function Admin() {
             </form>
           </div>
           <div className="overflow-x-auto bg-white rounded-xl shadow">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-100"><tr><th>ID</th><th>Название</th><th>Метка</th><th>Диаметр</th><th>Цена</th><th>Действия</th></tr></thead>
-              <tbody>{sizes.map(s => (
-                <tr key={s.id} className="border-t">
-                  <td className="p-3">{s.id}</td>
-                  <td>{s.name}</td>
-                  <td>{s.label}</td>
-                  <td>{s.circle_size}px</td>
-                  <td>{s.price} ₽</td>
-                  <td className="flex gap-2">
-                    <Button variant="outline" onClick={() => handleEditSize(s)} className="px-3 py-1 text-sm">✎</Button>
-                    <Button variant="danger" onClick={() => handleDeleteSize(s.id)} className="px-3 py-1 text-sm">✕</Button>
-                  </td>
-                </tr>
-              ))}</tbody>
-            </table>
+            <table className="w-full text-sm"><thead className="bg-gray-100"><tr><th>ID</th><th>Название</th><th>Метка</th><th>Диаметр</th><th>Цена</th><th>Действия</th></tr></thead>
+            <tbody>{sizes.map(s => (
+              <tr key={s.id} className="border-t"><td className="p-3">{s.id}</td><td>{s.name}</td><td>{s.label}</td><td>{s.circle_size}px</td><td>{s.price} ₽</td><td className="flex gap-2"><Button variant="outline" onClick={() => handleEditSize(s)} className="px-3 py-1 text-sm">✎</Button><Button variant="danger" onClick={() => handleDeleteSize(s.id)} className="px-3 py-1 text-sm">✕</Button></td></tr>
+            ))}</tbody></table>
           </div>
         </div>
       )}
@@ -538,21 +516,10 @@ function Admin() {
             </form>
           </div>
           <div className="overflow-x-auto bg-white rounded-xl shadow">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-100"><tr><th>ID</th><th>Название</th><th>Иконка</th><th>Цена</th><th>Действия</th></tr></thead>
-              <tbody>{sauces.map(s => (
-                <tr key={s.id} className="border-t">
-                  <td className="p-3">{s.id}</td>
-                  <td>{s.name}</td>
-                  <td>{s.icon}</td>
-                  <td>{s.price} ₽</td>
-                  <td className="flex gap-2">
-                    <Button variant="outline" onClick={() => handleEditSauce(s)} className="px-3 py-1 text-sm">✎</Button>
-                    <Button variant="danger" onClick={() => handleDeleteSauce(s.id)} className="px-3 py-1 text-sm">✕</Button>
-                  </td>
-                </tr>
-              ))}</tbody>
-            </table>
+            <table className="w-full text-sm"><thead className="bg-gray-100"><tr><th>ID</th><th>Название</th><th>Иконка</th><th>Цена</th><th>Действия</th></tr></thead>
+            <tbody>{sauces.map(s => (
+              <tr key={s.id} className="border-t"><td className="p-3">{s.id}</td><td>{s.name}</td><td>{s.icon}</td><td>{s.price} ₽</td><td className="flex gap-2"><Button variant="outline" onClick={() => handleEditSauce(s)} className="px-3 py-1 text-sm">✎</Button><Button variant="danger" onClick={() => handleDeleteSauce(s.id)} className="px-3 py-1 text-sm">✕</Button></td></tr>
+            ))}</tbody></table>
           </div>
         </div>
       )}
@@ -571,21 +538,10 @@ function Admin() {
             </form>
           </div>
           <div className="overflow-x-auto bg-white rounded-xl shadow">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-100"><tr><th>ID</th><th>Название</th><th>Иконка</th><th>Цена</th><th>Действия</th></tr></thead>
-              <tbody>{toppings.map(t => (
-                <tr key={t.id} className="border-t">
-                  <td className="p-3">{t.id}</td>
-                  <td>{t.name}</td>
-                  <td>{t.icon}</td>
-                  <td>{t.price} ₽</td>
-                  <td className="flex gap-2">
-                    <Button variant="outline" onClick={() => handleEditTopping(t)} className="px-3 py-1 text-sm">✎</Button>
-                    <Button variant="danger" onClick={() => handleDeleteTopping(t.id)} className="px-3 py-1 text-sm">✕</Button>
-                  </td>
-                </tr>
-              ))}</tbody>
-            </table>
+            <table className="w-full text-sm"><thead className="bg-gray-100"><tr><th>ID</th><th>Название</th><th>Иконка</th><th>Цена</th><th>Действия</th></tr></thead>
+            <tbody>{toppings.map(t => (
+              <tr key={t.id} className="border-t"><td className="p-3">{t.id}</td><td>{t.name}</td><td>{t.icon}</td><td>{t.price} ₽</td><td className="flex gap-2"><Button variant="outline" onClick={() => handleEditTopping(t)} className="px-3 py-1 text-sm">✎</Button><Button variant="danger" onClick={() => handleDeleteTopping(t.id)} className="px-3 py-1 text-sm">✕</Button></td></tr>
+            ))}</tbody></table>
           </div>
         </div>
       )}
@@ -602,22 +558,10 @@ function Admin() {
             </form>
           </div>
           <div className="overflow-x-auto bg-white rounded-xl shadow">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-100"><tr><th>ID</th><th>Название</th><th>Порядок</th><th>Действия</th></tr></thead>
-              <tbody>
-                {categories.map(c => (
-                  <tr key={c.id} className="border-t">
-                    <td className="p-3">{c.id}</td>
-                    <td>{c.name}</td>
-                    <td>{c.sort_order}</td>
-                    <td className="flex gap-2">
-                      <Button variant="outline" onClick={() => handleEditCategory(c)} className="px-3 py-1 text-sm">✎</Button>
-                      <Button variant="danger" onClick={() => handleDeleteCategory(c.id)} className="px-3 py-1 text-sm">✕</Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <table className="w-full text-sm"><thead className="bg-gray-100"><tr><th>ID</th><th>Название</th><th>Порядок</th><th>Действия</th></tr></thead>
+            <tbody>{categories.map(c => (
+              <tr key={c.id} className="border-t"><td className="p-3">{c.id}</td><td>{c.name}</td><td>{c.sort_order}</td><td className="flex gap-2"><Button variant="outline" onClick={() => handleEditCategory(c)} className="px-3 py-1 text-sm">✎</Button><Button variant="danger" onClick={() => handleDeleteCategory(c.id)} className="px-3 py-1 text-sm">✕</Button></td></tr>
+            ))}</tbody></table>
           </div>
         </div>
       )}

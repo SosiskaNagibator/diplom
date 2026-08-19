@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import MobileMenu from './MobileMenu';
+import SearchBar from './SearchBar';
 
 function Header() {
   const { role } = useAuth();
@@ -14,6 +15,9 @@ function Header() {
         <Link to="/" className="text-3xl font-bold text-amber-600 tracking-tight hover:text-amber-700 transition">
           Sapore
         </Link>
+        <div className="hidden lg:block flex-1 max-w-md mx-4">
+          <SearchBar />
+        </div>
         <nav className="hidden lg:flex items-center gap-8 text-base font-medium">
           <Link to="/catalog" className="text-gray-600 hover:text-amber-600 transition">Меню</Link>
           <Link to="/constructor" className="text-gray-600 hover:text-amber-600 transition">Конструктор</Link>
