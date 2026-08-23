@@ -255,3 +255,19 @@ tr:hover { background: #f9fafb; }
 .leaflet-control-attribution {
     display: none !important;
 }
+
+/* Курсор для интерактивных элементов */
+button:not(:disabled),
+a:not(:disabled),
+[role="button"]:not(:disabled),
+input[type="submit"]:not(:disabled),
+input[type="button"]:not(:disabled) {
+    cursor: pointer;
+}
+button:disabled,
+a:disabled,
+[role="button"]:disabled,
+input[type="submit"]:disabled,
+input[type="button"]:disabled {
+    cursor: not-allowed;
+}

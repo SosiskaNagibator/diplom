@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useState, useCallback, useMemo, memo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MapPicker from '../components/MapPicker/MapPicker';
+import AddressSelector from '../components/AddressSelector';
 import BonusSlider from '../components/BonusSlider';
 import { Button } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,6 +12,7 @@ import { useBonuses } from '../hooks/useProfile';
 import { useSaveOrder } from '../hooks/useCart';
 import CartItem from '../components/CartItem';
 import { API_ORDERS } from '../constants/api';
+import { FaBolt, FaClock, FaPizzaSlice, FaClipboardList, FaGift, FaCoins, FaCheck } from 'react-icons/fa';
 
 const MemoMapPicker = memo(MapPicker);
 
@@ -122,7 +124,6 @@ function Cart() {
 
   const { data: availableBonuses = 0 } = useBonuses(userLogin);
 
-  // --- Состояния ---
   const [useBonus, setUseBonus] = useState(false);
   const [bonusPercentage, setBonusPercentage] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -133,12 +134,10 @@ function Cart() {
   const [customerEmail, setCustomerEmail] = useState('');
   const [phoneError, setPhoneError] = useState('');
 
-  // Режим доставки: 'asap' или 'choose'
   const [deliveryMode, setDeliveryMode] = useState('asap');
   const [selectedHour, setSelectedHour] = useState(null);
   const [selectedMinute, setSelectedMinute] = useState(null);
 
-  // Промокод
   const [promoCode, setPromoCode] = useState('');
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [appliedPromo, setAppliedPromo] = useState('');
@@ -147,7 +146,6 @@ function Cart() {
 
   const { mutateAsync: saveOrder, isPending: isSaving } = useSaveOrder();
 
-  // --- Вычисления ---
   const total = useMemo(() => getTotal(), [cart, getTotal]);
 
   const maxBonusPercent = 20;
@@ -157,7 +155,6 @@ function Cart() {
   const totalAfterBonus = total - bonusUsed;
   const finalTotal = totalAfterBonus - promoDiscount;
 
-  // --- Эффекты ---
   useEffect(() => {
     if (appliedPromo) {
       setUseBonus(false);
@@ -166,7 +163,6 @@ function Cart() {
     }
   }, [appliedPromo]);
 
-  // Логика времени доставки
   const maxHour = 22;
   const now = new Date();
   const minTime = new Date(now.getTime() + 30 * 60000);
@@ -222,6 +218,10 @@ function Cart() {
     setDeliveryAddress(addr);
   }, []);
 
+  const handleAddressSelectFromList = useCallback((addr) => {
+    setDeliveryAddress(addr);
+  }, []);
+
   const handleBonusToggle = useCallback((checked) => {
     if (checked && maxUsableBonus > 0 && !appliedPromo) {
       setUseBonus(true);
@@ -251,7 +251,6 @@ function Cart() {
     return digits.length >= 10 && digits.length <= 11;
   };
 
-  // ---- Промокод ----
   const handleApplyPromo = async () => {
     if (!promoCode.trim()) return;
     setIsApplyingPromo(true);
@@ -291,7 +290,6 @@ function Cart() {
     setPromoCode('');
   };
 
-  // ---- Оформление заказа ----
   const handleCheckout = useCallback(async (e) => {
     e?.preventDefault?.();
     e?.stopPropagation?.();
@@ -326,9 +324,15 @@ function Cart() {
       fullAddress += `, кв. ${apartment.trim()}`;
     }
 
-    const deliveryTimeValue = deliveryMode === 'asap'
-      ? 'ASAP'
-      : `${String(selectedHour).padStart(2, '0')}:${String(selectedMinute).padStart(2, '0')}`;
+    // Формируем время доставки
+    let deliveryTimeValue;
+    if (deliveryMode === 'asap') {
+      deliveryTimeValue = 'ASAP';
+    } else {
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+      deliveryTimeValue = `${dateStr}T${String(selectedHour).padStart(2, '0')}:${String(selectedMinute).padStart(2, '0')}`;
+    }
 
     const payload = {
       action: 'save_order',
@@ -395,7 +399,26 @@ function Cart() {
     }
   }, [isSaving, cart, isGuest, customerName, customerPhone, customerEmail, deliveryAddress, apartment, deliveryMode, selectedHour, selectedMinute, total, totalAfterBonus, bonusUsed, finalTotal, promoDiscount, appliedPromo, navigate, clearCart, userLogin, userProfile, saveOrder]);
 
-  // ---- Рендер ----
+  // ---------- ЕСЛИ КОРЗИНА ПУСТАЯ ----------
+  if (cart.length === 0) {
+    return (
+      <div className="fade-in">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">Корзина</h1>
+        <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
+          <div className="flex justify-center mb-4">
+            <FaPizzaSlice className="text-6xl text-amber-500 animate-bounce-in" />
+          </div>
+          <div className="text-xl font-medium text-gray-800">Пока пусто</div>
+          <div className="text-gray-500 mt-1">Добавьте что-нибудь из меню</div>
+          <Link to="/catalog">
+            <Button variant="primary">Перейти в меню</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- ОСНОВНОЙ РЕНДЕР ----------
   return (
     <div className="fade-in">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Корзина</h1>
@@ -406,7 +429,8 @@ function Cart() {
       </AnimatePresence>
 
       <motion.div className="mt-8 bg-white p-6 rounded-xl shadow-sm border border-gray-100" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.5 }}>
-        {/* Адрес */}
+        <AddressSelector onSelect={handleAddressSelectFromList} />
+
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">Адрес доставки</label>
           <MemoMapPicker onAddressSelect={handleAddressSelect} initialAddress={deliveryAddress} />
@@ -417,11 +441,8 @@ function Cart() {
           <input type="text" value={apartment} onChange={(e) => setApartment(e.target.value)} placeholder="Номер квартиры или офиса" className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400" />
         </div>
 
-        {/* ===== Время доставки – переключатель + колесики ===== */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-3">Время доставки</label>
-
-          {/* Переключатель режимов */}
           <div className="flex gap-3 mb-4">
             <button
               type="button"
@@ -432,7 +453,7 @@ function Cart() {
                   : 'border-gray-200 text-gray-500 hover:border-gray-300'
               }`}
             >
-              <span className="text-lg">⚡</span>
+              <FaBolt className="text-lg" />
               Как можно быстрее
             </button>
             <button
@@ -444,12 +465,11 @@ function Cart() {
                   : 'border-gray-200 text-gray-500 hover:border-gray-300'
               }`}
             >
-              <span className="text-lg">🕒</span>
+              <FaClock className="text-lg" />
               Выбрать время
             </button>
           </div>
 
-          {/* Колесики */}
           <AnimatePresence>
             {deliveryMode === 'choose' && (
               <motion.div
@@ -459,17 +479,9 @@ function Cart() {
                 transition={{ duration: 0.3 }}
                 className="flex items-center gap-3"
               >
-                <TimeWheel
-                  value={selectedHour}
-                  onChange={handleHourChange}
-                  options={availableHours}
-                />
+                <TimeWheel value={selectedHour} onChange={handleHourChange} options={availableHours} />
                 <span className="text-2xl font-light text-gray-400">:</span>
-                <TimeWheel
-                  value={selectedMinute}
-                  onChange={handleMinuteChange}
-                  options={selectedHour !== null ? getAvailableMinutes(selectedHour) : []}
-                />
+                <TimeWheel value={selectedMinute} onChange={handleMinuteChange} options={selectedHour !== null ? getAvailableMinutes(selectedHour) : []} />
                 <div className="text-sm text-gray-500 ml-2">
                   {selectedHour !== null && selectedMinute !== null
                     ? `Доставка ${new Date().toLocaleDateString('ru-RU')} в ${String(selectedHour).padStart(2, '0')}:${String(selectedMinute).padStart(2, '0')}`
@@ -478,13 +490,11 @@ function Cart() {
               </motion.div>
             )}
           </AnimatePresence>
-
           {deliveryMode === 'asap' && (
             <div className="text-sm text-gray-500 mt-1">Доставка в ближайшее время</div>
           )}
         </div>
 
-        {/* Промокод */}
         <div className="mb-4 flex flex-col sm:flex-row gap-2 items-start sm:items-center">
           <div className="flex-1 w-full">
             <label className="block text-sm font-medium text-gray-700 mb-1">Промокод</label>
@@ -512,17 +522,13 @@ function Cart() {
               </div>
             )}
             {appliedPromo && (
-              <button
-                onClick={handleRemovePromo}
-                className="text-sm text-gray-500 hover:text-gray-700 mt-1 transition"
-              >
+              <button onClick={handleRemovePromo} className="text-sm text-gray-500 hover:text-gray-700 mt-1 transition">
                 Удалить промокод
               </button>
             )}
           </div>
         </div>
 
-        {/* Данные клиента (гость) */}
         {isGuest ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
@@ -540,13 +546,16 @@ function Cart() {
             </div>
           </div>
         ) : (
-          <div className="text-sm text-gray-500 mb-4">
-            📋 Заказ будет оформлен на имя <strong>{userProfile.fullName || userLogin}</strong> (телефон: {userProfile.phone || 'не указан'})
-            {userProfile.email && <span>, email: {userProfile.email}</span>}
+          <div className="text-sm text-gray-500 mb-4 flex items-center gap-1">
+            <FaClipboardList className="text-amber-500 flex-shrink-0" />
+            <span>
+              Заказ будет оформлен на имя <strong>{userProfile.fullName || userLogin}</strong>
+              {userProfile.phone && <span> (телефон: {userProfile.phone})</span>}
+              {userProfile.email && <span>, email: {userProfile.email}</span>}
+            </span>
           </div>
         )}
 
-        {/* Итоги */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-t pt-4">
           <div>
             <div className="flex items-baseline gap-2 flex-wrap">
@@ -571,7 +580,10 @@ function Cart() {
           {userLogin ? (
             <div className="flex flex-col gap-3 w-full sm:w-auto">
               <div className="flex flex-wrap items-center gap-4">
-                <div className="text-sm text-gray-600">🎁 Бонусы: <strong className="text-amber-600">{availableBonuses} ₽</strong></div>
+                <div className="text-sm text-gray-600 flex items-center gap-1">
+                  <FaGift className="text-amber-500 flex-shrink-0" />
+                  <span>Бонусы: <strong className="text-amber-600">{availableBonuses} ₽</strong></span>
+                </div>
                 <label className={`flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none ${appliedPromo ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   <input
                     type="checkbox"
@@ -583,9 +595,9 @@ function Cart() {
                   <span className={`relative inline-flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all duration-300 ${
                     useBonus ? 'bg-amber-500 border-amber-500' : 'bg-white border-gray-300 hover:border-amber-400'
                   } ${(availableBonuses === 0 || total === 0 || maxUsableBonus === 0 || appliedPromo) ? 'opacity-50' : 'cursor-pointer'}`}>
-                    {useBonus && <svg className="w-3 h-3 text-white animate-checkmark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>}
+                    {useBonus && <FaCheck className="w-3 h-3 text-white animate-checkmark" />}
                   </span>
-                  Использовать бонусы
+                  <span>Использовать бонусы</span>
                   {appliedPromo && <span className="text-xs text-gray-400 ml-1">(недоступно при промокоде)</span>}
                 </label>
               </div>
@@ -598,8 +610,9 @@ function Cart() {
                   {useBonus && maxUsableBonus > 0 && !appliedPromo && (
                     <>
                       <BonusSlider maxUsableBonus={maxUsableBonus} bonusUsed={bonusUsed} onFinalChange={handleSliderFinal} initialValue={bonusPercentage} />
-                      <div className="text-sm text-gray-700 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
-                        💰 Скидка: <strong className="text-amber-600">{bonusUsed} ₽</strong> → К оплате: <strong className="text-amber-600">{finalTotal} ₽</strong>
+                      <div className="text-sm text-gray-700 bg-amber-50 p-2.5 rounded-lg border border-amber-200 flex items-center gap-1">
+                        <FaCoins className="text-amber-600 flex-shrink-0" />
+                        <span>Скидка: <strong className="text-amber-600">{bonusUsed} ₽</strong> → К оплате: <strong className="text-amber-600">{finalTotal} ₽</strong></span>
                       </div>
                     </>
                   )}

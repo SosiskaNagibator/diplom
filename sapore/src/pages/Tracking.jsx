@@ -7,6 +7,7 @@ import { ORDER_STATUSES } from '../constants/statuses';
 import { getStatusIndex } from '../utils/statusUtils';
 import { Button, LoadingSpinner } from '../components/ui';
 import TrackingSkeleton from '../components/skeletons/TrackingSkeleton';
+import { FaBox, FaClock, FaTag, FaUser, FaMapMarkerAlt } from 'react-icons/fa';
 
 function Tracking() {
   const navigate = useNavigate();
@@ -169,21 +170,33 @@ function Tracking() {
               })}
             </div>
           </div>
-          {order.deliveryAddress && <div className="mt-4 text-sm text-gray-500 flex items-center gap-1"><span>📍</span> {order.deliveryAddress}</div>}
+          {order.deliveryAddress && (
+            <div className="mt-4 text-sm text-gray-500 flex items-center gap-1">
+              <FaMapMarkerAlt className="text-amber-500 flex-shrink-0" />
+              <span>{order.deliveryAddress}</span>
+            </div>
+          )}
           {order.deliveryTime && (
             <div className="mt-2 text-sm text-gray-500 flex items-center gap-1">
-              <span>⏰</span> {new Date(order.deliveryTime).toLocaleString()}
+              <FaClock className="text-amber-500 flex-shrink-0" />
+              <span>{new Date(order.deliveryTime).toLocaleString()}</span>
             </div>
           )}
           {order.promoCode && (
             <div className="mt-1 text-sm text-gray-500 flex items-center gap-1">
-              <span>🏷️</span> Промокод: {order.promoCode} (скидка {order.discountAmount} ₽)
+              <FaTag className="text-amber-500 flex-shrink-0" />
+              <span>Промокод: {order.promoCode} (скидка {order.discountAmount} ₽)</span>
             </div>
           )}
           {order.finalTotal && order.finalTotal !== order.total && (
             <div className="mt-1 text-sm text-green-600">Итого к оплате: {order.finalTotal} ₽</div>
           )}
-          {order.customerName && <div className="mt-1 text-sm text-gray-500 flex items-center gap-1"><span>👤</span> {order.customerName} {order.customerPhone && `(${order.customerPhone})`}</div>}
+          {order.customerName && (
+            <div className="mt-1 text-sm text-gray-500 flex items-center gap-1">
+              <FaUser className="text-amber-500 flex-shrink-0" />
+              <span>{order.customerName}{order.customerPhone && ` (${order.customerPhone})`}</span>
+            </div>
+          )}
         </div>
       </motion.div>
     );
@@ -196,7 +209,9 @@ function Tracking() {
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Мои заказы</h1>
         {guestOrders.length === 0 ? (
           <motion.div initial="hidden" animate="visible" variants={emptyStateVariants} className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
-            <div className="text-6xl mb-4 animate-bounce-in">📦</div>
+            <div className="flex justify-center mb-4">
+              <FaBox className="text-6xl text-gray-400 animate-bounce-in" />
+            </div>
             <div className="text-gray-500 text-lg">Нет активных заказов</div>
             <div className="text-gray-400 mt-1">Сделайте первый заказ, чтобы отслеживать его статус</div>
             <Button variant="primary" onClick={() => navigate('/catalog')} className="mt-8">Перейти в меню</Button>
@@ -219,7 +234,9 @@ function Tracking() {
       <div className="fade-in">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Мои заказы</h1>
         <motion.div initial="hidden" animate="visible" variants={emptyStateVariants} className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
-          <div className="text-6xl mb-4 animate-bounce-in">📦</div>
+          <div className="flex justify-center mb-4">
+            <FaBox className="text-6xl text-gray-400 animate-bounce-in" />
+          </div>
           <div className="text-gray-500 text-lg">Нет активных заказов</div>
           <div className="text-gray-400 mt-1">Сделайте первый заказ, чтобы отслеживать его статус</div>
           <Button variant="primary" onClick={() => navigate('/catalog')} className="mt-8">Перейти в меню</Button>

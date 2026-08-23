@@ -82,37 +82,6 @@ const LocationMarker = ({ setAddress, setCoords, mapRef }) => {
   return position ? <Marker position={position} /> : null;
 };
 
-const SuggestionItem = ({ suggestion, onSelect }) => {
-  const addr = suggestion.address || {};
-  let mainLine = '';
-  if (addr.road) mainLine += addr.road;
-  if (addr.house_number) mainLine += `, ${addr.house_number}`;
-  else if (addr.building) mainLine += `, ${addr.building}`;
-  if (!mainLine) mainLine = suggestion.display_name.split(',').slice(0, 2).join(',');
-  
-  let secondLine = '';
-  if (addr.city) secondLine += addr.city;
-  else if (addr.town) secondLine += addr.town;
-  else if (addr.village) secondLine += addr.village;
-  if (addr.suburb) secondLine += `, ${addr.suburb}`;
-  else if (addr.neighbourhood) secondLine += `, ${addr.neighbourhood}`;
-  if (!secondLine) {
-    secondLine = suggestion.display_name.split(',').slice(2, 4).join(',');
-  }
-  return (
-    <li
-      onMouseDown={() => onSelect(suggestion)}
-      className="px-3 py-2 hover:bg-amber-50 cursor-pointer border-b last:border-0 flex items-start gap-2"
-    >
-      <span className="text-gray-500 mt-0.5">📍</span>
-      <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-gray-800 truncate">{mainLine}</div>
-        <div className="text-xs text-gray-500 truncate">{secondLine}</div>
-      </div>
-    </li>
-  );
-};
-
 const MapPicker = ({ onAddressSelect, initialAddress }) => {
   const [address, setAddress] = useState(initialAddress || '');
   const [coords, setCoords] = useState([55.76, 37.64]);
@@ -126,6 +95,7 @@ const MapPicker = ({ onAddressSelect, initialAddress }) => {
   const selectedAddressRef = useRef('');
   const isInitialized = useRef(false);
 
+  // Геокодирование адреса (для поиска и обновления)
   const geocodeAddress = (text) => {
     if (!text || text.length < 2) return;
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(text)}&addressdetails=1&limit=1`)
@@ -153,6 +123,14 @@ const MapPicker = ({ onAddressSelect, initialAddress }) => {
       .catch(() => {});
   };
 
+  // Обновление карты при изменении initialAddress извне (например, выбор из списка)
+  useEffect(() => {
+    if (initialAddress && initialAddress !== selectedAddressRef.current && !isSelecting.current) {
+      geocodeAddress(initialAddress);
+    }
+  }, [initialAddress]);
+
+  // Инициализация при первом рендере
   useEffect(() => {
     if (initialAddress && !isInitialized.current) {
       isInitialized.current = true;
@@ -176,7 +154,6 @@ const MapPicker = ({ onAddressSelect, initialAddress }) => {
       mapRef.current.setMarker(lat, lng, addressText);
     } else if (mapRef.current) {
       mapRef.current.setView([lat, lng], 15);
-      mapRef.current.fire('click', { latlng: { lat, lng } });
     }
   };
 
@@ -203,21 +180,19 @@ const MapPicker = ({ onAddressSelect, initialAddress }) => {
           setAddress('');
         }
       })
-      .catch(() => {
-        setError('Ошибка поиска');
-      });
+      .catch(() => setError('Ошибка поиска'));
   };
 
+  // Debounce для автопоиска (подсказки)
   useEffect(() => {
     if (!query || query.length < 2 || isSelecting.current) return;
     if (query === selectedAddressRef.current) return;
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
-    searchTimeout.current = setTimeout(() => {
-      searchAddress(query);
-    }, 500);
+    searchTimeout.current = setTimeout(() => searchAddress(query), 500);
     return () => { if (searchTimeout.current) clearTimeout(searchTimeout.current); };
   }, [query]);
 
+  // Подсказки при вводе
   useEffect(() => {
     if (!query || query.length < 2) {
       setSuggestions([]);
@@ -318,12 +293,8 @@ const MapPicker = ({ onAddressSelect, initialAddress }) => {
         >
           Найти
         </button>
-
         {showSuggestions && suggestions.length > 0 && (
-          <ul
-            className="absolute left-0 right-0 top-full bg-white border border-gray-200 rounded-b-lg shadow-xl z-[9999] max-h-52 overflow-y-auto"
-            style={{ marginTop: '4px' }}
-          >
+          <ul className="absolute left-0 right-0 top-full bg-white border border-gray-200 rounded-b-lg shadow-xl z-[9999] max-h-52 overflow-y-auto" style={{ marginTop: '4px' }}>
             {suggestions.map((s, idx) => (
               <SuggestionItem key={idx} suggestion={s} onSelect={selectSuggestion} />
             ))}
@@ -355,6 +326,38 @@ const MapPicker = ({ onAddressSelect, initialAddress }) => {
         {address ? `📍 ${address}` : 'Нажмите на карту или введите адрес'}
       </div>
     </div>
+  );
+};
+
+// Компонент подсказки (без изменений)
+const SuggestionItem = ({ suggestion, onSelect }) => {
+  const addr = suggestion.address || {};
+  let mainLine = '';
+  if (addr.road) mainLine += addr.road;
+  if (addr.house_number) mainLine += `, ${addr.house_number}`;
+  else if (addr.building) mainLine += `, ${addr.building}`;
+  if (!mainLine) mainLine = suggestion.display_name.split(',').slice(0, 2).join(',');
+  
+  let secondLine = '';
+  if (addr.city) secondLine += addr.city;
+  else if (addr.town) secondLine += addr.town;
+  else if (addr.village) secondLine += addr.village;
+  if (addr.suburb) secondLine += `, ${addr.suburb}`;
+  else if (addr.neighbourhood) secondLine += `, ${addr.neighbourhood}`;
+  if (!secondLine) {
+    secondLine = suggestion.display_name.split(',').slice(2, 4).join(',');
+  }
+  return (
+    <li
+      onMouseDown={() => onSelect(suggestion)}
+      className="px-3 py-2 hover:bg-amber-50 cursor-pointer border-b last:border-0 flex items-start gap-2"
+    >
+      <span className="text-gray-500 mt-0.5">📍</span>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium text-gray-800 truncate">{mainLine}</div>
+        <div className="text-xs text-gray-500 truncate">{secondLine}</div>
+      </div>
+    </li>
   );
 };
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, memo } from 'react';
+import { FaCoins } from 'react-icons/fa';
 
 const BonusSlider = memo(({ maxUsableBonus, bonusUsed, onFinalChange, initialValue }) => {
   const [value, setValue] = useState(initialValue || 0);

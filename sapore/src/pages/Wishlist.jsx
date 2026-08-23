@@ -7,6 +7,7 @@ import { getImageUrl } from '../utils/imageUtils';
 import { Card, Button } from '../components/ui';
 import WishlistButton from '../components/WishlistButton';
 import WishlistSkeleton from '../components/skeletons/WishlistSkeleton';
+import { FaHeart } from 'react-icons/fa';
 
 const fetchPizzasByIds = async (ids) => {
   if (!ids || ids.length === 0) return [];
@@ -25,7 +26,6 @@ const Wishlist = () => {
     enabled: wishlistIds.length > 0,
   });
 
-  // Те же анимации, что и в Catalog.jsx
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: (index) => ({
@@ -48,7 +48,7 @@ const Wishlist = () => {
   if (!wishlistIds.length) {
     return (
       <div className="text-center py-16">
-        <div className="text-6xl mb-4">❤️</div>
+        <FaHeart className="text-6xl text-gray-300 mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-gray-800">Избранное пусто</h2>
         <p className="text-gray-500 mt-2">Добавляйте пиццы, которые вам понравились</p>
         <Link to="/catalog"><Button variant="primary" className="mt-6">В каталог</Button></Link>
@@ -58,7 +58,9 @@ const Wishlist = () => {
 
   return (
     <div className="fade-in">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">❤️ Избранное</h1>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">
+        <FaHeart className="inline text-red-500 mr-2" /> Избранное
+      </h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <AnimatePresence mode="popLayout">
           {pizzas?.filter(pizza => pizza && pizza.id)?.map((pizza, index) => (

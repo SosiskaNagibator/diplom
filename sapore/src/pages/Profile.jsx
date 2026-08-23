@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useBonuses, useBonusHistory } from '../hooks/useProfile';
 import ProfileSkeleton from '../components/skeletons/ProfileSkeleton';
 import { useQuery } from '@tanstack/react-query';
+import { FaCrown, FaMedal, FaLeaf, FaPhone, FaEnvelope, FaUsers, FaGift } from 'react-icons/fa';
 
 const useReferralInfo = (login) => {
   return useQuery({
@@ -134,6 +135,15 @@ function Profile() {
   const level = getLevel(bonuses);
   const nextLevel = getNextLevel(bonuses);
 
+  const getLevelIcon = (levelName) => {
+    switch(levelName) {
+      case 'Золотой': return <FaCrown className="text-yellow-500" />;
+      case 'Серебряный': return <FaMedal className="text-gray-400" />;
+      case 'Бронзовый': return <FaMedal className="text-amber-700" />;
+      default: return <FaLeaf className="text-green-500" />;
+    }
+  };
+
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: (delay = 0) => ({
@@ -182,7 +192,7 @@ function Profile() {
                     transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
                     className="w-20 h-20 rounded-full bg-white/30 flex items-center justify-center text-4xl animate-bounce-in"
                   >
-                    {level.emoji}
+                    {getLevelIcon(level.name)}
                   </motion.div>
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
@@ -192,17 +202,21 @@ function Profile() {
                     <div className="text-2xl font-bold">{userLogin}</div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <Badge variant="primary" className={level.bg + ' ' + level.color}>
-                        {level.emoji} {level.name}
+                        {getLevelIcon(level.name)} {level.name}
                       </Badge>
                       {userProfile.fullName && (
                         <span className="text-sm text-white/80">({userProfile.fullName})</span>
                       )}
                     </div>
                     {userProfile.phone && (
-                      <div className="text-sm text-white/70">📞 {userProfile.phone}</div>
+                      <div className="text-sm text-white/70 flex items-center gap-1">
+                        <FaPhone className="text-white/70" /> {userProfile.phone}
+                      </div>
                     )}
                     {userProfile.email && (
-                      <div className="text-sm text-white/70">✉️ {userProfile.email}</div>
+                      <div className="text-sm text-white/70 flex items-center gap-1">
+                        <FaEnvelope className="text-white/70" /> {userProfile.email}
+                      </div>
                     )}
                   </motion.div>
                 </div>
@@ -216,7 +230,9 @@ function Profile() {
                   className="scale-in"
                 >
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-gray-600">🎁 Бонусный баланс</span>
+                    <span className="text-gray-600 flex items-center gap-1">
+                      <FaGift /> Бонусный баланс
+                    </span>
                     <motion.span
                       className="text-2xl font-bold text-amber-600"
                       initial={{ scale: 0.5 }}
@@ -288,7 +304,9 @@ function Profile() {
                     transition={{ delay: 0.6 }}
                     className="border-t border-gray-100 pt-4 mt-4"
                   >
-                    <h3 className="font-semibold text-gray-700 mb-3">👥 Реферальная программа</h3>
+                    <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-1">
+                      <FaUsers /> Реферальная программа
+                    </h3>
                     <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
