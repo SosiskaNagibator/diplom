@@ -16,6 +16,8 @@ import PizzaDetails from './pages/PizzaDetails';
 import Wishlist from './pages/Wishlist';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import Privacy from './pages/Privacy';
+import Offer from './pages/Offer';
 import { useCart } from './contexts/CartContext';
 
 function App() {
@@ -107,6 +109,16 @@ function App() {
             <Route path="/reset-password" element={
               <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
                 <ResetPassword />
+              </motion.div>
+            } />
+            <Route path="/privacy" element={
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
+                <Privacy />
+              </motion.div>
+            } />
+            <Route path="/offer" element={
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
+                <Offer />
               </motion.div>
             } />
           </Routes>
