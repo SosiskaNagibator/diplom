@@ -1,0 +1,322 @@
+2026-08-19 14:49:31 RAW INPUT: {"action":"save_order","userLogin":"test","items":[{"id":1,"name":"Маргарита","category":"Классика","description":"Томатный соус, моцарелла, базилик, оливковое масло","price":550,"image":"Margherita.png","sizes":"1,2,3","category_id":1,"calories":250,"protein":12.5,"fat":10,"carbs":30.5,"available_sizes":[{"id":"1","name":"Маленькая","label":"25 см","price_multiplier":1},{"id":"2","name":"Средняя","label":"30 см","price_multiplier":1.3},{"id":"3","name":"Большая","label":"35 см","price_multiplier":1.6}],"size":"Маленькая","size_label":"25 см","quantity":2},{"id":2,"name":"Пепперони","category":"Мясные","description":"Томатный соус, моцарелла, пепперони, перец чили","price":600,"image":"Pepperoni.png","sizes":"1,2,3","category_id":2,"calories":280,"protein":14,"fat":12,"carbs":28,"available_sizes":[{"id":"1","name":"Маленькая","label":"25 см","price_multiplier":1},{"id":"2","name":"Средняя","label":"30 см","price_multiplier":1.3},{"id":"3","name":"Большая","label":"35 см","price_multiplier":1.6}],"size":"Маленькая","size_label":"25 см","quantity":1}],"total":1700,"originalTotal":1700,"bonusUsed":0,"status":"Принят","deliveryAddress":"Охотская улица, 143 к1, Северный Посёлок, Минск","deliveryTime":"ASAP","promoCode":"","discountAmount":0,"finalTotal":1700,"customerName":"тест брат","customerPhone":"+79095555555","customerEmail":"test@mail.ru"}
+2026-08-19 14:49:31 POST: Array
+(
+)
+
+2026-08-19 14:49:31 GET: Array
+(
+)
+
+2026-08-19 14:51:11 RAW: {"action":"save_order","userLogin":"test","items":[{"id":1,"name":"Маргарита","category":"Классика","description":"Томатный соус, моцарелла, базилик, оливковое масло","price":550,"image":"Margherita.png","sizes":"1,2,3","category_id":1,"calories":250,"protein":12.5,"fat":10,"carbs":30.5,"available_sizes":[{"id":"1","name":"Маленькая","label":"25 см","price_multiplier":1},{"id":"2","name":"Средняя","label":"30 см","price_multiplier":1.3},{"id":"3","name":"Большая","label":"35 см","price_multiplier":1.6}],"size":"Маленькая","size_label":"25 см","quantity":2},{"id":2,"name":"Пепперони","category":"Мясные","description":"Томатный соус, моцарелла, пепперони, перец чили","price":600,"image":"Pepperoni.png","sizes":"1,2,3","category_id":2,"calories":280,"protein":14,"fat":12,"carbs":28,"available_sizes":[{"id":"1","name":"Маленькая","label":"25 см","price_multiplier":1},{"id":"2","name":"Средняя","label":"30 см","price_multiplier":1.3},{"id":"3","name":"Большая","label":"35 см","price_multiplier":1.6}],"size":"Маленькая","size_label":"25 см","quantity":4}],"total":3500,"originalTotal":3500,"bonusUsed":0,"status":"Принят","deliveryAddress":"Охотская улица, 143 к1, Северный Посёлок, Минск","deliveryTime":"ASAP","promoCode":"","discountAmount":0,"finalTotal":3500,"customerName":"тест брат","customerPhone":"+79095555555","customerEmail":"test@mail.ru"}
+2026-08-19 14:51:11 JSON_ERROR: No error
+2026-08-19 14:51:11 INPUT: Array
+(
+    [action] => save_order
+    [userLogin] => test
+    [items] => Array
+        (
+            [0] => Array
+                (
+                    [id] => 1
+                    [name] => Маргарита
+                    [category] => Классика
+                    [description] => Томатный соус, моцарелла, базилик, оливковое масло
+                    [price] => 550
+                    [image] => Margherita.png
+                    [sizes] => 1,2,3
+                    [category_id] => 1
+                    [calories] => 250
+                    [protein] => 12.5
+                    [fat] => 10
+                    [carbs] => 30.5
+                    [available_sizes] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [id] => 1
+                                    [name] => Маленькая
+                                    [label] => 25 см
+                                    [price_multiplier] => 1
+                                )
+
+                            [1] => Array
+                                (
+                                    [id] => 2
+                                    [name] => Средняя
+                                    [label] => 30 см
+                                    [price_multiplier] => 1.3
+                                )
+
+                            [2] => Array
+                                (
+                                    [id] => 3
+                                    [name] => Большая
+                                    [label] => 35 см
+                                    [price_multiplier] => 1.6
+                                )
+
+                        )
+
+                    [size] => Маленькая
+                    [size_label] => 25 см
+                    [quantity] => 2
+                )
+
+            [1] => Array
+                (
+                    [id] => 2
+                    [name] => Пепперони
+                    [category] => Мясные
+                    [description] => Томатный соус, моцарелла, пепперони, перец чили
+                    [price] => 600
+                    [image] => Pepperoni.png
+                    [sizes] => 1,2,3
+                    [category_id] => 2
+                    [calories] => 280
+                    [protein] => 14
+                    [fat] => 12
+                    [carbs] => 28
+                    [available_sizes] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [id] => 1
+                                    [name] => Маленькая
+                                    [label] => 25 см
+                                    [price_multiplier] => 1
+                                )
+
+                            [1] => Array
+                                (
+                                    [id] => 2
+                                    [name] => Средняя
+                                    [label] => 30 см
+                                    [price_multiplier] => 1.3
+                                )
+
+                            [2] => Array
+                                (
+                                    [id] => 3
+                                    [name] => Большая
+                                    [label] => 35 см
+                                    [price_multiplier] => 1.6
+                                )
+
+                        )
+
+                    [size] => Маленькая
+                    [size_label] => 25 см
+                    [quantity] => 4
+                )
+
+        )
+
+    [total] => 3500
+    [originalTotal] => 3500
+    [bonusUsed] => 0
+    [status] => Принят
+    [deliveryAddress] => Охотская улица, 143 к1, Северный Посёлок, Минск
+    [deliveryTime] => ASAP
+    [promoCode] => 
+    [discountAmount] => 0
+    [finalTotal] => 3500
+    [customerName] => тест брат
+    [customerPhone] => +79095555555
+    [customerEmail] => test@mail.ru
+)
+
+2026-08-19 14:51:11 ACTION: save_order
+2026-08-19 14:52:30 RAW: {"action":"save_order","userLogin":"test","items":[{"id":1,"name":"Маргарита","category":"Классика","description":"Томатный соус, моцарелла, базилик, оливковое масло","price":550,"image":"Margherita.png","sizes":"1,2,3","category_id":1,"calories":250,"protein":12.5,"fat":10,"carbs":30.5,"available_sizes":[{"id":"1","name":"Маленькая","label":"25 см","price_multiplier":1},{"id":"2","name":"Средняя","label":"30 см","price_multiplier":1.3},{"id":"3","name":"Большая","label":"35 см","price_multiplier":1.6}],"size":"Маленькая","size_label":"25 см","quantity":2},{"id":2,"name":"Пепперони","category":"Мясные","description":"Томатный соус, моцарелла, пепперони, перец чили","price":600,"image":"Pepperoni.png","sizes":"1,2,3","category_id":2,"calories":280,"protein":14,"fat":12,"carbs":28,"available_sizes":[{"id":"1","name":"Маленькая","label":"25 см","price_multiplier":1},{"id":"2","name":"Средняя","label":"30 см","price_multiplier":1.3},{"id":"3","name":"Большая","label":"35 см","price_multiplier":1.6}],"size":"Маленькая","size_label":"25 см","quantity":4}],"total":3500,"originalTotal":3500,"bonusUsed":0,"status":"Принят","deliveryAddress":"Охотская улица, 143 к1, Северный Посёлок, Минск","deliveryTime":"ASAP","promoCode":"","discountAmount":0,"finalTotal":3500,"customerName":"тест брат","customerPhone":"+79095555555","customerEmail":"test@mail.ru"}
+2026-08-19 14:52:30 JSON_ERROR: No error
+2026-08-19 14:52:30 INPUT: Array
+(
+    [action] => save_order
+    [userLogin] => test
+    [items] => Array
+        (
+            [0] => Array
+                (
+                    [id] => 1
+                    [name] => Маргарита
+                    [category] => Классика
+                    [description] => Томатный соус, моцарелла, базилик, оливковое масло
+                    [price] => 550
+                    [image] => Margherita.png
+                    [sizes] => 1,2,3
+                    [category_id] => 1
+                    [calories] => 250
+                    [protein] => 12.5
+                    [fat] => 10
+                    [carbs] => 30.5
+                    [available_sizes] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [id] => 1
+                                    [name] => Маленькая
+                                    [label] => 25 см
+                                    [price_multiplier] => 1
+                                )
+
+                            [1] => Array
+                                (
+                                    [id] => 2
+                                    [name] => Средняя
+                                    [label] => 30 см
+                                    [price_multiplier] => 1.3
+                                )
+
+                            [2] => Array
+                                (
+                                    [id] => 3
+                                    [name] => Большая
+                                    [label] => 35 см
+                                    [price_multiplier] => 1.6
+                                )
+
+                        )
+
+                    [size] => Маленькая
+                    [size_label] => 25 см
+                    [quantity] => 2
+                )
+
+            [1] => Array
+                (
+                    [id] => 2
+                    [name] => Пепперони
+                    [category] => Мясные
+                    [description] => Томатный соус, моцарелла, пепперони, перец чили
+                    [price] => 600
+                    [image] => Pepperoni.png
+                    [sizes] => 1,2,3
+                    [category_id] => 2
+                    [calories] => 280
+                    [protein] => 14
+                    [fat] => 12
+                    [carbs] => 28
+                    [available_sizes] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [id] => 1
+                                    [name] => Маленькая
+                                    [label] => 25 см
+                                    [price_multiplier] => 1
+                                )
+
+                            [1] => Array
+                                (
+                                    [id] => 2
+                                    [name] => Средняя
+                                    [label] => 30 см
+                                    [price_multiplier] => 1.3
+                                )
+
+                            [2] => Array
+                                (
+                                    [id] => 3
+                                    [name] => Большая
+                                    [label] => 35 см
+                                    [price_multiplier] => 1.6
+                                )
+
+                        )
+
+                    [size] => Маленькая
+                    [size_label] => 25 см
+                    [quantity] => 4
+                )
+
+        )
+
+    [total] => 3500
+    [originalTotal] => 3500
+    [bonusUsed] => 0
+    [status] => Принят
+    [deliveryAddress] => Охотская улица, 143 к1, Северный Посёлок, Минск
+    [deliveryTime] => ASAP
+    [promoCode] => 
+    [discountAmount] => 0
+    [finalTotal] => 3500
+    [customerName] => тест брат
+    [customerPhone] => +79095555555
+    [customerEmail] => test@mail.ru
+)
+
+2026-08-19 14:52:30 ACTION: save_order
+2026-08-19 14:52:30 handleSaveOrder START
+2026-08-19 14:52:30 orderNumber: 1
+2026-08-19 14:52:30 SQL: INSERT INTO orders (
+                order_number, total, status, items, user_login, 
+                delivery_address, delivery_time, promo_code, discount_amount, final_total,
+                customer_name, customer_phone, customer_email, order_date
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+2026-08-19 14:52:30 Params: orderNumber=1, originalTotal=3500, status=Принят, itemsJson=[{"id":1,"name":"Маргарита","category":"Классика","description":"Томатный соус, моцарелла, базилик, оливковое масло","price":550,"image":"Margherita.png","sizes":"1,2,3","category_id":1,"calories":250,"protein":12.5,"fat":10,"carbs":30.5,"available_sizes":[{"id":"1","name":"Маленькая","label":"25 см","price_multiplier":1},{"id":"2","name":"Средняя","label":"30 см","price_multiplier":1.3},{"id":"3","name":"Большая","label":"35 см","price_multiplier":1.6}],"size":"Маленькая","size_label":"25 см","quantity":2},{"id":2,"name":"Пепперони","category":"Мясные","description":"Томатный соус, моцарелла, пепперони, перец чили","price":600,"image":"Pepperoni.png","sizes":"1,2,3","category_id":2,"calories":280,"protein":14,"fat":12,"carbs":28,"available_sizes":[{"id":"1","name":"Маленькая","label":"25 см","price_multiplier":1},{"id":"2","name":"Средняя","label":"30 см","price_multiplier":1.3},{"id":"3","name":"Большая","label":"35 см","price_multiplier":1.6}],"size":"Маленькая","size_label":"25 см","quantity":4}], userLogin=test, deliveryAddress=Охотская улица, 143 к1, Северный Посёлок, Минск, deliveryTime=, promoCode=, discount=0, finalTotal=3500, customerName=тест брат, customerPhone=+79095555555, customerEmail=test@mail.ru
+2026-08-19 14:52:30 orderId: 1
+2026-08-19 14:52:30 RAW: 
+2026-08-19 14:52:30 JSON_ERROR: Syntax error
+2026-08-19 14:52:30 INPUT: 
+2026-08-19 14:52:30 ACTION: get_orders
+2026-08-19 14:52:40 RAW: {"action":"update_status","orderId":"1","status":"Готовится"}
+2026-08-19 14:52:40 JSON_ERROR: No error
+2026-08-19 14:52:40 INPUT: Array
+(
+    [action] => update_status
+    [orderId] => 1
+    [status] => Готовится
+)
+
+2026-08-19 14:52:40 ACTION: update_status
+2026-08-19 14:52:40 RAW: 
+2026-08-19 14:52:40 JSON_ERROR: Syntax error
+2026-08-19 14:52:40 INPUT: 
+2026-08-19 14:52:40 ACTION: get_orders
+2026-08-19 14:52:50 RAW: {"action":"update_status","orderId":"1","status":"В пути"}
+2026-08-19 14:52:50 JSON_ERROR: No error
+2026-08-19 14:52:50 INPUT: Array
+(
+    [action] => update_status
+    [orderId] => 1
+    [status] => В пути
+)
+
+2026-08-19 14:52:50 ACTION: update_status
+2026-08-19 14:52:50 RAW: 
+2026-08-19 14:52:50 JSON_ERROR: Syntax error
+2026-08-19 14:52:50 INPUT: 
+2026-08-19 14:52:50 ACTION: get_orders
+2026-08-19 14:53:00 RAW: {"action":"update_status","orderId":"1","status":"Доставлен"}
+2026-08-19 14:53:00 JSON_ERROR: No error
+2026-08-19 14:53:00 INPUT: Array
+(
+    [action] => update_status
+    [orderId] => 1
+    [status] => Доставлен
+)
+
+2026-08-19 14:53:00 ACTION: update_status
+2026-08-19 14:53:00 RAW: 
+2026-08-19 14:53:00 JSON_ERROR: Syntax error
+2026-08-19 14:53:00 INPUT: 
+2026-08-19 14:53:00 ACTION: get_orders
+2026-08-23 12:33:32 RAW INPUT: {"action":"save_order","userLogin":"vlad","items":[{"id":6,"name":"Нутелла","category":"Сладкие","description":"Нутелла, бананы, сахарная пудра, мята","price":500,"image":"Nutella.jpg","sizes":"1,2,3","category_id":5,"calories":320,"protein":8,"fat":15,"carbs":40,"available_sizes":[{"id":"1","name":"Маленькая","label":"25 см","price_multiplier":1},{"id":"2","name":"Средняя","label":"30 см","price_multiplier":1.3},{"id":"3","name":"Большая","label":"35 см","price_multiplier":1.6}],"size":"Маленькая","size_label":"25 см","quantity":1},{"id":5,"name":"Гавайская","category":"Мясные","description":"Томатный соус, моцарелла, курица, ананас","price":580,"image":"Hawaiian.png","sizes":"1,2,3","category_id":2,"calories":260,"protein":15,"fat":8,"carbs":32,"available_sizes":[{"id":"1","name":"Маленькая","label":"25 см","price_multiplier":1},{"id":"2","name":"Средняя","label":"30 см","price_multiplier":1.3},{"id":"3","name":"Большая","label":"35 см","price_multiplier":1.6}],"size":"Маленькая","size_label":"25 см","quantity":1}],"total":1080,"originalTotal":1080,"bonusUsed":0,"status":"Принят","deliveryAddress":"Bancroft Way, 2630, Southside, Беркли","deliveryTime":"2026-08-23T14:20","promoCode":"","discountAmount":0,"finalTotal":1080,"customerName":"Влад","customerPhone":"+79094005755","customerEmail":"vlad@bk.ru"}
+2026-08-23 12:33:32 POST: Array
+(
+)
+
+2026-08-23 12:33:32 GET: Array
+(
+)
+
+2026-08-23 12:33:32 RAW INPUT: 
+2026-08-23 12:33:32 POST: Array
+(
+)
+
+2026-08-23 12:33:32 GET: Array
+(
+    [action] => get_orders
+    [login] => vlad
+)
+

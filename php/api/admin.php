@@ -83,7 +83,7 @@ function handleAdminAction($pdo, $action) {
 
 // ----- Заказы -----
 function getOrders($pdo) {
-    $stmt = $pdo->query("SELECT id, order_number, total, status, items, user_login, order_date, delivery_address, customer_name, customer_phone, customer_email FROM orders ORDER BY order_date DESC");
+    $stmt = $pdo->query("SELECT id, order_number, total, status, items, user_login, order_date, delivery_address, delivery_time, promo_code, discount_amount, final_total, customer_name, customer_phone, customer_email FROM orders ORDER BY order_date DESC");
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     echo json_encode(['status' => 'success', 'orders' => $orders]);
 }
@@ -274,6 +274,7 @@ function updateUser($pdo) {
     }
 }
 
+// ----- Размеры -----
 function getSizes($pdo) {
     $stmt = $pdo->query("SELECT * FROM constructor_sizes ORDER BY sort_order");
     $sizes = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -331,6 +332,7 @@ function deleteSize($pdo) {
     }
 }
 
+// ----- Соусы -----
 function getSauces($pdo) {
     $stmt = $pdo->query("SELECT * FROM constructor_sauces ORDER BY sort_order");
     $sauces = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -386,6 +388,7 @@ function deleteSauce($pdo) {
     }
 }
 
+// ----- Начинки -----
 function getToppings($pdo) {
     $stmt = $pdo->query("SELECT * FROM constructor_toppings ORDER BY sort_order");
     $toppings = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -441,6 +444,7 @@ function deleteTopping($pdo) {
     }
 }
 
+// ----- Категории -----
 function getCategories($pdo) {
     $stmt = $pdo->query("SELECT * FROM categories ORDER BY sort_order");
     $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
