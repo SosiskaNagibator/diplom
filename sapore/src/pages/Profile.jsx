@@ -9,7 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useBonuses, useBonusHistory } from '../hooks/useProfile';
 import ProfileSkeleton from '../components/skeletons/ProfileSkeleton';
 import { useQuery } from '@tanstack/react-query';
-import { FaCrown, FaMedal, FaLeaf, FaPhone, FaEnvelope, FaUsers, FaGift } from 'react-icons/fa';
+import { FaPhone, FaEnvelope, FaUsers, FaGift } from 'react-icons/fa';
 
 const useReferralInfo = (login) => {
   return useQuery({
@@ -135,15 +135,6 @@ function Profile() {
   const level = getLevel(bonuses);
   const nextLevel = getNextLevel(bonuses);
 
-  const getLevelIcon = (levelName) => {
-    switch(levelName) {
-      case 'Золотой': return <FaCrown className="text-yellow-500" />;
-      case 'Серебряный': return <FaMedal className="text-gray-400" />;
-      case 'Бронзовый': return <FaMedal className="text-amber-700" />;
-      default: return <FaLeaf className="text-green-500" />;
-    }
-  };
-
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: (delay = 0) => ({
@@ -190,9 +181,9 @@ function Profile() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-                    className="w-20 h-20 rounded-full bg-white/30 flex items-center justify-center text-4xl animate-bounce-in"
+                    className="w-20 h-20 rounded-full bg-white/30 flex items-center justify-center text-2xl font-bold"
                   >
-                    {getLevelIcon(level.name)}
+                    {userLogin ? userLogin.charAt(0).toUpperCase() : '?'}
                   </motion.div>
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
@@ -202,7 +193,7 @@ function Profile() {
                     <div className="text-2xl font-bold">{userLogin}</div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <Badge variant="primary" className={level.bg + ' ' + level.color}>
-                        {getLevelIcon(level.name)} {level.name}
+                        {level.name}
                       </Badge>
                       {userProfile.fullName && (
                         <span className="text-sm text-white/80">({userProfile.fullName})</span>
