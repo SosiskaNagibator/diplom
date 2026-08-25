@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { API_BASE } from '../constants/api';
@@ -7,10 +7,14 @@ import { getLevel, getNextLevel } from '../utils/bonusUtils';
 import { Button, Input, Card, Badge, LoadingSpinner } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { useBonuses, useBonusHistory } from '../hooks/useProfile';
-import { useLevels, useUserLevel } from '../hooks/useLevels';
+import { useUserLevel } from '../hooks/useLevels';
 import ProfileSkeleton from '../components/skeletons/ProfileSkeleton';
 import { useQuery } from '@tanstack/react-query';
-import { FaPhone, FaEnvelope, FaUsers, FaGift, FaChartLine, FaCoins, FaInfoCircle, FaGem } from 'react-icons/fa';
+import { 
+    FaPhone, FaEnvelope, FaUsers, FaGift, FaChartLine, FaCoins, FaInfoCircle, FaGem,
+    FaPercent, FaPlus, FaTruck, FaUtensils, FaStar, FaChevronRight, FaCheckCircle,
+    FaLock, FaPizzaSlice, FaAward, FaMapMarkerAlt
+} from 'react-icons/fa';
 import { LEVELS_BASE } from '../constants/api';
 
 const useReferralInfo = (login) => {
@@ -36,9 +40,8 @@ function Profile() {
   const { data: bonusHistory = [], isLoading: isHistoryLoading } = useBonusHistory(userLogin);
   const { data: referralInfo } = useReferralInfo(userLogin);
 
-  const { data: levelsData } = useLevels();
   const { data: userLevelData, refetch: refetchUserLevel } = useUserLevel(userLogin);
-  const allLevels = levelsData?.levels || [];
+  const allLevels = userLevelData?.all_levels || [];
   const currentLevelData = userLevelData?.current_level;
   const nextLevelData = userLevelData?.next_level;
   const ordersSum = userLevelData?.orders_sum || 0;
@@ -58,6 +61,24 @@ function Profile() {
   const [consentOffer, setConsentOffer] = useState(false);
   const [referralCodeInput, setReferralCodeInput] = useState('');
   const [showTooltip, setShowTooltip] = useState(false);
+
+  // Рефы для скролла к текущему уровню
+  const levelRefs = useRef({});
+  const travelContainerRef = useRef(null);
+
+  useEffect(() => {
+    // Прокрутка к текущему уровню после загрузки данных
+    if (currentLevelData && levelRefs.current[currentLevelData.id]) {
+      const element = levelRefs.current[currentLevelData.id];
+      const container = travelContainerRef.current;
+      if (container && element) {
+        const containerRect = container.getBoundingClientRect();
+        const elementRect = element.getBoundingClientRect();
+        const offset = elementRect.top - containerRect.top - container.clientHeight / 2 + elementRect.height / 2;
+        container.scrollTo({ top: container.scrollTop + offset, behavior: 'smooth' });
+      }
+    }
+  }, [currentLevelData, allLevels]);
 
   useEffect(() => {
     setIsLoggedIn(!!userLogin);
@@ -226,6 +247,7 @@ function Profile() {
               </div>
 
               <div className="p-6 space-y-6">
+                {/* ===== КАРТОЧКА УРОВНЯ ===== */}
                 {currentLevelData && (
                   <div className="relative rounded-2xl overflow-hidden shadow-lg mb-6">
                     <img
@@ -283,10 +305,145 @@ function Profile() {
                   </div>
                 )}
 
+                {/* ===== АКТИВНЫЕ БОНУСЫ ===== */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="border-t border-gray-100 pt-4"
+                >
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    <h3 className="font-semibold text-gray-700 flex items-center gap-2">
+                      <FaGift className="text-amber-500" />
+                      Ваши активные бонусы
+                    </h3>
+                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                      Все бонусы действуют одновременно
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {allLevels
+                      .filter(level => level.min_bonus <= ordersSum)
+                      .map(level => {
+                        const isCurrent = level.id === currentLevelData?.id;
+                        let icon = <FaGift className="text-amber-500" />;
+                        const desc = level.bonus_description;
+                        if (desc.includes('скидка') || desc.includes('%')) icon = <FaPercent className="text-green-500" />;
+                        else if (desc.includes('+')) icon = <FaPlus className="text-blue-500" />;
+                        else if (desc.includes('доставка')) icon = <FaTruck className="text-indigo-500" />;
+                        else if (desc.includes('начинка')) icon = <FaUtensils className="text-red-500" />;
+                        else if (desc.includes('кэшбэк')) icon = <FaCoins className="text-yellow-500" />;
+                        
+                        return (
+                          <div 
+                            key={level.id}
+                            className={`p-3 rounded-xl border-2 transition-all ${
+                              isCurrent 
+                                ? 'border-amber-400 bg-amber-50 shadow-md ring-2 ring-amber-400/30' 
+                                : 'border-gray-100 bg-gray-50 hover:bg-gray-100'
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="mt-0.5 text-lg">{icon}</div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between w-full">
+                                  <span className={`font-medium text-gray-800 ${isCurrent ? 'text-amber-700' : ''}`}>
+                                    {level.region} – {level.name}
+                                  </span>
+                                  {isCurrent && (
+                                    <span className="text-[10px] text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
+                                      Текущий уровень
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-sm text-gray-600 truncate">{level.bonus_description}</div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </motion.div>
+
+                {/* ===== ВСЕ УРОВНИ ===== */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
+                  className="border-t border-gray-100 pt-4"
+                >
+                  <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <FaMapMarkerAlt className="text-amber-500" />
+                    Карта путешествия
+                  </h3>
+                  <div 
+                    ref={travelContainerRef}
+                    className="space-y-2 max-h-60 overflow-y-auto pl-3 pr-2 custom-scrollbar"
+                  >
+                    {allLevels.map((level, idx) => {
+                      const isUnlocked = level.min_bonus <= ordersSum;
+                      const isCurrent = level.id === currentLevelData?.id;
+                      const isNext = !isUnlocked && (idx === 0 || allLevels[idx-1]?.min_bonus <= ordersSum);
+                      const isLocked = !isUnlocked && !isNext;
+                      
+                      let statusIcon, statusColor, statusBg;
+                      if (isUnlocked) {
+                        statusIcon = <FaCheckCircle className="text-green-500" />;
+                        statusColor = 'text-green-600';
+                        statusBg = 'bg-green-50 border-green-200';
+                      } else if (isNext) {
+                        statusIcon = <FaChevronRight className="text-amber-500 animate-pulse" />;
+                        statusColor = 'text-amber-600';
+                        statusBg = 'bg-amber-50 border-amber-200';
+                      } else {
+                        statusIcon = <FaLock className="text-gray-400" />;
+                        statusColor = 'text-gray-400';
+                        statusBg = 'bg-gray-50 border-gray-200 opacity-60';
+                      }
+
+                      return (
+                        <div 
+                          key={level.id}
+                          ref={el => levelRefs.current[level.id] = el}
+                          className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${statusBg} ${
+                            isCurrent ? 'ring-2 ring-amber-400 ring-offset-2' : ''
+                          }`}
+                        >
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-white shadow-sm flex-shrink-0">
+                            {idx + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`font-medium ${isUnlocked ? 'text-gray-800' : 'text-gray-500'}`}>
+                                {level.region} – {level.name}
+                              </span>
+                              {isCurrent && (
+                                <Badge variant="primary" className="text-[10px] px-2 py-0.5">Вы здесь</Badge>
+                              )}
+                              {isNext && (
+                                <Badge variant="warning" className="text-[10px] px-2 py-0.5">Следующий</Badge>
+                              )}
+                            </div>
+                            <div className="text-sm text-gray-600 truncate">{level.bonus_description}</div>
+                            <div className="text-xs text-gray-400">Порог: {level.min_bonus} очков</div>
+                          </div>
+                          <div className="flex items-center gap-1 text-sm">
+                            {statusIcon}
+                            <span className={`text-xs font-medium ${statusColor}`}>
+                              {isUnlocked ? 'Достигнут' : isNext ? 'Скоро' : 'Закрыт'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+
+                {/* ===== ИСТОРИЯ БОНУСОВ ===== */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
                   className="border-t border-gray-100 pt-4"
                 >
                   <h3 className="font-semibold text-gray-700 mb-3">История бонусов</h3>
@@ -322,7 +479,7 @@ function Profile() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
+                    transition={{ delay: 0.7 }}
                     className="border-t border-gray-100 pt-4 mt-4"
                   >
                     <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-1">
@@ -356,7 +513,7 @@ function Profile() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
+                  transition={{ delay: 0.8 }}
                 >
                   <Button variant="danger" onClick={handleLogout} className="w-full justify-center">
                     Выйти из аккаунта
@@ -370,6 +527,7 @@ function Profile() {
     );
   }
 
+  // Форма входа / регистрации (без изменений)
   return (
     <div className="fade-in py-8">
       <div className="max-w-sm mx-auto">
