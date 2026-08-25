@@ -13,6 +13,7 @@ import { useSaveOrder } from '../hooks/useCart';
 import CartItem from '../components/CartItem';
 import { API_ORDERS } from '../constants/api';
 import { FaBolt, FaClock, FaPizzaSlice, FaClipboardList, FaGift, FaCoins, FaCheck } from 'react-icons/fa';
+import LevelUpModal from '../components/LevelUpModal';
 
 const MemoMapPicker = memo(MapPicker);
 
@@ -143,6 +144,9 @@ function Cart() {
   const [appliedPromo, setAppliedPromo] = useState('');
   const [promoMessage, setPromoMessage] = useState('');
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [newLevel, setNewLevel] = useState(null);
 
   const { mutateAsync: saveOrder, isPending: isSaving } = useSaveOrder();
 
@@ -324,13 +328,12 @@ function Cart() {
       fullAddress += `, кв. ${apartment.trim()}`;
     }
 
-    // Формируем время доставки
     let deliveryTimeValue;
     if (deliveryMode === 'asap') {
       deliveryTimeValue = 'ASAP';
     } else {
       const now = new Date();
-      const dateStr = now.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+      const dateStr = now.toISOString().split('T')[0];
       deliveryTimeValue = `${dateStr}T${String(selectedHour).padStart(2, '0')}:${String(selectedMinute).padStart(2, '0')}`;
     }
 
@@ -355,6 +358,11 @@ function Cart() {
     try {
       const data = await saveOrder(payload);
       if (data.status === 'success') {
+        if (data.new_level) {
+          setNewLevel(data.new_level);
+          setShowLevelUp(true);
+        }
+
         const order = {
           id: data.orderId,
           orderNumber: data.orderNumber,
@@ -399,7 +407,6 @@ function Cart() {
     }
   }, [isSaving, cart, isGuest, customerName, customerPhone, customerEmail, deliveryAddress, apartment, deliveryMode, selectedHour, selectedMinute, total, totalAfterBonus, bonusUsed, finalTotal, promoDiscount, appliedPromo, navigate, clearCart, userLogin, userProfile, saveOrder]);
 
-  // ---------- ЕСЛИ КОРЗИНА ПУСТАЯ ----------
   if (cart.length === 0) {
     return (
       <div className="fade-in">
@@ -418,7 +425,6 @@ function Cart() {
     );
   }
 
-  // ---------- ОСНОВНОЙ РЕНДЕР ----------
   return (
     <div className="fade-in">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Корзина</h1>
@@ -632,6 +638,8 @@ function Cart() {
           </Button>
         </div>
       </motion.div>
+
+      <LevelUpModal level={newLevel} onClose={() => setShowLevelUp(false)} />
     </div>
   );
 }

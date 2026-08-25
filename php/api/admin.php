@@ -81,7 +81,6 @@ function handleAdminAction($pdo, $action) {
     }
 }
 
-// ----- Заказы -----
 function getOrders($pdo) {
     $stmt = $pdo->query("SELECT id, order_number, total, status, items, user_login, order_date, delivery_address, delivery_time, promo_code, discount_amount, final_total, customer_name, customer_phone, customer_email FROM orders ORDER BY order_date DESC");
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -103,7 +102,6 @@ function updateOrderStatus($pdo) {
     }
 }
 
-// ----- Пиццы (с КБЖУ) -----
 function getPizzas($pdo) {
     $stmt = $pdo->query("SELECT * FROM items ORDER BY id");
     $pizzas = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -229,7 +227,6 @@ function deletePizza($pdo) {
     }
 }
 
-// ----- Пользователи и бонусы -----
 function getUsers($pdo) {
     $stmt = $pdo->query("SELECT u.Login, u.full_name, u.phone, u.email, b.balance FROM users u LEFT JOIN bonuses b ON u.Login = b.login WHERE u.Login != 'admin' ORDER BY u.Login");
     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -247,6 +244,10 @@ function updateUserBonus($pdo) {
     if ($stmt->execute([$newBalance, $login])) {
         $stmt = $pdo->prepare("INSERT INTO bonus_history (login, amount, description) VALUES (?, ?, ?)");
         $stmt->execute([$login, $newBalance, 'Админ изменил баланс']);
+        
+        require_once __DIR__ . '/api/levels.php';
+        updateUserLevel($pdo, $login);
+        
         echo json_encode(['status' => 'success', 'message' => 'Баланс обновлён']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления']);
@@ -274,7 +275,6 @@ function updateUser($pdo) {
     }
 }
 
-// ----- Размеры -----
 function getSizes($pdo) {
     $stmt = $pdo->query("SELECT * FROM constructor_sizes ORDER BY sort_order");
     $sizes = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -332,7 +332,6 @@ function deleteSize($pdo) {
     }
 }
 
-// ----- Соусы -----
 function getSauces($pdo) {
     $stmt = $pdo->query("SELECT * FROM constructor_sauces ORDER BY sort_order");
     $sauces = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -388,7 +387,6 @@ function deleteSauce($pdo) {
     }
 }
 
-// ----- Начинки -----
 function getToppings($pdo) {
     $stmt = $pdo->query("SELECT * FROM constructor_toppings ORDER BY sort_order");
     $toppings = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -444,7 +442,6 @@ function deleteTopping($pdo) {
     }
 }
 
-// ----- Категории -----
 function getCategories($pdo) {
     $stmt = $pdo->query("SELECT * FROM categories ORDER BY sort_order");
     $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);

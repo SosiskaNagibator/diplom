@@ -7,9 +7,11 @@ import { getLevel, getNextLevel } from '../utils/bonusUtils';
 import { Button, Input, Card, Badge, LoadingSpinner } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { useBonuses, useBonusHistory } from '../hooks/useProfile';
+import { useLevels, useUserLevel } from '../hooks/useLevels';
 import ProfileSkeleton from '../components/skeletons/ProfileSkeleton';
 import { useQuery } from '@tanstack/react-query';
 import { FaPhone, FaEnvelope, FaUsers, FaGift } from 'react-icons/fa';
+import { LEVELS_BASE } from '../constants/api';
 
 const useReferralInfo = (login) => {
   return useQuery({
@@ -33,6 +35,14 @@ function Profile() {
   const { data: bonuses = 0, isLoading: isBonusesLoading } = useBonuses(userLogin);
   const { data: bonusHistory = [], isLoading: isHistoryLoading } = useBonusHistory(userLogin);
   const { data: referralInfo } = useReferralInfo(userLogin);
+
+  const { data: levelsData } = useLevels();
+  const { data: userLevelData, refetch: refetchUserLevel } = useUserLevel(userLogin);
+  const allLevels = levelsData?.levels || [];
+  const currentLevelData = userLevelData?.current_level;
+  const nextLevelData = userLevelData?.next_level;
+  const userBonuses = userLevelData?.bonuses || bonuses;
+  const progress = userLevelData?.progress || 0;
 
   const [isLoggedIn, setIsLoggedIn] = useState(!!userLogin);
   const [loginInput, setLoginInput] = useState('');
@@ -214,44 +224,35 @@ function Profile() {
               </div>
 
               <div className="p-6 space-y-6">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="scale-in"
-                >
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-gray-600 flex items-center gap-1">
-                      <FaGift /> Бонусный баланс
-                    </span>
-                    <motion.span
-                      className="text-2xl font-bold text-amber-600"
-                      initial={{ scale: 0.5 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
-                      key={bonuses}
-                    >
-                      {bonuses} ₽
-                    </motion.span>
-                  </div>
-                  {nextLevel && (
-                    <div className="mt-2">
-                      <div className="flex justify-between text-sm text-gray-500">
-                        <span>До {nextLevel.name}</span>
-                        <span>{nextLevel.need} ₽</span>
+                {/* Карточка уровня с иконкой FaGift */}
+                {currentLevelData && (
+                  <div className="relative rounded-2xl overflow-hidden shadow-lg mb-6">
+                    <img
+                      src={`${LEVELS_BASE}${currentLevelData.image}`}
+                      alt={currentLevelData.name}
+                      className="w-full h-64 object-cover"
+                      onError={(e) => { e.target.src = '/placeholder-city.jpg'; }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
+                    <div className="absolute inset-0 flex flex-col justify-end p-6 text-white">
+                      <h2 className="text-3xl font-bold drop-shadow-lg">{currentLevelData.region} – {currentLevelData.name}</h2>
+                      <p className="text-sm opacity-95 drop-shadow">{currentLevelData.fact}</p>
+                      <div className="mt-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="drop-shadow">Бонусы: {userBonuses}</span>
+                          <span className="drop-shadow">До {nextLevelData?.name || 'максимума'}: {nextLevelData ? nextLevelData.min_bonus - userBonuses : 0} бонусов</span>
+                        </div>
+                        <div className="w-full h-2 bg-white/30 rounded-full mt-1">
+                          <div className="h-full bg-amber-400 rounded-full transition-all duration-500" style={{width: `${Math.min(progress, 100)}%`}} />
+                        </div>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                        <motion.div 
-                          className="bg-amber-500 h-2.5 rounded-full"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min(100, (bonuses / (bonuses + nextLevel.need)) * 100)}%` }}
-                          transition={{ delay: 0.6, duration: 0.8 }}
-                          key={bonuses}
-                        />
+                      <div className="mt-3 text-sm bg-amber-500/40 backdrop-blur-sm px-3 py-1.5 rounded-full inline-flex items-center gap-2 shadow">
+                        <FaGift className="text-white text-base" />
+                        {currentLevelData.bonus_description}
                       </div>
                     </div>
-                  )}
-                </motion.div>
+                  </div>
+                )}
 
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -340,7 +341,6 @@ function Profile() {
     );
   }
 
-  // Форма входа / регистрации
   return (
     <div className="fade-in py-8">
       <div className="max-w-sm mx-auto">
