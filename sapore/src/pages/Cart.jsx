@@ -147,6 +147,7 @@ function Cart() {
 
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [newLevel, setNewLevel] = useState(null);
+  const [ordersSumForModal, setOrdersSumForModal] = useState(0);
 
   const { mutateAsync: saveOrder, isPending: isSaving } = useSaveOrder();
 
@@ -360,6 +361,7 @@ function Cart() {
       if (data.status === 'success') {
         if (data.new_level) {
           setNewLevel(data.new_level);
+          setOrdersSumForModal(data.orders_sum || 0);
           setShowLevelUp(true);
         }
 
@@ -639,7 +641,7 @@ function Cart() {
         </div>
       </motion.div>
 
-      <LevelUpModal level={newLevel} onClose={() => setShowLevelUp(false)} />
+      <LevelUpModal level={newLevel} onClose={() => setShowLevelUp(false)} ordersSum={ordersSumForModal} />
     </div>
   );
 }

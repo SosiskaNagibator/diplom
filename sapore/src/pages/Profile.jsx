@@ -10,7 +10,7 @@ import { useBonuses, useBonusHistory } from '../hooks/useProfile';
 import { useLevels, useUserLevel } from '../hooks/useLevels';
 import ProfileSkeleton from '../components/skeletons/ProfileSkeleton';
 import { useQuery } from '@tanstack/react-query';
-import { FaPhone, FaEnvelope, FaUsers, FaGift } from 'react-icons/fa';
+import { FaPhone, FaEnvelope, FaUsers, FaGift, FaChartLine, FaCoins, FaInfoCircle, FaGem } from 'react-icons/fa';
 import { LEVELS_BASE } from '../constants/api';
 
 const useReferralInfo = (login) => {
@@ -41,6 +41,7 @@ function Profile() {
   const allLevels = levelsData?.levels || [];
   const currentLevelData = userLevelData?.current_level;
   const nextLevelData = userLevelData?.next_level;
+  const ordersSum = userLevelData?.orders_sum || 0;
   const userBonuses = userLevelData?.bonuses || bonuses;
   const progress = userLevelData?.progress || 0;
 
@@ -56,6 +57,7 @@ function Profile() {
   const [consentPersonal, setConsentPersonal] = useState(false);
   const [consentOffer, setConsentOffer] = useState(false);
   const [referralCodeInput, setReferralCodeInput] = useState('');
+  const [showTooltip, setShowTooltip] = useState(false);
 
   useEffect(() => {
     setIsLoggedIn(!!userLogin);
@@ -224,7 +226,6 @@ function Profile() {
               </div>
 
               <div className="p-6 space-y-6">
-                {/* Карточка уровня с иконкой FaGift */}
                 {currentLevelData && (
                   <div className="relative rounded-2xl overflow-hidden shadow-lg mb-6">
                     <img
@@ -237,16 +238,44 @@ function Profile() {
                     <div className="absolute inset-0 flex flex-col justify-end p-6 text-white">
                       <h2 className="text-3xl font-bold drop-shadow-lg">{currentLevelData.region} – {currentLevelData.name}</h2>
                       <p className="text-sm opacity-95 drop-shadow">{currentLevelData.fact}</p>
+                      
                       <div className="mt-3">
-                        <div className="flex justify-between text-sm">
-                          <span className="drop-shadow">Бонусы: {userBonuses}</span>
-                          <span className="drop-shadow">До {nextLevelData?.name || 'максимума'}: {nextLevelData ? nextLevelData.min_bonus - userBonuses : 0} бонусов</span>
+                        <div className="flex items-center gap-2 text-sm">
+                          <FaGem className="text-amber-300" />
+                          <span className="drop-shadow">
+                            <strong>Очки странствий:</strong> {ordersSum}
+                          </span>
+                          <button
+                            className="relative inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 hover:bg-white/30 transition"
+                            onMouseEnter={() => setShowTooltip(true)}
+                            onMouseLeave={() => setShowTooltip(false)}
+                            onClick={() => setShowTooltip(!showTooltip)}
+                          >
+                            <FaInfoCircle className="text-white text-xs" />
+                            {showTooltip && (
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
+                                Очки странствий начисляются за каждый заказ и определяют ваш прогресс в путешествии по Италии. 
+                                Бонусы можно тратить на скидки — они не влияют на очки странствий.
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                              </div>
+                            )}
+                          </button>
+                        </div>
+                        <div className="flex justify-between text-xs opacity-90">
+                          <span>До {nextLevelData?.name || 'максимума'}:</span>
+                          <span>{nextLevelData ? nextLevelData.min_bonus - ordersSum : 0}</span>
                         </div>
                         <div className="w-full h-2 bg-white/30 rounded-full mt-1">
                           <div className="h-full bg-amber-400 rounded-full transition-all duration-500" style={{width: `${Math.min(progress, 100)}%`}} />
                         </div>
                       </div>
-                      <div className="mt-3 text-sm bg-amber-500/40 backdrop-blur-sm px-3 py-1.5 rounded-full inline-flex items-center gap-2 shadow">
+
+                      <div className="mt-2 text-sm text-white/80 flex items-center gap-2">
+                        <FaCoins className="text-amber-300" />
+                        <span>Бонусный баланс: <strong>{userBonuses}</strong> ₽</span>
+                      </div>
+
+                      <div className="mt-2 text-sm bg-amber-500/40 backdrop-blur-sm px-3 py-1.5 rounded-full inline-flex items-center gap-2 shadow">
                         <FaGift className="text-white text-base" />
                         {currentLevelData.bonus_description}
                       </div>
