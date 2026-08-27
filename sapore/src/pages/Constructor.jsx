@@ -1,9 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useUserLevel } from '../hooks/useLevels';
+import { useAuth } from '../contexts/AuthContext';
 
 const API_CONSTRUCTOR = 'http://localhost/constructor.php';
 
 function Constructor({ addToCart }) {
+  const { userLogin } = useAuth();
+  const { data: userLevelData } = useUserLevel(userLogin);
+  const allLevels = userLevelData?.all_levels || [];
+  const ordersSum = userLevelData?.orders_sum || 0;
+
+  const achievedLevels = useMemo(() => {
+    return allLevels.filter(level => Number(level.min_bonus) <= ordersSum);
+  }, [allLevels, ordersSum]);
+
+  // Проверяем наличие бесплатной начинки по структурированным данным
+  const hasFreeTopping = useMemo(() => {
+    return achievedLevels.some(level => level.bonus_type === 'free_topping');
+  }, [achievedLevels]);
+
   const [loading, setLoading] = useState(true);
   const [sizes, setSizes] = useState([]);
   const [sauces, setSauces] = useState([]);
@@ -63,7 +79,10 @@ function Constructor({ addToCart }) {
   const totalPrice = basePrice
     + Number(selectedSize?.price || 0)
     + Number(selectedSauce?.price || 0)
-    + selectedToppings.reduce((sum, t) => sum + Number(t.price || 0), 0);
+    + selectedToppings.reduce((sum, t, index) => {
+        if (hasFreeTopping && index === 0) return sum;
+        return sum + Number(t.price || 0);
+      }, 0);
 
   const handleAddToCart = (e) => {
     if (e) {
@@ -124,6 +143,13 @@ function Constructor({ addToCart }) {
       >
         Собери пиццу
       </motion.h1>
+
+      {hasFreeTopping && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg mb-4 text-sm flex items-center gap-2">
+          <span className="text-lg">🎁</span>
+          У вас активна бесплатная начинка! Первая выбранная начинка — бесплатно.
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
         <motion.div
@@ -196,6 +222,7 @@ function Constructor({ addToCart }) {
           <div className="flex flex-wrap gap-2">
             {toppings.map((topping, index) => {
               const selected = !!selectedToppings.find(t => t.id === topping.id);
+              const isFree = hasFreeTopping && selected && selectedToppings.findIndex(t => t.id === topping.id) === 0;
               return (
                 <motion.button
                   key={topping.id}
@@ -212,7 +239,9 @@ function Constructor({ addToCart }) {
                 >
                   <span className="text-lg">{topping.icon}</span>
                   <span className="text-sm font-medium text-gray-800">{topping.name}</span>
-                  <span className="text-xs text-amber-600">+{topping.price}₽</span>
+                  <span className={`text-xs ${isFree ? 'text-green-600' : 'text-amber-600'}`}>
+                    {isFree ? 'Бесплатно' : `+${topping.price}₽`}
+                  </span>
                   {selected && <span className="text-green-500 text-xs">✓</span>}
                 </motion.button>
               );

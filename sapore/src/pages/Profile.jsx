@@ -3,14 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { API_BASE } from '../constants/api';
 import { STORAGE_KEYS } from '../constants/storage';
-import { getLevel, getNextLevel } from '../utils/bonusUtils';
 import { Button, Input, Card, Badge, LoadingSpinner } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { useBonuses, useBonusHistory } from '../hooks/useProfile';
 import { useUserLevel } from '../hooks/useLevels';
 import ProfileSkeleton from '../components/skeletons/ProfileSkeleton';
 import { useQuery } from '@tanstack/react-query';
-import { 
+import toast from 'react-hot-toast';
+import {
     FaPhone, FaEnvelope, FaUsers, FaGift, FaChartLine, FaCoins, FaInfoCircle, FaGem,
     FaPercent, FaPlus, FaTruck, FaUtensils, FaStar, FaChevronRight, FaCheckCircle,
     FaLock, FaPizzaSlice, FaAward, FaMapMarkerAlt
@@ -61,13 +61,12 @@ function Profile() {
   const [consentOffer, setConsentOffer] = useState(false);
   const [referralCodeInput, setReferralCodeInput] = useState('');
   const [showTooltip, setShowTooltip] = useState(false);
+  const [showBonusTooltip, setShowBonusTooltip] = useState(false);
 
-  // Рефы для скролла к текущему уровню
   const levelRefs = useRef({});
   const travelContainerRef = useRef(null);
 
   useEffect(() => {
-    // Прокрутка к текущему уровню после загрузки данных
     if (currentLevelData && levelRefs.current[currentLevelData.id]) {
       const element = levelRefs.current[currentLevelData.id];
       const container = travelContainerRef.current;
@@ -165,9 +164,6 @@ function Profile() {
     showMessage('Вы вышли из аккаунта', 'success');
   };
 
-  const level = getLevel(bonuses);
-  const nextLevel = getNextLevel(bonuses);
-
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
     visible: (delay = 0) => ({
@@ -225,11 +221,8 @@ function Profile() {
                   >
                     <div className="text-2xl font-bold">{userLogin}</div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant="primary" className={level.bg + ' ' + level.color}>
-                        {level.name}
-                      </Badge>
                       {userProfile.fullName && (
-                        <span className="text-sm text-white/80">({userProfile.fullName})</span>
+                        <span className="text-sm text-white/80">{userProfile.fullName}</span>
                       )}
                     </div>
                     {userProfile.phone && (
@@ -247,7 +240,6 @@ function Profile() {
               </div>
 
               <div className="p-6 space-y-6">
-                {/* ===== КАРТОЧКА УРОВНЯ ===== */}
                 {currentLevelData && (
                   <div className="relative rounded-2xl overflow-hidden shadow-lg mb-6">
                     <img
@@ -262,13 +254,13 @@ function Profile() {
                       <p className="text-sm opacity-95 drop-shadow">{currentLevelData.fact}</p>
                       
                       <div className="mt-3">
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex items-center gap-1 text-sm">
                           <FaGem className="text-amber-300" />
                           <span className="drop-shadow">
                             <strong>Очки странствий:</strong> {ordersSum}
                           </span>
                           <button
-                            className="relative inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 hover:bg-white/30 transition"
+                            className="relative inline-flex items-center justify-center transition hover:text-amber-200 ml-0.5 self-center"
                             onMouseEnter={() => setShowTooltip(true)}
                             onMouseLeave={() => setShowTooltip(false)}
                             onClick={() => setShowTooltip(!showTooltip)}
@@ -305,26 +297,52 @@ function Profile() {
                   </div>
                 )}
 
-                {/* ===== АКТИВНЫЕ БОНУСЫ ===== */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
                   className="border-t border-gray-100 pt-4"
                 >
-                  <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  <div className="flex items-center gap-1 mb-3 flex-wrap">
                     <h3 className="font-semibold text-gray-700 flex items-center gap-2">
                       <FaGift className="text-amber-500" />
                       Ваши активные бонусы
                     </h3>
-                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                      Все бонусы действуют одновременно
-                    </span>
+                    <button
+                      className="relative inline-flex items-center justify-center transition hover:text-amber-500 ml-0.5 self-center"
+                      onMouseEnter={() => setShowBonusTooltip(true)}
+                      onMouseLeave={() => setShowBonusTooltip(false)}
+                      onClick={() => setShowBonusTooltip(!showBonusTooltip)}
+                    >
+                      <FaInfoCircle className="text-gray-400 text-sm" />
+                      {showBonusTooltip && (
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg z-10">
+                          Все перечисленные бонусы активны и действуют одновременно. 
+                          Для каждого типа показан максимальный доступный бонус.
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                        </div>
+                      )}
+                    </button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {allLevels
-                      .filter(level => level.min_bonus <= ordersSum)
-                      .map(level => {
+                    {(() => {
+                      const achieved = allLevels.filter(level => level.min_bonus <= ordersSum);
+                      const bestBonuses = {};
+                      achieved.forEach(level => {
+                        const type = level.bonus_type;
+                        const value = parseFloat(level.bonus_value) || 0;
+                        if (['discount', 'cashback', 'referral_extra', 'review_extra'].includes(type)) {
+                          if (!bestBonuses[type] || value > bestBonuses[type].value) {
+                            bestBonuses[type] = { level, value };
+                          }
+                        } else {
+                          if (!bestBonuses[type]) {
+                            bestBonuses[type] = { level, value: 1 };
+                          }
+                        }
+                      });
+                      const filteredLevels = Object.values(bestBonuses).map(item => item.level);
+                      return filteredLevels.map(level => {
                         const isCurrent = level.id === currentLevelData?.id;
                         let icon = <FaGift className="text-amber-500" />;
                         const desc = level.bonus_description;
@@ -333,7 +351,6 @@ function Profile() {
                         else if (desc.includes('доставка')) icon = <FaTruck className="text-indigo-500" />;
                         else if (desc.includes('начинка')) icon = <FaUtensils className="text-red-500" />;
                         else if (desc.includes('кэшбэк')) icon = <FaCoins className="text-yellow-500" />;
-                        
                         return (
                           <div 
                             key={level.id}
@@ -361,11 +378,11 @@ function Profile() {
                             </div>
                           </div>
                         );
-                      })}
+                      });
+                    })()}
                   </div>
                 </motion.div>
 
-                {/* ===== ВСЕ УРОВНИ ===== */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -378,7 +395,7 @@ function Profile() {
                   </h3>
                   <div 
                     ref={travelContainerRef}
-                    className="space-y-2 max-h-60 overflow-y-auto pl-3 pr-2 custom-scrollbar"
+                    className="space-y-2 max-h-60 overflow-y-auto overflow-x-visible px-3 py-2 custom-scrollbar"
                   >
                     {allLevels.map((level, idx) => {
                       const isUnlocked = level.min_bonus <= ordersSum;
@@ -406,7 +423,7 @@ function Profile() {
                           key={level.id}
                           ref={el => levelRefs.current[level.id] = el}
                           className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${statusBg} ${
-                            isCurrent ? 'ring-2 ring-amber-400 ring-offset-2' : ''
+                            isCurrent ? 'ring-2 ring-amber-400 ring-offset-1 ring-offset-white' : ''
                           }`}
                         >
                           <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-white shadow-sm flex-shrink-0">
@@ -427,7 +444,7 @@ function Profile() {
                             <div className="text-sm text-gray-600 truncate">{level.bonus_description}</div>
                             <div className="text-xs text-gray-400">Порог: {level.min_bonus} очков</div>
                           </div>
-                          <div className="flex items-center gap-1 text-sm">
+                          <div className="flex items-center gap-1 text-sm flex-shrink-0">
                             {statusIcon}
                             <span className={`text-xs font-medium ${statusColor}`}>
                               {isUnlocked ? 'Достигнут' : isNext ? 'Скоро' : 'Закрыт'}
@@ -439,7 +456,6 @@ function Profile() {
                   </div>
                 </motion.div>
 
-                {/* ===== ИСТОРИЯ БОНУСОВ ===== */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -489,16 +505,32 @@ function Profile() {
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
                           <div className="text-sm text-gray-600">Ваш реферальный код:</div>
-                          <div className="text-xl font-mono font-bold text-amber-600 select-all">{referralInfo.referral_code}</div>
+                          <div 
+                            className="text-xl font-mono font-bold text-amber-600 select-all cursor-pointer hover:text-amber-700 transition"
+                            onClick={() => {
+                              const code = referralInfo.referral_code || '';
+                              navigator.clipboard?.writeText(code).then(() => {
+                                toast.success('Код скопирован!');
+                              }).catch(() => {
+                                toast.error('Не удалось скопировать');
+                              });
+                            }}
+                          >
+                            {referralInfo.referral_code}
+                          </div>
                         </div>
                         <button
                           onClick={() => {
-                            navigator.clipboard?.writeText(referralInfo.referral_link);
-                            alert('Ссылка скопирована!');
+                            const code = referralInfo.referral_code || '';
+                            navigator.clipboard?.writeText(code).then(() => {
+                              toast.success('Код скопирован!');
+                            }).catch(() => {
+                              toast.error('Не удалось скопировать');
+                            });
                           }}
                           className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm"
                         >
-                          Скопировать ссылку
+                          Скопировать код
                         </button>
                       </div>
                       <div className="mt-3 flex gap-6 text-sm">
@@ -527,7 +559,6 @@ function Profile() {
     );
   }
 
-  // Форма входа / регистрации (без изменений)
   return (
     <div className="fade-in py-8">
       <div className="max-w-sm mx-auto">

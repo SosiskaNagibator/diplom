@@ -11,9 +11,10 @@ import { InputMask } from '@react-input/mask';
 import { useBonuses } from '../hooks/useProfile';
 import { useSaveOrder } from '../hooks/useCart';
 import CartItem from '../components/CartItem';
-import { API_ORDERS } from '../constants/api';
-import { FaBolt, FaClock, FaPizzaSlice, FaClipboardList, FaGift, FaCoins, FaCheck } from 'react-icons/fa';
+import { API_ORDERS, API_BASE } from '../constants/api';
+import { FaBolt, FaClock, FaPizzaSlice, FaClipboardList, FaGift, FaCoins, FaCheck, FaTag } from 'react-icons/fa';
 import LevelUpModal from '../components/LevelUpModal';
+import { useUserLevel } from '../hooks/useLevels';
 
 const MemoMapPicker = memo(MapPicker);
 
@@ -124,6 +125,41 @@ function Cart() {
   const isGuest = !userLogin;
 
   const { data: availableBonuses = 0 } = useBonuses(userLogin);
+  const { data: userLevelData, refetch: refetchUserLevel } = useUserLevel(userLogin);
+  const allLevels = userLevelData?.all_levels || [];
+  const ordersSum = userLevelData?.orders_sum || 0;
+
+  const [discountData, setDiscountData] = useState(null);
+  const [loadingDiscount, setLoadingDiscount] = useState(false);
+
+  const fetchDiscount = useCallback(async (total) => {
+    if (isGuest || total === 0) {
+      setDiscountData(null);
+      return;
+    }
+    setLoadingDiscount(true);
+    try {
+      const url = `${API_BASE}?action=get_cart_discount&login=${encodeURIComponent(userLogin)}&total=${total}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.status === 'success') {
+        setDiscountData(data.data);
+      } else {
+        setDiscountData(null);
+      }
+    } catch (err) {
+      console.error('Ошибка получения скидки:', err);
+      setDiscountData(null);
+    } finally {
+      setLoadingDiscount(false);
+    }
+  }, [userLogin, isGuest]);
+
+  const total = useMemo(() => getTotal(), [cart, getTotal]);
+
+  useEffect(() => {
+    fetchDiscount(total);
+  }, [total, fetchDiscount]);
 
   const [useBonus, setUseBonus] = useState(false);
   const [bonusPercentage, setBonusPercentage] = useState(0);
@@ -151,14 +187,20 @@ function Cart() {
 
   const { mutateAsync: saveOrder, isPending: isSaving } = useSaveOrder();
 
-  const total = useMemo(() => getTotal(), [cart, getTotal]);
+  // ---- Взаимоисключение скидок ----
+  const discountAmount = discountData?.discount_amount || 0;
+  const hasLevelDiscount = discountAmount > 0 && !appliedPromo;
+  const effectiveDiscount = hasLevelDiscount ? discountAmount : 0;
+  const effectivePromoDiscount = appliedPromo ? promoDiscount : 0;
+
+  const finalTotalAfterDiscount = total - effectiveDiscount - effectivePromoDiscount;
 
   const maxBonusPercent = 20;
-  const maxBonusAmount = Math.floor(total * (maxBonusPercent / 100));
+  const maxBonusAmount = Math.floor(finalTotalAfterDiscount * (maxBonusPercent / 100));
   const maxUsableBonus = Math.min(availableBonuses, maxBonusAmount);
   const bonusUsed = useBonus ? Math.floor(maxUsableBonus * (bonusPercentage / 100)) : 0;
-  const totalAfterBonus = total - bonusUsed;
-  const finalTotal = totalAfterBonus - promoDiscount;
+  const totalAfterBonus = finalTotalAfterDiscount - bonusUsed;
+  const finalTotal = totalAfterBonus;
 
   useEffect(() => {
     if (appliedPromo) {
@@ -268,7 +310,7 @@ function Cart() {
           action: 'apply_promo',
           code: promoCode,
           login: userLogin || 'guest',
-          orderTotal: totalAfterBonus
+          orderTotal: total
         })
       });
       const data = await response.json();
@@ -276,6 +318,7 @@ function Cart() {
         setPromoDiscount(data.discount);
         setAppliedPromo(promoCode);
         setPromoMessage('Промокод применён! Скидка: ' + data.discount + ' ₽');
+        setDiscountData(null);
       } else {
         setPromoMessage('Ошибка: ' + data.message);
         setPromoDiscount(0);
@@ -293,6 +336,7 @@ function Cart() {
     setPromoDiscount(0);
     setPromoMessage('');
     setPromoCode('');
+    fetchDiscount(total);
   };
 
   const handleCheckout = useCallback(async (e) => {
@@ -342,14 +386,14 @@ function Cart() {
       action: 'save_order',
       userLogin: isGuest ? 'guest' : userLogin,
       items: cart,
-      total: totalAfterBonus,
+      total: finalTotal,
       originalTotal: total,
       bonusUsed: bonusUsed,
       status: 'Принят',
       deliveryAddress: fullAddress,
       deliveryTime: deliveryTimeValue,
       promoCode: appliedPromo,
-      discountAmount: promoDiscount,
+      discountAmount: effectivePromoDiscount,
       finalTotal: finalTotal,
       customerName: isGuest ? customerName.trim() : userProfile.fullName,
       customerPhone: isGuest ? customerPhone.trim() : userProfile.phone,
@@ -359,6 +403,8 @@ function Cart() {
     try {
       const data = await saveOrder(payload);
       if (data.status === 'success') {
+        await refetchUserLevel();
+
         if (data.new_level) {
           setNewLevel(data.new_level);
           setOrdersSumForModal(data.orders_sum || 0);
@@ -375,7 +421,7 @@ function Cart() {
           deliveryAddress: fullAddress,
           deliveryTime: deliveryTimeValue,
           promoCode: appliedPromo,
-          discountAmount: promoDiscount,
+          discountAmount: effectivePromoDiscount,
           customerName: isGuest ? customerName.trim() : userProfile.fullName,
           customerPhone: isGuest ? customerPhone.trim() : userProfile.phone,
           customerEmail: isGuest ? customerEmail.trim() : userProfile.email,
@@ -407,7 +453,7 @@ function Cart() {
       alert('Произошла ошибка при оформлении заказа. Попробуйте еще раз.');
       return false;
     }
-  }, [isSaving, cart, isGuest, customerName, customerPhone, customerEmail, deliveryAddress, apartment, deliveryMode, selectedHour, selectedMinute, total, totalAfterBonus, bonusUsed, finalTotal, promoDiscount, appliedPromo, navigate, clearCart, userLogin, userProfile, saveOrder]);
+  }, [isSaving, cart, isGuest, customerName, customerPhone, customerEmail, deliveryAddress, apartment, deliveryMode, selectedHour, selectedMinute, total, finalTotal, bonusUsed, effectivePromoDiscount, appliedPromo, navigate, clearCart, userLogin, userProfile, saveOrder, refetchUserLevel]);
 
   if (cart.length === 0) {
     return (
@@ -571,17 +617,30 @@ function Cart() {
               <motion.span key={finalTotal} className="text-2xl font-bold text-amber-600">
                 {finalTotal} ₽
               </motion.span>
-              {promoDiscount > 0 && (
-                <span className="text-sm text-gray-400 line-through">
-                  {totalAfterBonus} ₽
-                </span>
+              {effectiveDiscount > 0 && (
+                <span className="text-sm text-gray-400 line-through">{total} ₽</span>
+              )}
+              {effectivePromoDiscount > 0 && (
+                <span className="text-sm text-gray-400 line-through">{total} ₽</span>
               )}
             </div>
-            {promoDiscount > 0 && (
-              <div className="text-sm text-amber-600 mt-1">Скидка по промокоду: -{promoDiscount} ₽</div>
+
+            {effectiveDiscount > 0 && (
+              <div className="mt-1 text-sm text-amber-600 flex items-center gap-1">
+                <FaTag className="text-amber-500" />
+                <span>Скидка за уровень: -{effectiveDiscount} ₽ ({discountData?.discount_percent}%)</span>
+              </div>
             )}
+
+            {effectivePromoDiscount > 0 && (
+              <div className="mt-1 text-sm text-amber-600 flex items-center gap-1">
+                <FaTag className="text-amber-500" />
+                <span>Промокод: -{effectivePromoDiscount} ₽</span>
+              </div>
+            )}
+
             {bonusUsed > 0 && (
-              <div className="text-sm text-amber-600">Списано бонусов: -{bonusUsed} ₽</div>
+              <div className="text-sm text-amber-600 mt-1">Списано бонусов: -{bonusUsed} ₽</div>
             )}
           </div>
 
@@ -597,12 +656,12 @@ function Cart() {
                     type="checkbox"
                     checked={useBonus}
                     onChange={(e) => handleBonusToggle(e.target.checked)}
-                    disabled={availableBonuses === 0 || total === 0 || maxUsableBonus === 0 || !!appliedPromo}
+                    disabled={availableBonuses === 0 || finalTotalAfterDiscount === 0 || maxUsableBonus === 0 || !!appliedPromo}
                     className="hidden"
                   />
                   <span className={`relative inline-flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all duration-300 ${
                     useBonus ? 'bg-amber-500 border-amber-500' : 'bg-white border-gray-300 hover:border-amber-400'
-                  } ${(availableBonuses === 0 || total === 0 || maxUsableBonus === 0 || appliedPromo) ? 'opacity-50' : 'cursor-pointer'}`}>
+                  } ${(availableBonuses === 0 || finalTotalAfterDiscount === 0 || maxUsableBonus === 0 || appliedPromo) ? 'opacity-50' : 'cursor-pointer'}`}>
                     {useBonus && <FaCheck className="w-3 h-3 text-white animate-checkmark" />}
                   </span>
                   <span>Использовать бонусы</span>
