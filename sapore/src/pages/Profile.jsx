@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
 import {
     FaPhone, FaEnvelope, FaUsers, FaGift, FaChartLine, FaCoins, FaInfoCircle, FaGem,
     FaPercent, FaPlus, FaTruck, FaUtensils, FaStar, FaChevronRight, FaCheckCircle,
-    FaLock, FaPizzaSlice, FaAward, FaMapMarkerAlt
+    FaLock, FaPizzaSlice, FaAward, FaMapMarkerAlt, FaTag
 } from 'react-icons/fa';
 import { LEVELS_BASE } from '../constants/api';
 
@@ -32,6 +32,22 @@ const useReferralInfo = (login) => {
   });
 };
 
+// Хук для получения/генерации промокода
+const usePromoCode = (login) => {
+  return useQuery({
+    queryKey: ['promo', login],
+    queryFn: async () => {
+      if (!login) return null;
+      const res = await fetch(`${API_BASE}?action=generate_promo&login=${encodeURIComponent(login)}`);
+      const data = await res.json();
+      if (data.status === 'success') return data.code;
+      return null;
+    },
+    enabled: !!login,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 function Profile() {
   const navigate = useNavigate();
   const { userLogin, userProfile, login, logout, loading: authLoading } = useAuth();
@@ -41,6 +57,8 @@ function Profile() {
   const { data: referralInfo } = useReferralInfo(userLogin);
 
   const { data: userLevelData, refetch: refetchUserLevel } = useUserLevel(userLogin);
+  const { data: promoCode } = usePromoCode(userLogin);
+  
   const allLevels = userLevelData?.all_levels || [];
   const currentLevelData = userLevelData?.current_level;
   const nextLevelData = userLevelData?.next_level;
@@ -240,6 +258,7 @@ function Profile() {
               </div>
 
               <div className="p-6 space-y-6">
+                {/* Карточка уровня */}
                 {currentLevelData && (
                   <div className="relative rounded-2xl overflow-hidden shadow-lg mb-6">
                     <img
@@ -297,6 +316,7 @@ function Profile() {
                   </div>
                 )}
 
+                {/* Активные бонусы (без скидки) */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -383,6 +403,7 @@ function Profile() {
                   </div>
                 </motion.div>
 
+                {/* Карта путешествия */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -456,6 +477,58 @@ function Profile() {
                   </div>
                 </motion.div>
 
+                {/* Блок с промокодом */}
+                {currentLevelData && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45 }}
+                    className="border-t border-gray-100 pt-4 mt-4"
+                  >
+                    <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                      <FaTag className="text-amber-500" />
+                      Ваш промокод на скидку
+                    </h3>
+                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <div className="text-sm text-gray-600">Скидка {currentLevelData.bonus_value}%:</div>
+                          <div 
+                            className="text-xl font-mono font-bold text-amber-600 select-all cursor-pointer hover:text-amber-700 transition"
+                            onClick={() => {
+                              const code = promoCode || '';
+                              navigator.clipboard?.writeText(code).then(() => {
+                                toast.success('Промокод скопирован!');
+                              }).catch(() => {
+                                toast.error('Не удалось скопировать');
+                              });
+                            }}
+                          >
+                            {promoCode || 'Загрузка...'}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            const code = promoCode || '';
+                            navigator.clipboard?.writeText(code).then(() => {
+                              toast.success('Промокод скопирован!');
+                            }).catch(() => {
+                              toast.error('Не удалось скопировать');
+                            });
+                          }}
+                          className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm"
+                        >
+                          Скопировать
+                        </button>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-500">
+                        Действует 30 дней. Можно использовать один раз.
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* История бонусов */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -559,6 +632,7 @@ function Profile() {
     );
   }
 
+  // Форма входа / регистрации
   return (
     <div className="fade-in py-8">
       <div className="max-w-sm mx-auto">

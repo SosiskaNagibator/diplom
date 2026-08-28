@@ -140,7 +140,7 @@ function handleSaveOrder($pdo, $input) {
         if (!empty($promoCode)) {
             $discount = applyPromoCode($pdo, $promoCode, $userLogin, $originalTotal);
             if ($discount === false) {
-                echo json_encode(['status' => 'error', 'message' => 'Промокод недействителен']);
+                echo json_encode(['status' => 'error', 'message' => 'Промокод недействителен или не принадлежит вам']);
                 return;
             }
             $stmt = $pdo->prepare("UPDATE promo_codes SET used_count = used_count + 1 WHERE code = ?");
@@ -192,7 +192,7 @@ function handleSaveOrder($pdo, $input) {
             $stmt->execute([$originalTotal, $userLogin]);
         }
 
-        // ---- Реферальная система (исправлено: надбавка от уровня реферера) ----
+        // ---- Реферальная система ----
         if ($userLogin !== 'guest') {
             $stmt = $pdo->prepare("SELECT referred_by FROM users WHERE Login = ?");
             $stmt->execute([$userLogin]);
@@ -204,7 +204,6 @@ function handleSaveOrder($pdo, $input) {
                 if ($orderCount == 0) {
                     $referrer = $user['referred_by'];
                     $bonusAmount = 100;
-                    // Получаем бонусы реферера, чтобы применить referral_extra
                     $referrerBonuses = getUserActiveBonuses($pdo, $referrer);
                     if ($referrerBonuses['referral_extra'] > 0) {
                         $extra = (int)($bonusAmount * ($referrerBonuses['referral_extra'] / 100));
@@ -365,7 +364,7 @@ function handleApplyPromo($pdo, $input) {
     }
     $discount = applyPromoCode($pdo, $code, $login, $orderTotal);
     if ($discount === false) {
-        echo json_encode(['status' => 'error', 'message' => 'Промокод недействителен или истёк']);
+        echo json_encode(['status' => 'error', 'message' => 'Промокод недействителен или не принадлежит вам']);
         return;
     }
     echo json_encode([
@@ -381,6 +380,12 @@ function applyPromoCode($pdo, $code, $login, $orderTotal) {
     $stmt->execute([$code]);
     $promo = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$promo) return false;
+
+    // ---- ПРОВЕРКА: промокод персональный ----
+    if (!empty($promo['user_login']) && $promo['user_login'] !== $login) {
+        return false; // промокод не принадлежит этому пользователю
+    }
+
     if ($promo['min_order_amount'] > $orderTotal) return false;
     $discount = 0;
     if ($promo['discount_type'] == 'percent') {

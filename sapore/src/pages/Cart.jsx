@@ -12,7 +12,7 @@ import { useBonuses } from '../hooks/useProfile';
 import { useSaveOrder } from '../hooks/useCart';
 import CartItem from '../components/CartItem';
 import { API_ORDERS, API_BASE } from '../constants/api';
-import { FaBolt, FaClock, FaPizzaSlice, FaClipboardList, FaGift, FaCoins, FaCheck, FaTag } from 'react-icons/fa';
+import { FaBolt, FaClock, FaPizzaSlice, FaClipboardList, FaGift, FaCoins, FaCheck } from 'react-icons/fa';
 import LevelUpModal from '../components/LevelUpModal';
 import { useUserLevel } from '../hooks/useLevels';
 
@@ -187,13 +187,8 @@ function Cart() {
 
   const { mutateAsync: saveOrder, isPending: isSaving } = useSaveOrder();
 
-  // ---- Взаимоисключение скидок ----
-  const discountAmount = discountData?.discount_amount || 0;
-  const hasLevelDiscount = discountAmount > 0 && !appliedPromo;
-  const effectiveDiscount = hasLevelDiscount ? discountAmount : 0;
   const effectivePromoDiscount = appliedPromo ? promoDiscount : 0;
-
-  const finalTotalAfterDiscount = total - effectiveDiscount - effectivePromoDiscount;
+  const finalTotalAfterDiscount = total - effectivePromoDiscount;
 
   const maxBonusPercent = 20;
   const maxBonusAmount = Math.floor(finalTotalAfterDiscount * (maxBonusPercent / 100));
@@ -318,7 +313,6 @@ function Cart() {
         setPromoDiscount(data.discount);
         setAppliedPromo(promoCode);
         setPromoMessage('Промокод применён! Скидка: ' + data.discount + ' ₽');
-        setDiscountData(null);
       } else {
         setPromoMessage('Ошибка: ' + data.message);
         setPromoDiscount(0);
@@ -336,7 +330,6 @@ function Cart() {
     setPromoDiscount(0);
     setPromoMessage('');
     setPromoCode('');
-    fetchDiscount(total);
   };
 
   const handleCheckout = useCallback(async (e) => {
@@ -617,25 +610,14 @@ function Cart() {
               <motion.span key={finalTotal} className="text-2xl font-bold text-amber-600">
                 {finalTotal} ₽
               </motion.span>
-              {effectiveDiscount > 0 && (
-                <span className="text-sm text-gray-400 line-through">{total} ₽</span>
-              )}
               {effectivePromoDiscount > 0 && (
                 <span className="text-sm text-gray-400 line-through">{total} ₽</span>
               )}
             </div>
 
-            {effectiveDiscount > 0 && (
-              <div className="mt-1 text-sm text-amber-600 flex items-center gap-1">
-                <FaTag className="text-amber-500" />
-                <span>Скидка за уровень: -{effectiveDiscount} ₽ ({discountData?.discount_percent}%)</span>
-              </div>
-            )}
-
             {effectivePromoDiscount > 0 && (
-              <div className="mt-1 text-sm text-amber-600 flex items-center gap-1">
-                <FaTag className="text-amber-500" />
-                <span>Промокод: -{effectivePromoDiscount} ₽</span>
+              <div className="mt-1 text-sm text-amber-600">
+                Промокод: -{effectivePromoDiscount} ₽
               </div>
             )}
 

@@ -1,7 +1,4 @@
 <?php
-// ============================================================
-// 1. Заголовки CORS для работы с куками (credentials: include)
-// ============================================================
 $allowedOrigins = ['http://localhost', 'http://localhost:5173', 'http://127.0.0.1', 'http://127.0.0.1:5173'];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if (in_array($origin, $allowedOrigins)) {
@@ -14,22 +11,13 @@ header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header('Content-Type: application/json');
 
-// ============================================================
-// 2. Сессии (обязательно в самом начале)
-// ============================================================
 session_start();
 
-// ============================================================
-// 3. Обработка предварительных OPTIONS-запросов (CORS preflight)
-// ============================================================
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit(0);
 }
 
-// ============================================================
-// 4. Подключение к БД
-// ============================================================
 $server = "localhost";
 $dbname = "saporedb";
 $dblogin = "root";
@@ -45,9 +33,6 @@ try {
     exit;
 }
 
-// ============================================================
-// 5. Вспомогательные функции
-// ============================================================
 function sanitize($data) {
     if (is_array($data)) {
         return array_map('sanitize', $data);
@@ -78,27 +63,17 @@ function checkRateLimit($pdo, $action, $limit = 30, $period = 60) {
     }
 }
 
-// ============================================================
-// 6. Получение действия
-// ============================================================
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
-// Для POST-запросов с JSON читаем тело
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($action)) {
     $input = json_decode(file_get_contents('php://input'), true);
     $action = $input['action'] ?? '';
 }
 
-// ============================================================
-// 7. Rate limiting для POST
-// ============================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $limit = ($action === 'login' || $action === 'register') ? 10 : 60;
     checkRateLimit($pdo, $action, $limit, 60);
 }
 
-// ============================================================
-// 8. Обработка GET-запросов
-// ============================================================
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($action === 'get_bonuses' || $action === 'get_bonus_history') {
         require_once __DIR__ . '/api/bonuses.php';
@@ -153,51 +128,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         echo json_encode(['status' => 'success', 'data' => $discountData]);
         exit;
     }
+    if ($action === 'generate_promo') {
+        require_once __DIR__ . '/api/promo_generate.php';
+        handleGeneratePromo($pdo);
+        exit;
+    }
     echo json_encode(['status' => 'error', 'message' => 'Неизвестное действие для GET']);
     exit;
 }
 
-
-// ============================================================
-// 9. Обработка POST-запросов
-// ============================================================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // --- Вход и регистрация ---
     if ($action === 'login' || $action === 'register') {
         require_once __DIR__ . '/api/auth.php';
         handleAuth($pdo);
         exit;
     }
 
-    // --- Контакты ---
     if ($action === 'contact') {
         require_once __DIR__ . '/api/contacts.php';
         handleContact($pdo);
         exit;
     }
 
-    // --- Избранное ---
     if ($action === 'wishlist_toggle') {
         require_once __DIR__ . '/api/wishlist.php';
         handleWishlistToggle($pdo);
         exit;
     }
 
-    // --- Восстановление пароля ---
     if ($action === 'password_reset_request' || $action === 'password_reset_confirm') {
         require_once __DIR__ . '/api/password.php';
         handlePasswordReset($pdo, $action);
         exit;
     }
 
-    // --- Выход администратора ---
     if ($action === 'admin_logout') {
         session_destroy();
         echo json_encode(['status' => 'success', 'message' => 'Выход выполнен']);
         exit;
     }
 
-    // --- Административные действия (защищены сессией) ---
     if (strpos($action, 'admin_') === 0) {
         // if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
         //     http_response_code(403);
@@ -209,20 +179,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // --- Адреса пользователя ---
     if ($action === 'add_user_address' || $action === 'delete_user_address' || $action === 'set_default_address' || $action === 'update_address_label') {
         require_once __DIR__ . '/api/addresses.php';
         handleAddressAction($pdo, $action);
         exit;
     }
 
-    // --- Если действие не распознано ---
     echo json_encode(['status' => 'error', 'message' => 'Неизвестное действие для POST']);
     exit;
 }
 
-// ============================================================
-// 10. Метод не поддерживается
-// ============================================================
 http_response_code(405);
 echo json_encode(['status' => 'error', 'message' => 'Метод не поддерживается']);

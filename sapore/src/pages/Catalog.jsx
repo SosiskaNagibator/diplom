@@ -85,14 +85,7 @@ function Catalog({ addToCart }) {
   const categories = data?.categories || [];
   const pagination = data?.pagination || { totalPages: 1, total: 0 };
 
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: (index) => ({
-      opacity: 1,
-      y: 0,
-      transition: { delay: index * 0.06, duration: 0.5, ease: 'easeOut' }
-    })
-  };
+  const listKey = `${activeCategoryId}-${currentPage}-${searchQuery}`;
 
   return (
     <div className="fade-in">
@@ -133,15 +126,21 @@ function Catalog({ addToCart }) {
           Array.from({ length: limit }).map((_, index) => <PizzaSkeleton key={`skeleton-${index}`} />)
         ) : (
           pizzas.map((pizza, index) => (
-            <motion.div key={`${pizza.id}-${activeCategoryId}-${currentPage}-${searchQuery}`} custom={index} initial="hidden" animate="visible" variants={cardVariants}>
-              <Link to={`/pizza/${pizza.id}`} className="block">
-                <Card hover className="overflow-hidden border border-gray-100 relative">
-                  <div className="relative overflow-hidden">
+            <motion.div
+              key={`${pizza.id}-${listKey}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.04, duration: 0.3, ease: 'easeOut' }}
+              className="h-full"
+            >
+              <Link to={`/pizza/${pizza.id}`} className="block h-full">
+                <Card hover className="overflow-hidden border border-gray-100 relative h-full flex flex-col">
+                  <div className="relative overflow-hidden flex-shrink-0">
                     <img src={getImageUrl(pizza.image)} alt={pizza.name} className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105" />
                   </div>
-                  <div className="p-4">
+                  <div className="p-4 flex-1 flex flex-col">
                     <div className="font-semibold text-gray-800 text-lg">{pizza.name}</div>
-                    <div className="text-sm text-gray-500 mt-1 line-clamp-2">{pizza.description}</div>
+                    <div className="text-sm text-gray-500 mt-1 line-clamp-2 flex-1">{pizza.description}</div>
                     {pizza.available_sizes && pizza.available_sizes.length > 0 && (
                       <div className="mt-3 flex gap-1 flex-wrap">
                         {pizza.available_sizes.map(size => (
@@ -157,7 +156,7 @@ function Catalog({ addToCart }) {
                         ))}
                       </div>
                     )}
-                    <div className="flex items-center justify-between mt-3">
+                    <div className="flex items-center justify-between mt-3 pt-1">
                       <span className={`text-amber-600 font-bold text-xl ${priceAnimations[pizza.id] || ''}`}>
                         {getPrice(pizza)} ₽
                       </span>

@@ -105,11 +105,12 @@ function getUserActiveBonuses($pdo, $login) {
     if ($login === 'guest') {
         return [
             'discount' => 0,
-            'cashback' => 0,
-            'free_topping' => false,
-            'free_delivery' => false,
+            'bonus_multiplier' => 1.0,
             'referral_extra' => 0,
             'review_extra' => 0,
+            'free_topping' => false,
+            'free_delivery' => false,
+            'cashback' => 0,
         ];
     }
 
@@ -124,11 +125,12 @@ function getUserActiveBonuses($pdo, $login) {
 
     $bonuses = [
         'discount' => 0,
-        'cashback' => 0,
-        'free_topping' => false,
-        'free_delivery' => false,
+        'bonus_multiplier' => 1.0,
         'referral_extra' => 0,
         'review_extra' => 0,
+        'free_topping' => false,
+        'free_delivery' => false,
+        'cashback' => 0,
     ];
 
     foreach ($levels as $level) {
@@ -140,10 +142,9 @@ function getUserActiveBonuses($pdo, $login) {
                     $bonuses['discount'] = $value;
                 }
                 break;
-            case 'cashback':
-                // Берем максимальный cashback (если есть Болонья 5%, то она перекроет Милан 3%)
-                if ($value > $bonuses['cashback']) {
-                    $bonuses['cashback'] = $value;
+            case 'bonus_multiplier':
+                if ($value > $bonuses['bonus_multiplier']) {
+                    $bonuses['bonus_multiplier'] = $value;
                 }
                 break;
             case 'referral_extra':
@@ -162,6 +163,11 @@ function getUserActiveBonuses($pdo, $login) {
             case 'free_delivery':
                 $bonuses['free_delivery'] = true;
                 break;
+            case 'cashback':
+                if ($value > $bonuses['cashback']) {
+                    $bonuses['cashback'] = $value;
+                }
+                break;
         }
     }
 
@@ -171,32 +177,28 @@ function getUserActiveBonuses($pdo, $login) {
 function calculateCartDiscount($pdo, $login, $cartTotal) {
     $bonuses = getUserActiveBonuses($pdo, $login);
     
-    $discountPercent = $bonuses['discount'];
-    $discountAmount = 0;
-    if ($discountPercent > 0 && $cartTotal > 0) {
-        $discountAmount = $cartTotal * ($discountPercent / 100);
-    }
-    
     $freeDelivery = $bonuses['free_delivery'];
     $cashbackPercent = $bonuses['cashback'];
+    $bonusMultiplier = $bonuses['bonus_multiplier'];
     
     $applied = [];
-    if ($discountPercent > 0) {
-        $applied[] = "Скидка $discountPercent%";
-    }
     if ($freeDelivery) {
         $applied[] = "Бесплатная доставка";
     }
     if ($cashbackPercent > 0) {
         $applied[] = "Кэшбэк $cashbackPercent%";
     }
+    if ($bonusMultiplier > 1) {
+        $applied[] = "Бонусы ×" . number_format($bonusMultiplier, 2);
+    }
     
     return [
-        'discount_percent' => (float)$discountPercent,
-        'discount_amount' => round($discountAmount, 2),
-        'final_total' => round($cartTotal - $discountAmount, 2),
+        'discount_percent' => 0,
+        'discount_amount' => 0,
+        'final_total' => round($cartTotal, 2),
         'free_delivery' => $freeDelivery,
         'cashback_percent' => (float)$cashbackPercent,
+        'bonus_multiplier' => (float)$bonusMultiplier,
         'applied_bonuses' => $applied,
         'original_total' => $cartTotal,
     ];
