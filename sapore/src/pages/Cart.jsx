@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import MapPicker from '../components/MapPicker/MapPicker';
 import AddressSelector from '../components/AddressSelector';
 import BonusSlider from '../components/BonusSlider';
+import ConsentCheckbox from '../components/ConsentCheckbox';
 import { Button } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
@@ -187,6 +188,8 @@ function Cart() {
 
   const { mutateAsync: saveOrder, isPending: isSaving } = useSaveOrder();
 
+  const [consentPersonal, setConsentPersonal] = useState(false);
+
   const effectivePromoDiscount = appliedPromo ? promoDiscount : 0;
   const finalTotalAfterDiscount = total - effectivePromoDiscount;
 
@@ -361,6 +364,11 @@ function Cart() {
       return false;
     }
 
+    if (!consentPersonal) {
+      alert('Для оформления заказа необходимо дать согласие на обработку персональных данных');
+      return false;
+    }
+
     let fullAddress = deliveryAddress.trim();
     if (apartment.trim()) {
       fullAddress += `, кв. ${apartment.trim()}`;
@@ -446,7 +454,7 @@ function Cart() {
       alert('Произошла ошибка при оформлении заказа. Попробуйте еще раз.');
       return false;
     }
-  }, [isSaving, cart, isGuest, customerName, customerPhone, customerEmail, deliveryAddress, apartment, deliveryMode, selectedHour, selectedMinute, total, finalTotal, bonusUsed, effectivePromoDiscount, appliedPromo, navigate, clearCart, userLogin, userProfile, saveOrder, refetchUserLevel]);
+  }, [isSaving, cart, isGuest, customerName, customerPhone, customerEmail, deliveryAddress, apartment, deliveryMode, selectedHour, selectedMinute, total, finalTotal, bonusUsed, effectivePromoDiscount, appliedPromo, consentPersonal, navigate, clearCart, userLogin, userProfile, saveOrder, refetchUserLevel]);
 
   if (cart.length === 0) {
     return (
@@ -672,13 +680,21 @@ function Cart() {
             <div className="text-sm text-gray-500">Войдите в аккаунт, чтобы копить и использовать бонусы</div>
           )}
 
-          <Button
-            variant="primary"
-            disabled={cart.length === 0 || isSaving || !deliveryAddress.trim() || (deliveryMode === 'choose' && (selectedHour === null || selectedMinute === null)) || (isGuest && (!customerName.trim() || !customerPhone || !validatePhone(customerPhone)))}
-            onClick={handleCheckout}
-          >
-            {isSaving ? 'Оформление...' : 'Оформить заказ'}
-          </Button>
+          <div className="flex flex-col gap-2 w-full sm:w-auto">
+            <ConsentCheckbox
+              type="personal"
+              checked={consentPersonal}
+              onChange={setConsentPersonal}
+              className="mt-1"
+            />
+            <Button
+              variant="primary"
+              disabled={cart.length === 0 || isSaving || !deliveryAddress.trim() || (deliveryMode === 'choose' && (selectedHour === null || selectedMinute === null)) || (isGuest && (!customerName.trim() || !customerPhone || !validatePhone(customerPhone))) || !consentPersonal}
+              onClick={handleCheckout}
+            >
+              {isSaving ? 'Оформление...' : 'Оформить заказ'}
+            </Button>
+          </div>
         </div>
       </motion.div>
 

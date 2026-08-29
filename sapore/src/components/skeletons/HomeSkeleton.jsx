@@ -21,7 +21,7 @@ const HomeSkeleton = () => {
             <div className="w-40 h-12 bg-gray-200 rounded-full" />
             <div className="w-40 h-12 bg-gray-200 rounded-full" />
           </div>
-        </div>
+        </div>  
       </div>
 
       <div className="mb-16">

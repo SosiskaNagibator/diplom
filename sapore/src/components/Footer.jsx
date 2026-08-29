@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { FaTelegramPlane, FaVk, FaYoutube, FaTruck, FaClock, FaCreditCard, FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock as FaClockIcon } from 'react-icons/fa';
-import { MdLocationOn, MdPhone, MdEmail, MdAccessTime } from 'react-icons/md';
 
 function Footer() {
   const currentYear = new Date().getFullYear();
@@ -10,7 +9,6 @@ function Footer() {
     <footer className="bg-white border-t border-gray-200 mt-12 shadow-inner">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* О компании */}
           <div>
             <h3 className="text-2xl font-bold text-amber-600 mb-4">Sapore</h3>
             <p className="text-gray-600 text-sm leading-relaxed">
@@ -29,7 +27,6 @@ function Footer() {
             </div>
           </div>
 
-          {/* Меню */}
           <div>
             <h4 className="font-semibold text-gray-800 mb-4">Меню</h4>
             <ul className="space-y-2 text-sm">
@@ -40,7 +37,6 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Контакты */}
           <div>
             <h4 className="font-semibold text-gray-800 mb-4">Контакты</h4>
             <ul className="space-y-3 text-sm text-gray-600">
@@ -63,26 +59,18 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Доставка */}
           <div>
-            <h4 className="font-semibold text-gray-800 mb-4">Доставка</h4>
-            <ul className="space-y-3 text-sm text-gray-600">
-              <li className="flex items-center gap-2">
-                <FaTruck className="text-amber-500 text-lg" />
-                <span>Бесплатная доставка</span>
+            <h4 className="font-semibold text-gray-800 mb-4">Юридическая информация</h4>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link to="/privacy" className="text-gray-600 hover:text-amber-500 transition-colors">
+                  Политика конфиденциальности
+                </Link>
               </li>
-              <li className="flex items-center gap-2">
-                <FaClock className="text-amber-500 text-lg" />
-                <span>Среднее время доставки: 30–45 мин</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <FaCreditCard className="text-amber-500 text-lg" />
-                <span>Оплата картой или наличными</span>
-              </li>
-              <li className="mt-3">
-                <span className="inline-block bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1 rounded-full">
-                  Работаем с 2015 года
-                </span>
+              <li>
+                <Link to="/offer" className="text-gray-600 hover:text-amber-500 transition-colors">
+                  Публичная оферта
+                </Link>
               </li>
             </ul>
           </div>

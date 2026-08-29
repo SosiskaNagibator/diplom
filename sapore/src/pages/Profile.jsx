@@ -10,6 +10,7 @@ import { useUserLevel } from '../hooks/useLevels';
 import ProfileSkeleton from '../components/skeletons/ProfileSkeleton';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import ConsentCheckbox from '../components/ConsentCheckbox';
 import {
     FaPhone, FaEnvelope, FaUsers, FaGift, FaChartLine, FaCoins, FaInfoCircle, FaGem,
     FaPercent, FaPlus, FaTruck, FaUtensils, FaStar, FaChevronRight, FaCheckCircle,
@@ -32,7 +33,6 @@ const useReferralInfo = (login) => {
   });
 };
 
-// Хук для получения/генерации промокода
 const usePromoCode = (login) => {
   return useQuery({
     queryKey: ['promo', login],
@@ -258,7 +258,6 @@ function Profile() {
               </div>
 
               <div className="p-6 space-y-6">
-                {/* Карточка уровня */}
                 {currentLevelData && (
                   <div className="relative rounded-2xl overflow-hidden shadow-lg mb-6">
                     <img
@@ -316,7 +315,6 @@ function Profile() {
                   </div>
                 )}
 
-                {/* Активные бонусы (без скидки) */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -403,7 +401,6 @@ function Profile() {
                   </div>
                 </motion.div>
 
-                {/* Карта путешествия */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -477,7 +474,6 @@ function Profile() {
                   </div>
                 </motion.div>
 
-                {/* Блок с промокодом */}
                 {currentLevelData && (
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -528,7 +524,6 @@ function Profile() {
                   </motion.div>
                 )}
 
-                {/* История бонусов */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -632,7 +627,6 @@ function Profile() {
     );
   }
 
-  // Форма входа / регистрации
   return (
     <div className="fade-in py-8">
       <div className="max-w-sm mx-auto">
@@ -721,30 +715,16 @@ function Profile() {
                 style={{ animationDelay: '0.45s' }}
               />
               <div className="space-y-2 pt-2">
-                <label className="flex items-start gap-2 text-sm text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={consentPersonal}
-                    onChange={(e) => setConsentPersonal(e.target.checked)}
-                    className="mt-1"
-                    required
-                  />
-                  <span>
-                    Я согласен на <Link to="/privacy" target="_blank" className="text-amber-600 underline hover:text-amber-700">обработку персональных данных</Link>
-                  </span>
-                </label>
-                <label className="flex items-start gap-2 text-sm text-gray-700">
-                  <input
-                    type="checkbox"
-                    checked={consentOffer}
-                    onChange={(e) => setConsentOffer(e.target.checked)}
-                    className="mt-1"
-                    required
-                  />
-                  <span>
-                    Я принимаю <Link to="/offer" target="_blank" className="text-amber-600 underline hover:text-amber-700">пользовательское соглашение и оферту</Link>
-                  </span>
-                </label>
+                <ConsentCheckbox
+                  type="personal"
+                  checked={consentPersonal}
+                  onChange={setConsentPersonal}
+                />
+                <ConsentCheckbox
+                  type="offer"
+                  checked={consentOffer}
+                  onChange={setConsentOffer}
+                />
               </div>
             </>
           )}

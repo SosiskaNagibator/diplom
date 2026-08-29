@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import CookieBanner from './components/CookieBanner';
 import Home from './pages/Home';
 import Catalog from './pages/Catalog';
 import Constructor from './pages/Constructor';
@@ -140,6 +141,7 @@ function App() {
           </motion.div>
         </div>
       )}
+      <CookieBanner />
     </div>
   );
 }
