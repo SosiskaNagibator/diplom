@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaPizzaSlice, FaUtensils, FaRocket, FaLeaf } from 'react-icons/fa';
+import { FaPizzaSlice, FaPlus } from 'react-icons/fa';
 import { API_CATALOG } from '../constants/api';
 import { getPriceWithSize } from '../utils/priceUtils';
 import { Button, Card } from '../components/ui';
@@ -92,7 +92,7 @@ function Home({ addToCart }) {
 
   return (
     <div className="fade-in">
-      {/* Hero-секция с иконкой пиццы */}
+      {/* Hero-секция */}
       <motion.section
         initial="hidden"
         animate="visible"
@@ -130,7 +130,7 @@ function Home({ addToCart }) {
         </div>
       </motion.section>
 
-      {/* Почему мы — с иконками в кружках */}
+      {/* Три карточки с изображениями на всю ширину */}
       <section className="mb-16">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
@@ -141,38 +141,62 @@ function Home({ addToCart }) {
           Почему выбирают нас
         </motion.h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {[
-            {
-              icon: <FaUtensils className="text-3xl text-amber-600" />,
-              title: 'Итальянские рецепты',
-              desc: 'Готовим по традиционным рецептам с любовью'
-            },
-            {
-              icon: <FaRocket className="text-3xl text-amber-600" />,
-              title: 'Быстрая доставка',
-              desc: 'Привезём горячую пиццу за 30 минут'
-            },
-            {
-              icon: <FaLeaf className="text-3xl text-amber-600" />,
-              title: 'Свежие продукты',
-              desc: 'Только натуральные ингредиенты высокого качества'
-            }
-          ].map((item, index) => (
-            <motion.div
-              key={index}
-              custom={index}
-              initial="hidden"
-              animate="visible"
-              variants={cardVariants}
-              className="bg-white rounded-2xl shadow-sm p-6 text-center border border-gray-100 transition-all duration-200 hover:shadow-md hover:-translate-y-1"
-            >
-              <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-3">
-                {item.icon}
-              </div>
-              <h3 className="font-semibold text-gray-800">{item.title}</h3>
-              <p className="text-sm text-gray-500 mt-1">{item.desc}</p>
-            </motion.div>
-          ))}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+          >
+            <img
+              src="https://www.good-cook.ru/articles/2017/04/01-3-picca-dary-morya.jpg"
+              alt="Итальянские рецепты"
+              className="w-full h-48 object-cover"
+            />
+            <div className="p-5 text-center">
+              <h3 className="font-semibold text-lg text-gray-800">Итальянские рецепты</h3>
+              <p className="text-gray-500 text-sm mt-1 leading-relaxed">
+                Готовим по традиционным рецептам с любовью
+              </p>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+          >
+            <img
+              src="https://cdn21vek.by/img/galleries/7460/980/preview_b/retro_vento_06_638dc15a1a224.jpeg"
+              alt="Быстрая доставка"
+              className="w-full h-48 object-cover"
+            />
+            <div className="p-5 text-center">
+              <h3 className="font-semibold text-lg text-gray-800">Быстрая доставка</h3>
+              <p className="text-gray-500 text-sm mt-1 leading-relaxed">
+                Привезём горячую пиццу за 30 минут
+              </p>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+          >
+            <img
+              src="https://i.pinimg.com/736x/e8/5e/68/e85e68d47d0c75528728cf2da741817d.jpg"
+              alt="Свежие продукты"
+              className="w-full h-48 object-cover"
+            />
+            <div className="p-5 text-center">
+              <h3 className="font-semibold text-lg text-gray-800">Свежие продукты</h3>
+              <p className="text-gray-500 text-sm mt-1 leading-relaxed">
+                Только натуральные ингредиенты высокого качества
+              </p>
+            </div>
+          </motion.div>
         </div>
       </section>
 
