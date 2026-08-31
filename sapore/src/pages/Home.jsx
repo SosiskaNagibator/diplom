@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaPizzaSlice, FaPlus } from 'react-icons/fa';
-import { API_CATALOG } from '../constants/api';
+import { API_CATALOG, STATIC_HOME } from '../constants/api';
 import { getPriceWithSize } from '../utils/priceUtils';
 import { Button, Card } from '../components/ui';
 import { getImageUrl } from '../utils/imageUtils';
@@ -130,7 +130,7 @@ function Home({ addToCart }) {
         </div>
       </motion.section>
 
-      {/* Три карточки с изображениями на всю ширину */}
+      {/* Три карточки с локальными изображениями через STATIC_HOME */}
       <section className="mb-16">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
@@ -148,7 +148,7 @@ function Home({ addToCart }) {
             className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
           >
             <img
-              src="https://www.good-cook.ru/articles/2017/04/01-3-picca-dary-morya.jpg"
+              src={`${STATIC_HOME}italian-recipes.jpg`}
               alt="Итальянские рецепты"
               className="w-full h-48 object-cover"
             />
@@ -167,7 +167,7 @@ function Home({ addToCart }) {
             className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
           >
             <img
-              src="https://cdn21vek.by/img/galleries/7460/980/preview_b/retro_vento_06_638dc15a1a224.jpeg"
+              src={`${STATIC_HOME}fast-delivery.jpg`}
               alt="Быстрая доставка"
               className="w-full h-48 object-cover"
             />
@@ -186,7 +186,7 @@ function Home({ addToCart }) {
             className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
           >
             <img
-              src="https://i.pinimg.com/736x/e8/5e/68/e85e68d47d0c75528728cf2da741817d.jpg"
+              src={`${STATIC_HOME}fresh-products.jpg`}
               alt="Свежие продукты"
               className="w-full h-48 object-cover"
             />
