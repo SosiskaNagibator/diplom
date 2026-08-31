@@ -19,6 +19,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Privacy from './pages/Privacy';
 import Offer from './pages/Offer';
+import NotFound from './pages/NotFound';
 import { useCart } from './contexts/CartContext';
 
 function App() {
@@ -120,6 +121,11 @@ function App() {
             <Route path="/offer" element={
               <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
                 <Offer />
+              </motion.div>
+            } />
+            <Route path="*" element={
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
+                <NotFound />
               </motion.div>
             } />
           </Routes>
