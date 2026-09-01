@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { API_BASE } from '../constants/api'; // FIXED: импорт константы
 
 const AuthContext = createContext();
 
@@ -23,7 +24,8 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserData = useCallback(async (login) => {
     try {
-      const res = await fetch(`http://localhost/api.php?action=get_user_profile&login=${encodeURIComponent(login)}`);
+      // FIXED: используем API_BASE вместо http://localhost/api.php
+      const res = await fetch(`${API_BASE}?action=get_user_profile&login=${encodeURIComponent(login)}`);
       const data = await res.json();
       if (data.status === 'success') {
         setUserProfile({
@@ -55,7 +57,8 @@ export const AuthProvider = ({ children }) => {
         formData.append('ReferralCode', referralCode);
       }
 
-      const response = await fetch('http://localhost/api.php', {
+      // FIXED: используем API_BASE вместо http://localhost/api.php
+      const response = await fetch(API_BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString(),

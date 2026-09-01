@@ -12,7 +12,9 @@ export const useWishlist = () => {
       if (!userLogin) return [];
       const res = await fetch(`${API_BASE}?action=wishlist_get&login=${userLogin}`);
       const data = await res.json();
-      if (data.status === 'success') return data.ids;
+      if (data.status === 'success') {
+        return data.ids.map(id => String(id));
+      }
       return [];
     },
     enabled: !!userLogin,
@@ -33,7 +35,7 @@ export const useWishlist = () => {
     },
   });
 
-  const isInWishlist = (pizzaId) => wishlistIds.includes(String(pizzaId)); // ← фикс
+  const isInWishlist = (pizzaId) => wishlistIds.includes(String(pizzaId));
   const toggleWishlist = (pizzaId) => toggleMutation.mutate(pizzaId);
 
   return { wishlistIds, isInWishlist, toggleWishlist, isLoading };

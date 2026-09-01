@@ -9,9 +9,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 $host = 'localhost';
-$user = 'root';
-$password = '';
-$dbname = 'saporedb';
+$user = 'vladskv_saporedb';
+$password = 'Play999111.';
+$dbname = 'vladskv_saporedb';
 
 $conn = new mysqli($host, $user, $password, $dbname);
 if ($conn->connect_error) {
@@ -21,7 +21,6 @@ if ($conn->connect_error) {
 }
 $conn->set_charset("utf8");
 
-// ---- Если передан id, возвращаем ОДНУ пиццу ----
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($id > 0) {
     $stmt = $conn->prepare("SELECT id, name, category, description, price, image, sizes, category_id, 
@@ -67,28 +66,24 @@ if ($id > 0) {
     exit;
 }
 
-// ---- Каталог с пагинацией, фильтром по категории и поиском ----
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 9;
 $offset = ($page - 1) * $limit;
 $categoryId = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
-// Получаем категории
 $categoriesResult = $conn->query("SELECT id, name FROM categories ORDER BY sort_order");
 $categories = [];
 while ($row = $categoriesResult->fetch_assoc()) {
     $categories[] = $row;
 }
 
-// Получаем размеры
 $sizesResult = $conn->query("SELECT id, name, label, price_multiplier FROM pizza_sizes ORDER BY sort_order");
 $sizes = [];
 while ($row = $sizesResult->fetch_assoc()) {
     $sizes[] = $row;
 }
 
-// Строим WHERE-условие
 $where = '';
 $params = [];
 $types = '';
@@ -112,7 +107,6 @@ if (!empty($search)) {
     $types .= 'sss';
 }
 
-// Подсчёт общего количества
 $countSql = "SELECT COUNT(*) as total FROM items" . $where;
 $countStmt = $conn->prepare($countSql);
 if (!empty($params)) {
@@ -123,7 +117,6 @@ $countResult = $countStmt->get_result();
 $totalRow = $countResult->fetch_assoc();
 $total = (int)$totalRow['total'];
 
-// Основной запрос с пагинацией
 $sql = "SELECT id, name, category, description, price, image, sizes, category_id,
                calories, protein, fat, carbs 
         FROM items" . $where . " ORDER BY id LIMIT ? OFFSET ?";

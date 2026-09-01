@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { API_BASE } from '../constants/api';
+import { API_BASE, LEVELS_BASE } from '../constants/api';
 import { STORAGE_KEYS } from '../constants/storage';
 import { Button, Input, Card, Badge, LoadingSpinner } from '../components/ui';
 import { useAuth } from '../contexts/AuthContext';
@@ -16,7 +16,7 @@ import {
     FaPercent, FaPlus, FaTruck, FaUtensils, FaStar, FaChevronRight, FaCheckCircle,
     FaLock, FaPizzaSlice, FaAward, FaMapMarkerAlt, FaTag
 } from 'react-icons/fa';
-import { LEVELS_BASE } from '../constants/api';
+import { copyToClipboard } from '../utils/clipboard';
 
 const useReferralInfo = (login) => {
   return useQuery({
@@ -493,11 +493,7 @@ function Profile() {
                             className="text-xl font-mono font-bold text-amber-600 select-all cursor-pointer hover:text-amber-700 transition"
                             onClick={() => {
                               const code = promoCode || '';
-                              navigator.clipboard?.writeText(code).then(() => {
-                                toast.success('Промокод скопирован!');
-                              }).catch(() => {
-                                toast.error('Не удалось скопировать');
-                              });
+                              copyToClipboard(code, 'Промокод скопирован!');
                             }}
                           >
                             {promoCode || 'Загрузка...'}
@@ -506,11 +502,7 @@ function Profile() {
                         <button
                           onClick={() => {
                             const code = promoCode || '';
-                            navigator.clipboard?.writeText(code).then(() => {
-                              toast.success('Промокод скопирован!');
-                            }).catch(() => {
-                              toast.error('Не удалось скопировать');
-                            });
+                            copyToClipboard(code, 'Промокод скопирован!');
                           }}
                           className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm"
                         >
@@ -577,11 +569,7 @@ function Profile() {
                             className="text-xl font-mono font-bold text-amber-600 select-all cursor-pointer hover:text-amber-700 transition"
                             onClick={() => {
                               const code = referralInfo.referral_code || '';
-                              navigator.clipboard?.writeText(code).then(() => {
-                                toast.success('Код скопирован!');
-                              }).catch(() => {
-                                toast.error('Не удалось скопировать');
-                              });
+                              copyToClipboard(code, 'Реферальный код скопирован!');
                             }}
                           >
                             {referralInfo.referral_code}
@@ -590,11 +578,7 @@ function Profile() {
                         <button
                           onClick={() => {
                             const code = referralInfo.referral_code || '';
-                            navigator.clipboard?.writeText(code).then(() => {
-                              toast.success('Код скопирован!');
-                            }).catch(() => {
-                              toast.error('Не удалось скопировать');
-                            });
+                            copyToClipboard(code, 'Реферальный код скопирован!');
                           }}
                           className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm"
                         >

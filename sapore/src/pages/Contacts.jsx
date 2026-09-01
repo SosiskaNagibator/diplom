@@ -3,8 +3,7 @@ import { motion } from 'framer-motion';
 import MapPicker from '../components/MapPicker/MapPicker';
 import { Button, Input } from '../components/ui';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaTelegramPlane, FaVk, FaYoutube } from 'react-icons/fa';
-
-const API_CONTACTS = 'http://localhost/api.php';
+import { API_BASE } from '../constants/api'; // FIXED: импорт константы
 
 function Contacts() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -27,7 +26,8 @@ function Contacts() {
 
     setLoading(true);
     try {
-      const response = await fetch(API_CONTACTS, {
+      // FIXED: используем API_BASE вместо локальной константы
+      const response = await fetch(API_BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'contact', ...formData }),

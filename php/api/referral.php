@@ -6,7 +6,6 @@ function handleReferralInfo($pdo) {
         return;
     }
 
-    // Получаем реферальный код пользователя
     $stmt = $pdo->prepare("SELECT referral_code FROM users WHERE Login = ?");
     $stmt->execute([$login]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -30,13 +29,14 @@ function handleReferralInfo($pdo) {
         $bonusAmount = $baseBonus + (int)($baseBonus * ($referralExtra / 100));
     }
 
+    $referralLink = "http://vladskv.xsph.ru/register?ref=" . $code;
+
     echo json_encode([
         'status' => 'success',
         'referral_code' => $code,
-        'referral_link' => "http://localhost:5173/register?ref=" . $code,
+        'referral_link' => $referralLink,
         'total_referrals' => (int)$stats['total'],
         'completed_referrals' => (int)$stats['completed'],
         'bonus_per_referral' => $bonusAmount, 
     ]);
 }
-?>

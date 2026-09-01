@@ -9,9 +9,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 $host = 'localhost';
-$user = 'root';
-$password = '';
-$dbname = 'saporedb';
+$user = 'vladskv_saporedb';
+$password = 'Play999111.';
+$dbname = 'vladskv_saporedb';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $password);

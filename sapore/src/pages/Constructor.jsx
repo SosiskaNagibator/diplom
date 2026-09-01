@@ -2,8 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useUserLevel } from '../hooks/useLevels';
 import { useAuth } from '../contexts/AuthContext';
-
-const API_CONSTRUCTOR = 'http://localhost/constructor.php';
+import { API_CONSTRUCTOR } from '../constants/api'; // FIXED: импорт константы
 
 function Constructor({ addToCart }) {
   const { userLogin } = useAuth();
@@ -15,7 +14,6 @@ function Constructor({ addToCart }) {
     return allLevels.filter(level => Number(level.min_bonus) <= ordersSum);
   }, [allLevels, ordersSum]);
 
-  // Проверяем наличие бесплатной начинки по структурированным данным
   const hasFreeTopping = useMemo(() => {
     return achievedLevels.some(level => level.bonus_type === 'free_topping');
   }, [achievedLevels]);
@@ -35,6 +33,7 @@ function Constructor({ addToCart }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // FIXED: используем импортированную константу API_CONSTRUCTOR
         const res = await fetch(API_CONSTRUCTOR);
         if (!res.ok) throw new Error('Ошибка загрузки');
         const data = await res.json();

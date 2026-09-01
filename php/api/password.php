@@ -36,7 +36,7 @@ function handleResetRequest($pdo) {
     $stmt = $pdo->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
     $stmt->execute([$email, $token, $expires]);
 
-    $resetLink = "http://localhost:5173/reset-password?token=$token&email=$email"; // замените на ваш домен
+    $resetLink = "http://vladskv.xsph.ru/reset-password?token=$token&email=$email";
 
     $mail = new PHPMailer(true);
     try {
@@ -53,7 +53,7 @@ function handleResetRequest($pdo) {
         $mail->setFrom('miniontop52@mail.ru', 'Sapore');
         $mail->addAddress($email);
         $mail->Subject = 'Восстановление пароля на Sapore';
-        $mail->Body    = "Здравствуйте!\n\nДля сброса пароля перейдите по ссылке:\n$resetLink\n\nСсылка действительна 1 час.\n\nЕсли вы не запрашивали сброс, проигнорируйте это письмо.";
+        $mail->Body    = "Здравствуйте!\n\nДля сброса пароля перейдите по ссылке:\n$resetLink\n\nСсылка действительна 5 часов.\n\nЕсли вы не запрашивали сброс, проигнорируйте это письмо.";
 
         $mail->send();
         echo json_encode(['status' => 'success', 'message' => 'Ссылка для сброса отправлена на вашу почту']);
@@ -77,8 +77,10 @@ function handleResetConfirm($pdo) {
         echo json_encode(['status' => 'error', 'message' => 'Ссылка недействительна или истекла']);
         return;
     }
+
+    $hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
     $stmt = $pdo->prepare("UPDATE users SET Password = ? WHERE email = ?");
-    if ($stmt->execute([$newPassword, $email])) {
+    if ($stmt->execute([$hashedPassword, $email])) {
         $stmt = $pdo->prepare("DELETE FROM password_resets WHERE email = ?");
         $stmt->execute([$email]);
         echo json_encode(['status' => 'success', 'message' => 'Пароль успешно изменён']);

@@ -352,6 +352,10 @@ function Cart() {
       } else {
         setPhoneError('');
       }
+      if (!consentPersonal) {
+        alert('Для оформления заказа необходимо дать согласие на обработку персональных данных');
+        return false;
+      }
     }
 
     if (!deliveryAddress.trim()) {
@@ -361,11 +365,6 @@ function Cart() {
 
     if (deliveryMode === 'choose' && (selectedHour === null || selectedMinute === null)) {
       alert('Пожалуйста, выберите время доставки');
-      return false;
-    }
-
-    if (!consentPersonal) {
-      alert('Для оформления заказа необходимо дать согласие на обработку персональных данных');
       return false;
     }
 
@@ -681,15 +680,18 @@ function Cart() {
           )}
 
           <div className="flex flex-col gap-2 w-full sm:w-auto">
-            <ConsentCheckbox
-              type="personal"
-              checked={consentPersonal}
-              onChange={setConsentPersonal}
-              className="mt-1"
-            />
+            {/* Чекбокс согласия только для гостей */}
+            {isGuest && (
+              <ConsentCheckbox
+                type="personal"
+                checked={consentPersonal}
+                onChange={setConsentPersonal}
+                className="mt-1"
+              />
+            )}
             <Button
               variant="primary"
-              disabled={cart.length === 0 || isSaving || !deliveryAddress.trim() || (deliveryMode === 'choose' && (selectedHour === null || selectedMinute === null)) || (isGuest && (!customerName.trim() || !customerPhone || !validatePhone(customerPhone))) || !consentPersonal}
+              disabled={cart.length === 0 || isSaving || !deliveryAddress.trim() || (deliveryMode === 'choose' && (selectedHour === null || selectedMinute === null)) || (isGuest && (!customerName.trim() || !customerPhone || !validatePhone(customerPhone) || !consentPersonal))}
               onClick={handleCheckout}
             >
               {isSaving ? 'Оформление...' : 'Оформить заказ'}

@@ -9,9 +9,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 $host = 'localhost';
-$user = 'root';
-$password = '';
-$dbname = 'saporedb';
+$user = 'vladskv_saporedb';
+$password = 'Play999111.';
+$dbname = 'vladskv_saporedb';
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $password);
@@ -22,6 +22,7 @@ try {
 }
 
 require_once __DIR__ . '/api/levels.php';
+
 
 $input = json_decode(file_get_contents('php://input'), true);
 $action = $_POST['action'] ?? $_GET['action'] ?? $input['action'] ?? '';

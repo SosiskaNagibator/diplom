@@ -1,5 +1,6 @@
 <?php
-$allowedOrigins = ['http://localhost', 'http://localhost:5173', 'http://127.0.0.1', 'http://127.0.0.1:5173'];
+// Разрешаем CORS для вашего домена и localhost (для разработки)
+$allowedOrigins = ['http://localhost', 'http://localhost:5173', 'http://127.0.0.1', 'http://127.0.0.1:5173', 'http://vladskv.xsph.ru'];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if (in_array($origin, $allowedOrigins)) {
     header("Access-Control-Allow-Origin: $origin");
@@ -18,10 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
+// --- Подключение к БД ---
 $server = "localhost";
-$dbname = "saporedb";
-$dblogin = "root";
-$dbpass = "";
+$dbname = "vladskv_saporedb";
+$dblogin = "vladskv_saporedb";
+$dbpass = "Play999111.";
 
 try {
     $dbstr = "mysql:host=$server;dbname=$dbname;charset=utf8mb4";
@@ -29,7 +31,7 @@ try {
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch(PDOException $e) {
     http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'Ошибка подключения к БД']);
+    echo json_encode(['status' => 'error', 'message' => 'Ошибка подключения к БД: ' . $e->getMessage()]);
     exit;
 }
 
@@ -74,120 +76,141 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     checkRateLimit($pdo, $action, $limit, 60);
 }
 
+// --- Функция для безопасного подключения файла ---
+function require_api_file($filename) {
+    $path = __DIR__ . '/api/' . $filename;
+    if (!file_exists($path)) {
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => "Файл $filename не найден в папке api"]);
+        exit;
+    }
+    require_once $path;
+}
+
+// --- Обработка GET-запросов ---
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    if ($action === 'get_bonuses' || $action === 'get_bonus_history') {
-        require_once __DIR__ . '/api/bonuses.php';
-        handleBonusGet($pdo, $action);
-        exit;
-    }
-    if ($action === 'get_user_profile') {
-        $login = $_GET['login'] ?? '';
-        if (empty($login)) {
-            echo json_encode(['status' => 'error', 'message' => 'Логин не указан']);
+    switch ($action) {
+        case 'get_bonuses':
+        case 'get_bonus_history':
+            require_api_file('bonuses.php');
+            handleBonusGet($pdo, $action);
             exit;
-        }
-        require_once __DIR__ . '/api/profile.php';
-        handleGetUserProfile($pdo, $login);
-        exit;
-    }
-    if ($action === 'wishlist_get') {
-        require_once __DIR__ . '/api/wishlist.php';
-        handleWishlistGet($pdo);
-        exit;
-    }
-    if ($action === 'get_referral_info') {
-        require_once __DIR__ . '/api/referral.php';
-        handleReferralInfo($pdo);
-        exit;
-    }
-    if ($action === 'get_user_addresses') {
-        require_once __DIR__ . '/api/addresses.php';
-        handleAddressAction($pdo, $action);
-        exit;
-    }
-    if ($action === 'get_levels') {
-        require_once __DIR__ . '/api/levels.php';
-        handleLevelsAction($pdo, $action);
-        exit;
-    }
-    if ($action === 'get_user_level') {
-        $login = $_GET['login'] ?? '';
-        require_once __DIR__ . '/api/levels.php';
-        handleLevelsAction($pdo, $action, $login);
-        exit;
-    }
-    if ($action === 'get_cart_discount') {
-        $login = $_GET['login'] ?? '';
-        $total = (float)($_GET['total'] ?? 0);
-        if (empty($login)) {
-            echo json_encode(['status' => 'error', 'message' => 'Логин не указан']);
+
+        case 'get_user_profile':
+            $login = $_GET['login'] ?? '';
+            if (empty($login)) {
+                echo json_encode(['status' => 'error', 'message' => 'Логин не указан']);
+                exit;
+            }
+            require_api_file('profile.php');
+            handleGetUserProfile($pdo, $login);
             exit;
-        }
-        require_once __DIR__ . '/api/levels.php';
-        $discountData = calculateCartDiscount($pdo, $login, $total);
-        echo json_encode(['status' => 'success', 'data' => $discountData]);
-        exit;
+
+        case 'wishlist_get':
+            require_api_file('wishlist.php');
+            handleWishlistGet($pdo);
+            exit;
+
+        case 'get_referral_info':
+            require_api_file('referral.php');
+            handleReferralInfo($pdo);
+            exit;
+
+        case 'get_user_addresses':
+            require_api_file('addresses.php');
+            handleAddressAction($pdo, $action);
+            exit;
+
+        case 'get_levels':
+            require_api_file('levels.php');
+            handleLevelsAction($pdo, $action);
+            exit;
+
+        case 'get_user_level':
+            $login = $_GET['login'] ?? '';
+            require_api_file('levels.php');
+            handleLevelsAction($pdo, $action, $login);
+            exit;
+
+        case 'get_cart_discount':
+            $login = $_GET['login'] ?? '';
+            $total = (float)($_GET['total'] ?? 0);
+            if (empty($login)) {
+                echo json_encode(['status' => 'error', 'message' => 'Логин не указан']);
+                exit;
+            }
+            require_api_file('levels.php');
+            $discountData = calculateCartDiscount($pdo, $login, $total);
+            echo json_encode(['status' => 'success', 'data' => $discountData]);
+            exit;
+
+        case 'generate_promo':
+            require_api_file('promo_generate.php');
+            handleGeneratePromo($pdo);
+            exit;
+
+        default:
+            echo json_encode(['status' => 'error', 'message' => 'Неизвестное действие для GET']);
+            exit;
     }
-    if ($action === 'generate_promo') {
-        require_once __DIR__ . '/api/promo_generate.php';
-        handleGeneratePromo($pdo);
-        exit;
-    }
-    echo json_encode(['status' => 'error', 'message' => 'Неизвестное действие для GET']);
-    exit;
 }
 
+// --- Обработка POST-запросов ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if ($action === 'login' || $action === 'register') {
-        require_once __DIR__ . '/api/auth.php';
-        handleAuth($pdo);
-        exit;
-    }
+    switch ($action) {
+        case 'login':
+        case 'register':
+            require_api_file('auth.php');
+            handleAuth($pdo);
+            exit;
 
-    if ($action === 'contact') {
-        require_once __DIR__ . '/api/contacts.php';
-        handleContact($pdo);
-        exit;
-    }
+        case 'contact':
+            require_api_file('contacts.php');
+            handleContact($pdo);
+            exit;
 
-    if ($action === 'wishlist_toggle') {
-        require_once __DIR__ . '/api/wishlist.php';
-        handleWishlistToggle($pdo);
-        exit;
-    }
+        case 'wishlist_toggle':
+            require_api_file('wishlist.php');
+            handleWishlistToggle($pdo);
+            exit;
 
-    if ($action === 'password_reset_request' || $action === 'password_reset_confirm') {
-        require_once __DIR__ . '/api/password.php';
-        handlePasswordReset($pdo, $action);
-        exit;
-    }
+        case 'password_reset_request':
+        case 'password_reset_confirm':
+            require_api_file('password.php');
+            handlePasswordReset($pdo, $action);
+            exit;
 
-    if ($action === 'admin_logout') {
-        session_destroy();
-        echo json_encode(['status' => 'success', 'message' => 'Выход выполнен']);
-        exit;
-    }
+        case 'admin_logout':
+            session_destroy();
+            echo json_encode(['status' => 'success', 'message' => 'Выход выполнен']);
+            exit;
 
-    if (strpos($action, 'admin_') === 0) {
-        // if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
-        //     http_response_code(403);
-        //     echo json_encode(['status' => 'error', 'message' => 'Доступ запрещён. Требуется авторизация администратора.']);
-        //     exit;
-        // }
-        require_once __DIR__ . '/api/admin.php';
-        handleAdminAction($pdo, $action);
-        exit;
-    }
+        case 'add_user_address':
+        case 'delete_user_address':
+        case 'set_default_address':
+        case 'update_address_label':
+            require_api_file('addresses.php');
+            handleAddressAction($pdo, $action);
+            exit;
 
-    if ($action === 'add_user_address' || $action === 'delete_user_address' || $action === 'set_default_address' || $action === 'update_address_label') {
-        require_once __DIR__ . '/api/addresses.php';
-        handleAddressAction($pdo, $action);
-        exit;
-    }
+        default:
+            // Проверяем, не админское ли это действие
+            if (strpos($action, 'admin_') === 0) {
+                if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
+                    http_response_code(403);
+                    echo json_encode(['status' => 'error', 'message' => 'Доступ запрещён. Требуется авторизация администратора.']);
+                    exit;
+                }
+                require_api_file('admin.php');
+                handleAdminAction($pdo, $action);
+                exit;
+            }
 
-    echo json_encode(['status' => 'error', 'message' => 'Неизвестное действие для POST']);
-    exit;
+            echo json_encode(['status' => 'error', 'message' => 'Неизвестное действие для POST']);
+            exit;
+    }
 }
 
+// Если метод не GET и не POST
 http_response_code(405);
 echo json_encode(['status' => 'error', 'message' => 'Метод не поддерживается']);
