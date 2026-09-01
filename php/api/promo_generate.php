@@ -1,8 +1,8 @@
 <?php
 function handleGeneratePromo($pdo) {
-    $login = $_GET['login'] ?? $_POST['login'] ?? '';
+    $login = $_SESSION['user_login'] ?? '';
     if (empty($login)) {
-        echo json_encode(['status' => 'error', 'message' => 'Не указан логин']);
+        echo json_encode(['status' => 'error', 'message' => 'Не авторизован']);
         return;
     }
 
@@ -44,4 +44,3 @@ function handleGeneratePromo($pdo) {
         'message' => 'Промокод сгенерирован'
     ]);
 }
-?>

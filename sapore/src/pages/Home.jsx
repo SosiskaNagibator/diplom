@@ -130,7 +130,7 @@ function Home({ addToCart }) {
         </div>
       </motion.section>
 
-      {/* Три карточки с локальными изображениями через STATIC_HOME */}
+      {/* Три карточки */}
       <section className="mb-16">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}

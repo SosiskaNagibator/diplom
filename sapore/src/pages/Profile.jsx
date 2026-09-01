@@ -23,7 +23,7 @@ const useReferralInfo = (login) => {
     queryKey: ['referral', login],
     queryFn: async () => {
       if (!login) return null;
-      const res = await fetch(`${API_BASE}?action=get_referral_info&login=${login}`);
+      const res = await fetch(`${API_BASE}?action=get_referral_info`);
       const data = await res.json();
       if (data.status === 'success') return data;
       return null;
@@ -38,7 +38,7 @@ const usePromoCode = (login) => {
     queryKey: ['promo', login],
     queryFn: async () => {
       if (!login) return null;
-      const res = await fetch(`${API_BASE}?action=generate_promo&login=${encodeURIComponent(login)}`);
+      const res = await fetch(`${API_BASE}?action=generate_promo`);
       const data = await res.json();
       if (data.status === 'success') return data.code;
       return null;

@@ -10,7 +10,7 @@ export const useWishlist = () => {
     queryKey: ['wishlist', userLogin],
     queryFn: async () => {
       if (!userLogin) return [];
-      const res = await fetch(`${API_BASE}?action=wishlist_get&login=${userLogin}`);
+      const res = await fetch(`${API_BASE}?action=wishlist_get`);
       const data = await res.json();
       if (data.status === 'success') {
         return data.ids.map(id => String(id));
@@ -25,7 +25,6 @@ export const useWishlist = () => {
     mutationFn: async (pizzaId) => {
       const formData = new URLSearchParams();
       formData.append('action', 'wishlist_toggle');
-      formData.append('login', userLogin);
       formData.append('pizza_id', pizzaId);
       const res = await fetch(API_BASE, { method: 'POST', body: formData });
       return res.json();

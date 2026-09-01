@@ -1,5 +1,11 @@
 <?php
-function handleGetUserProfile($pdo, $login) {
+function handleGetUserProfile($pdo) {
+    $login = $_SESSION['user_login'] ?? '';
+    if (empty($login)) {
+        echo json_encode(['status' => 'error', 'message' => 'Не авторизован']);
+        return;
+    }
+
     $stmt = $pdo->prepare("SELECT full_name, phone, email FROM users WHERE Login = ?");
     $stmt->execute([$login]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);

@@ -19,7 +19,7 @@ export const useUserLevel = (login) => {
         queryKey: ['userLevel', login],
         queryFn: async () => {
             if (!login) return null;
-            const res = await fetch(`${API_BASE}?action=get_user_level&login=${encodeURIComponent(login)}`);
+            const res = await fetch(`${API_BASE}?action=get_user_level`);
             const data = await res.json();
             if (data.status === 'success') return data;
             throw new Error(data.message || 'Ошибка загрузки уровня');

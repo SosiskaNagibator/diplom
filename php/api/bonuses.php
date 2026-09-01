@@ -1,8 +1,8 @@
 <?php
 function handleBonusGet($pdo, $action) {
-    $login = $_GET['login'] ?? '';
+    $login = $_SESSION['user_login'] ?? '';
     if (empty($login)) {
-        echo json_encode(['status' => 'error', 'message' => 'Логин не указан']);
+        echo json_encode(['status' => 'error', 'message' => 'Не авторизован']);
         return;
     }
 

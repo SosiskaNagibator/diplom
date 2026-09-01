@@ -6,7 +6,7 @@ export const useOrders = (login) => {
     queryKey: ['orders', login],
     queryFn: async () => {
       if (!login) return [];
-      const response = await fetch(`${API_ORDERS}?action=get_orders&login=${encodeURIComponent(login)}`);
+      const response = await fetch(`${API_ORDERS}?action=get_orders`);
       if (!response.ok) throw new Error('Ошибка загрузки заказов');
       const data = await response.json();
       if (data.status === 'success') {

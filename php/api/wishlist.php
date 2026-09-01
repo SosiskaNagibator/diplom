@@ -1,8 +1,12 @@
 <?php
 function handleWishlistToggle($pdo) {
-    $login = sanitize($_POST['login'] ?? '');
+    $login = $_SESSION['user_login'] ?? '';
+    if (empty($login)) {
+        echo json_encode(['status' => 'error', 'message' => 'Не авторизован']);
+        return;
+    }
     $pizzaId = (int)($_POST['pizza_id'] ?? 0);
-    if (!$login || !$pizzaId) {
+    if (!$pizzaId) {
         echo json_encode(['status' => 'error', 'message' => 'Неверные данные']);
         return;
     }
@@ -21,9 +25,9 @@ function handleWishlistToggle($pdo) {
 }
 
 function handleWishlistGet($pdo) {
-    $login = sanitize($_GET['login'] ?? '');
-    if (!$login) {
-        echo json_encode(['status' => 'error', 'message' => 'Не указан логин']);
+    $login = $_SESSION['user_login'] ?? '';
+    if (empty($login)) {
+        echo json_encode(['status' => 'error', 'message' => 'Не авторизован']);
         return;
     }
     $stmt = $pdo->prepare("SELECT pizza_id FROM wishlist WHERE user_login = ?");

@@ -1,8 +1,8 @@
 <?php
 function handleAddressAction($pdo, $action) {
-    $login = sanitize($_GET['login'] ?? $_POST['login'] ?? '');
+    $login = $_SESSION['user_login'] ?? '';
     if (empty($login)) {
-        echo json_encode(['status' => 'error', 'message' => 'Не указан логин']);
+        echo json_encode(['status' => 'error', 'message' => 'Не авторизован']);
         return;
     }
 
@@ -14,13 +14,13 @@ function handleAddressAction($pdo, $action) {
             addAddress($pdo, $login);
             break;
         case 'delete_user_address':
-            deleteAddress($pdo);
+            deleteAddress($pdo, $login);
             break;
         case 'set_default_address':
             setDefaultAddress($pdo, $login);
             break;
         case 'update_address_label':
-            updateAddressLabel($pdo);
+            updateAddressLabel($pdo, $login);
             break;
         default:
             echo json_encode(['status' => 'error', 'message' => 'Неизвестное действие']);
@@ -65,19 +65,12 @@ function addAddress($pdo, $login) {
     echo json_encode(['status' => 'success', 'message' => 'Адрес сохранён', 'id' => $id]);
 }
 
-function deleteAddress($pdo) {
+function deleteAddress($pdo, $login) {
     $id = (int)($_POST['id'] ?? 0);
     if (!$id) {
         echo json_encode(['status' => 'error', 'message' => 'Не указан ID']);
         return;
     }
-    // Получаем логин из POST или сессии
-    $login = $_SESSION['user_login'] ?? sanitize($_POST['login'] ?? '');
-    if (empty($login)) {
-        echo json_encode(['status' => 'error', 'message' => 'Не указан логин']);
-        return;
-    }
-    // Проверяем, принадлежит ли адрес пользователю
     $stmt = $pdo->prepare("SELECT user_login FROM user_addresses WHERE id = ?");
     $stmt->execute([$id]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -108,16 +101,11 @@ function setDefaultAddress($pdo, $login) {
     }
 }
 
-function updateAddressLabel($pdo) {
+function updateAddressLabel($pdo, $login) {
     $id = (int)($_POST['id'] ?? 0);
     $label = trim($_POST['label'] ?? '');
     if (!$id) {
         echo json_encode(['status' => 'error', 'message' => 'Не указан ID']);
-        return;
-    }
-    $login = $_SESSION['user_login'] ?? sanitize($_POST['login'] ?? '');
-    if (empty($login)) {
-        echo json_encode(['status' => 'error', 'message' => 'Не указан логин']);
         return;
     }
     $stmt = $pdo->prepare("SELECT user_login FROM user_addresses WHERE id = ?");
@@ -134,4 +122,3 @@ function updateAddressLabel($pdo) {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления']);
     }
 }
-?>

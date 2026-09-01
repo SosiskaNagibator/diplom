@@ -140,7 +140,7 @@ function Cart() {
     }
     setLoadingDiscount(true);
     try {
-      const url = `${API_BASE}?action=get_cart_discount&login=${encodeURIComponent(userLogin)}&total=${total}`;
+      const url = `${API_BASE}?action=get_cart_discount&total=${total}`;
       const res = await fetch(url);
       const data = await res.json();
       if (data.status === 'success') {
@@ -154,7 +154,7 @@ function Cart() {
     } finally {
       setLoadingDiscount(false);
     }
-  }, [userLogin, isGuest]);
+  }, [isGuest]);
 
   const total = useMemo(() => getTotal(), [cart, getTotal]);
 
@@ -307,7 +307,6 @@ function Cart() {
         body: JSON.stringify({
           action: 'apply_promo',
           code: promoCode,
-          login: userLogin || 'guest',
           orderTotal: total
         })
       });
@@ -384,7 +383,6 @@ function Cart() {
 
     const payload = {
       action: 'save_order',
-      userLogin: isGuest ? 'guest' : userLogin,
       items: cart,
       total: finalTotal,
       originalTotal: total,
@@ -680,7 +678,6 @@ function Cart() {
           )}
 
           <div className="flex flex-col gap-2 w-full sm:w-auto">
-            {/* Чекбокс согласия только для гостей */}
             {isGuest && (
               <ConsentCheckbox
                 type="personal"

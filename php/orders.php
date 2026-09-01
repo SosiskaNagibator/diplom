@@ -23,7 +23,6 @@ try {
 
 require_once __DIR__ . '/api/levels.php';
 
-
 $input = json_decode(file_get_contents('php://input'), true);
 $action = $_POST['action'] ?? $_GET['action'] ?? $input['action'] ?? '';
 
@@ -53,7 +52,7 @@ function handleSaveOrder($pdo, $input) {
         return;
     }
 
-    $userLogin = $input['userLogin'] ?? 'guest';
+    $userLogin = $_SESSION['user_login'] ?? 'guest';
     $items = $input['items'];
     $total = (float)$input['total'];
     $originalTotal = (float)($input['originalTotal'] ?? $total);
@@ -110,19 +109,13 @@ function handleSaveOrder($pdo, $input) {
     try {
         $pdo->beginTransaction();
 
-        // ---- Активные бонусы пользователя (для скидок и кэшбэка) ----
         $bonuses = getUserActiveBonuses($pdo, $userLogin);
-        error_log("🔍 Bonuses: " . print_r($bonuses, true));
-
-        // ---- Применяем максимальную скидку ----
         $discountPercent = $bonuses['discount'];
         $serverDiscount = 0;
         if ($discountPercent > 0) {
             $serverDiscount = $originalTotal * ($discountPercent / 100);
-            error_log("🔍 Применяем скидку $discountPercent% = $serverDiscount ₽");
         }
 
-        // ---- Проверяем бесплатную доставку ----
         $freeDelivery = false;
         if ($bonuses['free_delivery'] && $userLogin !== 'guest') {
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM free_delivery_usage WHERE user_login = ? AND used_at >= DATE_FORMAT(NOW(), '%Y-%m-01')");
@@ -132,11 +125,9 @@ function handleSaveOrder($pdo, $input) {
                 $freeDelivery = true;
                 $stmt = $pdo->prepare("INSERT INTO free_delivery_usage (user_login, used_at) VALUES (?, CURDATE())");
                 $stmt->execute([$userLogin]);
-                error_log("🔍 Бесплатная доставка применена");
             }
         }
 
-        // ---- Применяем промокод (если есть) ----
         $discount = 0;
         if (!empty($promoCode)) {
             $discount = applyPromoCode($pdo, $promoCode, $userLogin, $originalTotal);
@@ -146,15 +137,11 @@ function handleSaveOrder($pdo, $input) {
             }
             $stmt = $pdo->prepare("UPDATE promo_codes SET used_count = used_count + 1 WHERE code = ?");
             $stmt->execute([$promoCode]);
-            error_log("🔍 Промокод применён: $discount ₽");
         }
 
-        // ---- Итоговая сумма ----
         $finalTotal = $originalTotal - $serverDiscount - $discount - $bonusUsed;
         if ($finalTotal < 0) $finalTotal = 0;
-        error_log("🔍 finalTotal = $finalTotal");
 
-        // ---- Сохраняем заказ ----
         $itemsJson = json_encode($items, JSON_UNESCAPED_UNICODE);
         $sql = "INSERT INTO orders (
                 order_number, total, status, items, user_login,
@@ -170,30 +157,25 @@ function handleSaveOrder($pdo, $input) {
         ]);
         $orderId = $pdo->lastInsertId();
 
-        // ---- Начисление бонусов за заказ (только cashback от уровней) ----
         $earnedBonuses = 0;
         if ($userLogin !== 'guest' && empty($promoCode)) {
             $cashbackPercent = $bonuses['cashback'];
             if ($cashbackPercent > 0) {
                 $earnedBonuses = (int)($finalTotal * ($cashbackPercent / 100));
-                error_log("🔍 Кэшбэк $cashbackPercent% = $earnedBonuses ₽");
             }
             if ($earnedBonuses > 0) {
                 $stmt = $pdo->prepare("UPDATE bonuses SET balance = balance + ? WHERE login = ?");
                 $stmt->execute([$earnedBonuses, $userLogin]);
                 $stmt = $pdo->prepare("INSERT INTO bonus_history (login, amount, description, order_id) VALUES (?, ?, ?, ?)");
                 $stmt->execute([$userLogin, $earnedBonuses, "Начисление бонусов за заказ #$orderNumber", $orderId]);
-                error_log("🔍 Начислено бонусов: $earnedBonuses");
             }
         }
 
-        // ---- Обновляем общую сумму заказов пользователя ----
         if ($userLogin !== 'guest') {
             $stmt = $pdo->prepare("UPDATE users SET total_orders_sum = total_orders_sum + ? WHERE Login = ?");
             $stmt->execute([$originalTotal, $userLogin]);
         }
 
-        // ---- Реферальная система ----
         if ($userLogin !== 'guest') {
             $stmt = $pdo->prepare("SELECT referred_by FROM users WHERE Login = ?");
             $stmt->execute([$userLogin]);
@@ -209,7 +191,6 @@ function handleSaveOrder($pdo, $input) {
                     if ($referrerBonuses['referral_extra'] > 0) {
                         $extra = (int)($bonusAmount * ($referrerBonuses['referral_extra'] / 100));
                         $bonusAmount += $extra;
-                        error_log("🔍 Реферальный бонус с надбавкой $extra ₽ для реферера $referrer");
                     }
                     $stmt = $pdo->prepare("UPDATE bonuses SET balance = balance + ? WHERE login = ?");
                     $stmt->execute([$bonusAmount, $referrer]);
@@ -217,12 +198,10 @@ function handleSaveOrder($pdo, $input) {
                     $stmt->execute([$referrer, $bonusAmount, "Бонус за реферала $userLogin"]);
                     $stmt = $pdo->prepare("UPDATE referrals SET status = 'completed', completed_at = NOW() WHERE referred_login = ? AND referrer_login = ?");
                     $stmt->execute([$userLogin, $referrer]);
-                    error_log("🔍 Реферальный бонус начислен: $bonusAmount для $referrer");
                 }
             }
         }
 
-        // ---- Сохранение адреса ----
         if ($userLogin !== 'guest' && !empty($deliveryAddress)) {
             $stmt = $pdo->prepare("SELECT id FROM user_addresses WHERE user_login = ? AND address = ?");
             $stmt->execute([$userLogin, $deliveryAddress]);
@@ -232,7 +211,6 @@ function handleSaveOrder($pdo, $input) {
             }
         }
 
-        // ---- Обновление уровня ----
         $newLevel = null;
         if ($userLogin !== 'guest') {
             $newLevel = updateUserLevel($pdo, $userLogin);
@@ -256,13 +234,13 @@ function handleSaveOrder($pdo, $input) {
 
     } catch (PDOException $e) {
         $pdo->rollBack();
-        error_log("❌ Ошибка в handleSaveOrder: " . $e->getMessage());
+        error_log("Ошибка в handleSaveOrder: " . $e->getMessage());
         echo json_encode(['status' => 'error', 'message' => 'Ошибка сохранения заказа: ' . $e->getMessage()]);
     }
 }
 
 function handleGetOrders($pdo, $input) {
-    $userLogin = $input['login'] ?? $_GET['login'] ?? '';
+    $userLogin = $_SESSION['user_login'] ?? '';
     try {
         $sql = "SELECT id, order_number, total, status, items, delivery_address, delivery_time,
                        promo_code, discount_amount, final_total,
@@ -357,7 +335,7 @@ function handleGetOrderByNumber($pdo, $input) {
 
 function handleApplyPromo($pdo, $input) {
     $code = trim($input['code'] ?? '');
-    $login = trim($input['login'] ?? '');
+    $login = $_SESSION['user_login'] ?? '';
     $orderTotal = (float)($input['orderTotal'] ?? 0);
     if (empty($code)) {
         echo json_encode(['status' => 'error', 'message' => 'Введите промокод']);
@@ -382,9 +360,8 @@ function applyPromoCode($pdo, $code, $login, $orderTotal) {
     $promo = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$promo) return false;
 
-    // ---- ПРОВЕРКА: промокод персональный ----
     if (!empty($promo['user_login']) && $promo['user_login'] !== $login) {
-        return false; // промокод не принадлежит этому пользователю
+        return false;
     }
 
     if ($promo['min_order_amount'] > $orderTotal) return false;
@@ -399,4 +376,3 @@ function applyPromoCode($pdo, $code, $login, $orderTotal) {
     }
     return $discount;
 }
-?>

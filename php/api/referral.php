@@ -1,8 +1,8 @@
 <?php
 function handleReferralInfo($pdo) {
-    $login = $_GET['login'] ?? '';
+    $login = $_SESSION['user_login'] ?? '';
     if (empty($login)) {
-        echo json_encode(['status' => 'error', 'message' => 'Не указан логин']);
+        echo json_encode(['status' => 'error', 'message' => 'Не авторизован']);
         return;
     }
 
@@ -21,7 +21,7 @@ function handleReferralInfo($pdo) {
 
     require_once __DIR__ . '/levels.php';
     $bonuses = getUserActiveBonuses($pdo, $login);
-    $referralExtra = $bonuses['referral_extra'] ?? 0; 
+    $referralExtra = $bonuses['referral_extra'] ?? 0;
 
     $baseBonus = 100;
     $bonusAmount = $baseBonus;
@@ -37,6 +37,6 @@ function handleReferralInfo($pdo) {
         'referral_link' => $referralLink,
         'total_referrals' => (int)$stats['total'],
         'completed_referrals' => (int)$stats['completed'],
-        'bonus_per_referral' => $bonusAmount, 
+        'bonus_per_referral' => $bonusAmount,
     ]);
 }

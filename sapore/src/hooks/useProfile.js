@@ -6,7 +6,7 @@ export const useBonuses = (login) => {
     queryKey: ['bonuses', login],
     queryFn: async () => {
       if (!login) return 0;
-      const response = await fetch(`${API_BASE}?action=get_bonuses&login=${encodeURIComponent(login)}`);
+      const response = await fetch(`${API_BASE}?action=get_bonuses`);
       if (!response.ok) throw new Error('Ошибка загрузки бонусов');
       const data = await response.json();
       if (data.status === 'success') return data.bonuses;
@@ -22,7 +22,7 @@ export const useBonusHistory = (login) => {
     queryKey: ['bonusHistory', login],
     queryFn: async () => {
       if (!login) return [];
-      const response = await fetch(`${API_BASE}?action=get_bonus_history&login=${encodeURIComponent(login)}`);
+      const response = await fetch(`${API_BASE}?action=get_bonus_history`);
       if (!response.ok) throw new Error('Ошибка загрузки истории');
       const data = await response.json();
       if (data.status === 'success') return data.history;

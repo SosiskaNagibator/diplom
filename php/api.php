@@ -1,6 +1,5 @@
 <?php
-// Разрешаем CORS для вашего домена и localhost (для разработки)
-$allowedOrigins = ['http://localhost', 'http://localhost:5173', 'http://127.0.0.1', 'http://127.0.0.1:5173', 'http://vladskv.xsph.ru'];
+$allowedOrigins = ['http://localhost', 'http://localhost:5173', 'http://vladskv.xsph.ru', 'https://vladskv.xsph.ru'];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if (in_array($origin, $allowedOrigins)) {
     header("Access-Control-Allow-Origin: $origin");
@@ -12,6 +11,14 @@ header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header('Content-Type: application/json');
 
+session_set_cookie_params([
+    'lifetime' => 86400 * 7,
+    'path' => '/',
+    'domain' => '',
+    'secure' => false,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -19,7 +26,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-// --- Подключение к БД ---
 $server = "localhost";
 $dbname = "vladskv_saporedb";
 $dblogin = "vladskv_saporedb";
@@ -76,7 +82,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     checkRateLimit($pdo, $action, $limit, 60);
 }
 
-// --- Функция для безопасного подключения файла ---
 function require_api_file($filename) {
     $path = __DIR__ . '/api/' . $filename;
     if (!file_exists($path)) {
@@ -87,7 +92,6 @@ function require_api_file($filename) {
     require_once $path;
 }
 
-// --- Обработка GET-запросов ---
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     switch ($action) {
         case 'get_bonuses':
@@ -97,13 +101,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             exit;
 
         case 'get_user_profile':
-            $login = $_GET['login'] ?? '';
-            if (empty($login)) {
-                echo json_encode(['status' => 'error', 'message' => 'Логин не указан']);
-                exit;
-            }
             require_api_file('profile.php');
-            handleGetUserProfile($pdo, $login);
+            handleGetUserProfile($pdo);
             exit;
 
         case 'wishlist_get':
@@ -127,18 +126,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             exit;
 
         case 'get_user_level':
-            $login = $_GET['login'] ?? '';
             require_api_file('levels.php');
+            $login = $_SESSION['user_login'] ?? '';
             handleLevelsAction($pdo, $action, $login);
             exit;
 
         case 'get_cart_discount':
-            $login = $_GET['login'] ?? '';
             $total = (float)($_GET['total'] ?? 0);
-            if (empty($login)) {
-                echo json_encode(['status' => 'error', 'message' => 'Логин не указан']);
-                exit;
-            }
+            $login = $_SESSION['user_login'] ?? 'guest';
             require_api_file('levels.php');
             $discountData = calculateCartDiscount($pdo, $login, $total);
             echo json_encode(['status' => 'success', 'data' => $discountData]);
@@ -155,7 +150,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 }
 
-// --- Обработка POST-запросов ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     switch ($action) {
         case 'login':
@@ -194,7 +188,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
 
         default:
-            // Проверяем, не админское ли это действие
             if (strpos($action, 'admin_') === 0) {
                 if (!isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
                     http_response_code(403);
@@ -211,6 +204,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Если метод не GET и не POST
 http_response_code(405);
 echo json_encode(['status' => 'error', 'message' => 'Метод не поддерживается']);

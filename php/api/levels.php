@@ -102,7 +102,7 @@ function updateUserLevel($pdo, $login) {
 }
 
 function getUserActiveBonuses($pdo, $login) {
-    if ($login === 'guest') {
+    if (empty($login) || $login === 'guest') {
         return [
             'discount' => 0,
             'bonus_multiplier' => 1.0,
