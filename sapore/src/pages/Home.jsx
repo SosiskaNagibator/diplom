@@ -92,7 +92,6 @@ function Home({ addToCart }) {
 
   return (
     <div className="fade-in">
-      {/* Hero-секция */}
       <motion.section
         initial="hidden"
         animate="visible"
@@ -130,7 +129,6 @@ function Home({ addToCart }) {
         </div>
       </motion.section>
 
-      {/* Три карточки */}
       <section className="mb-16">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
@@ -151,6 +149,8 @@ function Home({ addToCart }) {
               src={`${STATIC_HOME}italian-recipes.jpg`}
               alt="Итальянские рецепты"
               className="w-full h-48 object-cover"
+              loading="lazy"
+              decoding="async"
             />
             <div className="p-5 text-center">
               <h3 className="font-semibold text-lg text-gray-800">Итальянские рецепты</h3>
@@ -170,6 +170,8 @@ function Home({ addToCart }) {
               src={`${STATIC_HOME}fast-delivery.jpg`}
               alt="Быстрая доставка"
               className="w-full h-48 object-cover"
+              loading="lazy"
+              decoding="async"
             />
             <div className="p-5 text-center">
               <h3 className="font-semibold text-lg text-gray-800">Быстрая доставка</h3>
@@ -189,6 +191,8 @@ function Home({ addToCart }) {
               src={`${STATIC_HOME}fresh-products.jpg`}
               alt="Свежие продукты"
               className="w-full h-48 object-cover"
+              loading="lazy"
+              decoding="async"
             />
             <div className="p-5 text-center">
               <h3 className="font-semibold text-lg text-gray-800">Свежие продукты</h3>
@@ -200,7 +204,6 @@ function Home({ addToCart }) {
         </div>
       </section>
 
-      {/* Популярное */}
       <section>
         <div className="flex items-center justify-between mb-6">
           <motion.h2
@@ -237,6 +240,8 @@ function Home({ addToCart }) {
                       src={getImageUrl(pizza.image)}
                       alt={pizza.name}
                       className="w-full h-52 object-cover transition-transform duration-300 hover:scale-105"
+                      loading="lazy"
+                      decoding="async"
                     />
                     {index === 0 && (
                       <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">

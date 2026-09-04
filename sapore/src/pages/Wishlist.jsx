@@ -75,7 +75,13 @@ const Wishlist = () => {
             >
               <Card hover className="overflow-hidden relative">
                 <Link to={`/pizza/${pizza.id}`} className="block">
-                  <img src={getImageUrl(pizza.image)} alt={pizza.name} className="w-full h-48 object-cover" />
+                  <img
+                    src={getImageUrl(pizza.image)}
+                    alt={pizza.name}
+                    className="w-full h-48 object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
                   <div className="p-4">
                     <div className="font-bold text-gray-800">{pizza.name}</div>
                     <div className="text-amber-600 font-bold mt-2">{pizza.price} ₽</div>

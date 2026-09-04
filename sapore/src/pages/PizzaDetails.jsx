@@ -13,7 +13,6 @@ const PizzaDetails = ({ addToCart }) => {
   const { data: pizza, isLoading, error } = usePizza(id);
   const [selectedSize, setSelectedSize] = useState(null);
 
-  // Автоматически выбираем первый доступный размер при загрузке пиццы
   useEffect(() => {
     if (pizza?.available_sizes?.length > 0 && !selectedSize) {
       setSelectedSize(pizza.available_sizes[0]);
@@ -27,7 +26,6 @@ const PizzaDetails = ({ addToCart }) => {
   const handleSizeSelect = (size) => setSelectedSize(size);
   const price = getPriceWithSize(pizza.price, selectedSize);
 
-  // --- Вычисление КБЖУ с учётом размера ---
   const multiplier = selectedSize?.price_multiplier || 1;
 
   const calcNutrition = (baseValue) => {
@@ -73,6 +71,8 @@ const PizzaDetails = ({ addToCart }) => {
               src={getImageUrl(pizza.image)}
               alt={pizza.name}
               className="w-full max-h-96 object-contain rounded-xl"
+              loading="lazy"
+              decoding="async"
             />
             <div className="absolute top-2 right-2">
               <WishlistButton pizzaId={pizza.id} />

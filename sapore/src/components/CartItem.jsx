@@ -17,8 +17,8 @@ const CartItem = memo(({ item, index, onUpdateQuantity, onRemove }) => {
       scale: 1,
       transition: {
         type: 'spring',
-        damping: 25,   
-        stiffness: 250,  
+        damping: 25,
+        stiffness: 250,
         delay: index * 0.08,
       }
     },
@@ -26,7 +26,7 @@ const CartItem = memo(({ item, index, onUpdateQuantity, onRemove }) => {
       opacity: 0,
       scale: 0.9,
       x: -30,
-      transition: { duration: 0.35, ease: 'easeInOut' } 
+      transition: { duration: 0.35, ease: 'easeInOut' }
     }
   };
 
@@ -43,6 +43,8 @@ const CartItem = memo(({ item, index, onUpdateQuantity, onRemove }) => {
         src={getImageUrl(image)}
         alt={name}
         className="w-20 h-20 object-cover rounded-lg"
+        loading="lazy"
+        decoding="async"
       />
       <div className="flex-1 min-w-[120px]">
         <div className="font-semibold text-gray-800">{name}</div>
