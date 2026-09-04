@@ -236,13 +236,23 @@ function Home({ addToCart }) {
               <Link to={`/pizza/${pizza.id}`} className="block">
                 <Card hover className="overflow-hidden border border-gray-100 relative">
                   <div className="relative overflow-hidden">
-                    <img
-                      src={getImageUrl(pizza.image)}
-                      alt={pizza.name}
-                      className="w-full h-52 object-cover transition-transform duration-300 hover:scale-105"
-                      loading="lazy"
-                      decoding="async"
-                    />
+                    <picture>
+                      <source
+                        srcSet={getImageUrl(pizza.image, 'thumb')}
+                        media="(max-width: 640px)"
+                      />
+                      <source
+                        srcSet={getImageUrl(pizza.image, 'medium')}
+                        media="(min-width: 641px)"
+                      />
+                      <img
+                        src={getImageUrl(pizza.image, 'medium')}
+                        alt={pizza.name}
+                        className="w-full h-52 object-cover transition-transform duration-300 hover:scale-105"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </picture>
                     {index === 0 && (
                       <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                         Хит

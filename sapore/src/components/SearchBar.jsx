@@ -110,7 +110,7 @@ const SearchBar = () => {
                 className="px-4 py-2 hover:bg-amber-50 cursor-pointer flex items-center gap-3 transition"
               >
                 <img
-                  src={getImageUrl(pizza.image)}
+                  src={getImageUrl(pizza.image, 'thumb')}
                   alt={pizza.name}
                   className="w-10 h-10 object-cover rounded"
                   loading="lazy"

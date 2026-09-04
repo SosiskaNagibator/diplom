@@ -136,13 +136,23 @@ function Catalog({ addToCart }) {
               <Link to={`/pizza/${pizza.id}`} className="block h-full">
                 <Card hover className="overflow-hidden border border-gray-100 relative h-full flex flex-col">
                   <div className="relative overflow-hidden flex-shrink-0">
-                    <img
-                      src={getImageUrl(pizza.image)}
-                      alt={pizza.name}
-                      className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105"
-                      loading="lazy"
-                      decoding="async"
-                    />
+                    <picture>
+                      <source
+                        srcSet={getImageUrl(pizza.image, 'thumb')}
+                        media="(max-width: 640px)"
+                      />
+                      <source
+                        srcSet={getImageUrl(pizza.image, 'medium')}
+                        media="(min-width: 641px)"
+                      />
+                      <img
+                        src={getImageUrl(pizza.image, 'medium')}
+                        alt={pizza.name}
+                        className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </picture>
                   </div>
                   <div className="p-4 flex-1 flex flex-col">
                     <div className="font-semibold text-gray-800 text-lg">{pizza.name}</div>

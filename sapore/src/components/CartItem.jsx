@@ -40,7 +40,7 @@ const CartItem = memo(({ item, index, onUpdateQuantity, onRemove }) => {
       className="flex flex-wrap items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100"
     >
       <img
-        src={getImageUrl(image)}
+        src={getImageUrl(image, 'thumb')}
         alt={name}
         className="w-20 h-20 object-cover rounded-lg"
         loading="lazy"

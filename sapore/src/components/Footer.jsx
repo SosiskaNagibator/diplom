@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FaTelegramPlane, FaVk, FaYoutube, FaTruck, FaClock, FaCreditCard, FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock as FaClockIcon } from 'react-icons/fa';
+import { FaTelegramPlane, FaVk, FaYoutube, FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock as FaClockIcon } from 'react-icons/fa';
 
 function Footer() {
   const currentYear = new Date().getFullYear();
@@ -77,7 +77,7 @@ function Footer() {
         </div>
 
         <div className="border-t border-gray-200 mt-10 pt-6 text-center text-sm text-gray-500">
-          © {currentYear} Sapore. Все права защищены.
+          © {currentYear} Sapore.
         </div>
       </div>
     </footer>

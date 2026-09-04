@@ -76,7 +76,7 @@ const Wishlist = () => {
               <Card hover className="overflow-hidden relative">
                 <Link to={`/pizza/${pizza.id}`} className="block">
                   <img
-                    src={getImageUrl(pizza.image)}
+                    src={getImageUrl(pizza.image, 'thumb')}
                     alt={pizza.name}
                     className="w-full h-48 object-cover"
                     loading="lazy"

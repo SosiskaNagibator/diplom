@@ -68,7 +68,7 @@ const PizzaDetails = ({ addToCart }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
           <div className="flex justify-center relative">
             <img
-              src={getImageUrl(pizza.image)}
+              src={getImageUrl(pizza.image, 'large')}
               alt={pizza.name}
               className="w-full max-h-96 object-contain rounded-xl"
               loading="lazy"

@@ -1,4 +1,9 @@
 <?php
+require_once __DIR__ . '/../autoload_intervention.php';
+
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
+
 function handleAdminAction($pdo, $action) {
     switch($action) {
         case 'admin_get_orders':
@@ -81,6 +86,41 @@ function handleAdminAction($pdo, $action) {
     }
 }
 
+function generateImageSizes($sourcePath, $uploadDir, $filename) {
+    $manager = new ImageManager(new Driver());
+    try {
+        $image = $manager->read($sourcePath);
+    } catch (Exception $e) {
+        return false;
+    }
+    $sizes = [
+        'thumb' => ['width' => 300, 'quality' => 75],
+        'medium' => ['width' => 600, 'quality' => 80],
+        'large' => ['width' => 1200, 'quality' => 85],
+        '' => ['width' => null, 'quality' => 90]
+    ];
+    foreach ($sizes as $prefix => $params) {
+        $img = clone $image;
+        if ($params['width'] !== null) {
+            $img->scale(width: $params['width']);
+        }
+        $saveName = $prefix ? $prefix . '_' . $filename : $filename;
+        $savePath = $uploadDir . $saveName . '.webp';
+        $img->toWebp($params['quality'])->save($savePath);
+    }
+    return true;
+}
+
+function deleteImageSizes($uploadDir, $filename) {
+    $prefixes = ['thumb_', 'medium_', 'large_', ''];
+    foreach ($prefixes as $prefix) {
+        $filePath = $uploadDir . $prefix . $filename . '.webp';
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
+    }
+}
+
 function getOrders($pdo) {
     $stmt = $pdo->query("SELECT id, order_number, total, status, items, user_login, order_date, delivery_address, delivery_time, promo_code, discount_amount, final_total, customer_name, customer_phone, customer_email FROM orders ORDER BY order_date DESC");
     $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -128,28 +168,28 @@ function addPizza($pdo) {
         return;
     }
 
-    $image = '';
+    $uploadDir = __DIR__ . '/uploads/pizzas/';
+    if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+    $imageName = '';
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = __DIR__ . '/uploads/pizzas/';
-        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
         $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
         $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         if (!in_array($ext, $allowed)) {
             echo json_encode(['status' => 'error', 'message' => 'Недопустимый формат файла']);
             return;
         }
-        $filename = uniqid() . '.' . $ext;
-        $targetPath = $uploadDir . $filename;
-        if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
-            $image = $filename;
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Ошибка сохранения файла']);
+        $filename = uniqid();
+        $sourcePath = $_FILES['image']['tmp_name'];
+        if (!generateImageSizes($sourcePath, $uploadDir, $filename)) {
+            echo json_encode(['status' => 'error', 'message' => 'Ошибка обработки изображения']);
             return;
         }
+        $imageName = $filename . '.webp';
     }
 
     $stmt = $pdo->prepare("INSERT INTO items (name, category, description, price, image, sizes, calories, protein, fat, carbs) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    if ($stmt->execute([$name, $category, $description, $price, $image, $sizes, $calories, $protein, $fat, $carbs])) {
+    if ($stmt->execute([$name, $category, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs])) {
         echo json_encode(['status' => 'success', 'message' => 'Пицца добавлена', 'id' => $pdo->lastInsertId()]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления']);
@@ -173,33 +213,40 @@ function updatePizza($pdo) {
         return;
     }
 
-    $image = '';
+    $uploadDir = __DIR__ . '/uploads/pizzas/';
+    if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+    $imageName = '';
+    $oldImage = '';
+    $stmt = $pdo->prepare("SELECT image FROM items WHERE id = ?");
+    $stmt->execute([$id]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($row) $oldImage = $row['image'];
+
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = __DIR__ . '/uploads/pizzas/';
-        if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
         $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
         $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         if (!in_array($ext, $allowed)) {
             echo json_encode(['status' => 'error', 'message' => 'Недопустимый формат файла']);
             return;
         }
-        $filename = uniqid() . '.' . $ext;
-        $targetPath = $uploadDir . $filename;
-        if (move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
-            $image = $filename;
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Ошибка сохранения файла']);
+        if ($oldImage) {
+            $base = pathinfo($oldImage, PATHINFO_FILENAME);
+            deleteImageSizes($uploadDir, $base);
+        }
+        $filename = uniqid();
+        $sourcePath = $_FILES['image']['tmp_name'];
+        if (!generateImageSizes($sourcePath, $uploadDir, $filename)) {
+            echo json_encode(['status' => 'error', 'message' => 'Ошибка обработки изображения']);
             return;
         }
+        $imageName = $filename . '.webp';
     } else {
-        $stmt = $pdo->prepare("SELECT image FROM items WHERE id = ?");
-        $stmt->execute([$id]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        $image = $row['image'] ?? '';
+        $imageName = $oldImage;
     }
 
     $stmt = $pdo->prepare("UPDATE items SET name=?, category=?, description=?, price=?, image=?, sizes=?, calories=?, protein=?, fat=?, carbs=? WHERE id=?");
-    if ($stmt->execute([$name, $category, $description, $price, $image, $sizes, $calories, $protein, $fat, $carbs, $id])) {
+    if ($stmt->execute([$name, $category, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs, $id])) {
         echo json_encode(['status' => 'success', 'message' => 'Пицца обновлена']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления']);
@@ -216,8 +263,9 @@ function deletePizza($pdo) {
     $stmt->execute([$id]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($row && $row['image']) {
-        $filePath = __DIR__ . '/uploads/pizzas/' . $row['image'];
-        if (file_exists($filePath)) unlink($filePath);
+        $uploadDir = __DIR__ . '/uploads/pizzas/';
+        $base = pathinfo($row['image'], PATHINFO_FILENAME);
+        deleteImageSizes($uploadDir, $base);
     }
     $stmt = $pdo->prepare("DELETE FROM items WHERE id = ?");
     if ($stmt->execute([$id])) {
