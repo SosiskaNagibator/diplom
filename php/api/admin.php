@@ -151,23 +151,36 @@ function getPizzas($pdo) {
 
 function addPizza($pdo) {
     $name = sanitize($_POST['name'] ?? '');
-    $category = sanitize($_POST['category'] ?? '');
+    $categoryId = (int)($_POST['category_id'] ?? 0);
     $description = sanitize($_POST['description'] ?? '');
     $price = (int)($_POST['price'] ?? 0);
-    $sizes = sanitize($_POST['sizes'] ?? '1,2,3');
+    $sizes = sanitize($_POST['sizes'] ?? '');
     $calories = (int)($_POST['calories'] ?? 0);
     $protein = (float)($_POST['protein'] ?? 0);
     $fat = (float)($_POST['fat'] ?? 0);
     $carbs = (float)($_POST['carbs'] ?? 0);
 
-    if (empty($name) || empty($category) || $price <= 0) {
+    if (empty($name) || $price <= 0) {
         echo json_encode(['status' => 'error', 'message' => 'Заполните обязательные поля']);
+        return;
+    }
+    if (!$categoryId) {
+        echo json_encode(['status' => 'error', 'message' => 'Выберите категорию']);
         return;
     }
     if (strlen($name) > 100) {
         echo json_encode(['status' => 'error', 'message' => 'Название не более 100 символов']);
         return;
     }
+
+    $stmt = $pdo->prepare("SELECT name FROM categories WHERE id = ?");
+    $stmt->execute([$categoryId]);
+    $cat = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$cat) {
+        echo json_encode(['status' => 'error', 'message' => 'Категория не найдена']);
+        return;
+    }
+    $category = $cat['name'];
 
     $slug = uniqueSlug($pdo, 'items', slugify($name));
 
@@ -191,9 +204,9 @@ function addPizza($pdo) {
         $imageName = $filename . '.webp';
     }
 
-    $stmt = $pdo->prepare("INSERT INTO items (name, slug, category, description, price, image, sizes, calories, protein, fat, carbs) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    if ($stmt->execute([$name, $slug, $category, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs])) {
-        echo json_encode(['status' => 'success', 'message' => 'Пицца добавлена', 'id' => $pdo->lastInsertId(), 'slug' => $slug]);
+    $stmt = $pdo->prepare("INSERT INTO items (name, slug, category, category_id, description, price, image, sizes, calories, protein, fat, carbs) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    if ($stmt->execute([$name, $slug, $category, $categoryId, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs])) {
+        echo json_encode(['status' => 'success', 'message' => 'Товар добавлен', 'id' => $pdo->lastInsertId(), 'slug' => $slug]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления']);
     }
@@ -202,19 +215,32 @@ function addPizza($pdo) {
 function updatePizza($pdo) {
     $id = (int)($_POST['id'] ?? 0);
     $name = sanitize($_POST['name'] ?? '');
-    $category = sanitize($_POST['category'] ?? '');
+    $categoryId = (int)($_POST['category_id'] ?? 0);
     $description = sanitize($_POST['description'] ?? '');
     $price = (int)($_POST['price'] ?? 0);
-    $sizes = sanitize($_POST['sizes'] ?? '1,2,3');
+    $sizes = sanitize($_POST['sizes'] ?? '');
     $calories = (int)($_POST['calories'] ?? 0);
     $protein = (float)($_POST['protein'] ?? 0);
     $fat = (float)($_POST['fat'] ?? 0);
     $carbs = (float)($_POST['carbs'] ?? 0);
 
-    if (!$id || empty($name) || empty($category) || $price <= 0) {
+    if (!$id || empty($name) || $price <= 0) {
         echo json_encode(['status' => 'error', 'message' => 'Заполните обязательные поля']);
         return;
     }
+    if (!$categoryId) {
+        echo json_encode(['status' => 'error', 'message' => 'Выберите категорию']);
+        return;
+    }
+
+    $stmt = $pdo->prepare("SELECT name FROM categories WHERE id = ?");
+    $stmt->execute([$categoryId]);
+    $cat = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$cat) {
+        echo json_encode(['status' => 'error', 'message' => 'Категория не найдена']);
+        return;
+    }
+    $category = $cat['name'];
 
     $uploadDir = __DIR__ . '/uploads/pizzas/';
     if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
@@ -250,9 +276,9 @@ function updatePizza($pdo) {
         $imageName = $oldImage;
     }
 
-    $stmt = $pdo->prepare("UPDATE items SET name=?, slug=?, category=?, description=?, price=?, image=?, sizes=?, calories=?, protein=?, fat=?, carbs=? WHERE id=?");
-    if ($stmt->execute([$name, $slug, $category, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs, $id])) {
-        echo json_encode(['status' => 'success', 'message' => 'Пицца обновлена', 'slug' => $slug]);
+    $stmt = $pdo->prepare("UPDATE items SET name=?, slug=?, category=?, category_id=?, description=?, price=?, image=?, sizes=?, calories=?, protein=?, fat=?, carbs=? WHERE id=?");
+    if ($stmt->execute([$name, $slug, $category, $categoryId, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs, $id])) {
+        echo json_encode(['status' => 'success', 'message' => 'Товар обновлён', 'slug' => $slug]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления']);
     }
@@ -274,7 +300,7 @@ function deletePizza($pdo) {
     }
     $stmt = $pdo->prepare("DELETE FROM items WHERE id = ?");
     if ($stmt->execute([$id])) {
-        echo json_encode(['status' => 'success', 'message' => 'Пицца удалена']);
+        echo json_encode(['status' => 'success', 'message' => 'Товар удалён']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления']);
     }
@@ -297,10 +323,10 @@ function updateUserBonus($pdo) {
     if ($stmt->execute([$newBalance, $login])) {
         $stmt = $pdo->prepare("INSERT INTO bonus_history (login, amount, description) VALUES (?, ?, ?)");
         $stmt->execute([$login, $newBalance, 'Админ изменил баланс']);
-        
+
         require_once __DIR__ . '/levels.php';
         updateUserLevel($pdo, $login);
-        
+
         echo json_encode(['status' => 'success', 'message' => 'Баланс обновлён']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления']);
@@ -550,7 +576,7 @@ function deleteCategory($pdo) {
     $stmt->execute([$id]);
     $count = $stmt->fetchColumn();
     if ($count > 0) {
-        echo json_encode(['status' => 'error', 'message' => "Нельзя удалить: $count пицц(а) используют эту категорию. Сначала измените их."]);
+        echo json_encode(['status' => 'error', 'message' => "Нельзя удалить: $count товаров используют эту категорию. Сначала измените их."]);
         return;
     }
     $stmt = $pdo->prepare("DELETE FROM categories WHERE id = ?");

@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
-import { useOrders, useUpdateOrderStatus } from '../hooks/useOrders';
+import { useOrders } from '../hooks/useOrders';
 import { ORDER_STATUSES } from '../constants/statuses';
 import { getStatusIndex } from '../utils/statusUtils';
-import { Button, LoadingSpinner } from '../components/ui';
+import { Button } from '../components/ui';
 import TrackingSkeleton from '../components/skeletons/TrackingSkeleton';
 import { FaBox, FaClock, FaTag, FaUser, FaMapMarkerAlt } from 'react-icons/fa';
 
@@ -13,13 +14,12 @@ function Tracking() {
   const navigate = useNavigate();
   const { userLogin } = useAuth();
   const isGuest = !userLogin;
+  const queryClient = useQueryClient();
 
   const [expandedItems, setExpandedItems] = useState({});
-  const intervalRef = useRef(null);
   const guestIntervalRef = useRef(null);
 
   const { data: orders = [], isLoading, error } = useOrders(userLogin);
-  const { mutate: updateStatus, isPending: isUpdating } = useUpdateOrderStatus();
 
   const [guestOrders, setGuestOrders] = useState([]);
   const [loadingGuest, setLoadingGuest] = useState(true);
@@ -61,21 +61,12 @@ function Tracking() {
   }, [isGuest, guestOrders]);
 
   useEffect(() => {
-    if (!userLogin || orders.length === 0) return;
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      orders.forEach(order => {
-        if (order.status === 'Доставлен') return;
-        const currentIndex = getStatusIndex(order.status);
-        const nextIndex = Math.min(currentIndex + 1, ORDER_STATUSES.length - 1);
-        const newStatus = ORDER_STATUSES[nextIndex];
-        if (newStatus !== order.status) {
-          updateStatus({ orderId: order.id, newStatus });
-        }
-      });
-    }, 10000);
-    return () => clearInterval(intervalRef.current);
-  }, [userLogin, orders, updateStatus]);
+    if (!userLogin) return;
+    const interval = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ['orders', userLogin] });
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [userLogin, queryClient]);
 
   const toggleExpand = (orderId, itemId) => {
     const key = `${orderId}-${itemId}`;

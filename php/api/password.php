@@ -1,7 +1,9 @@
 <?php
+require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/../PHPMailer/src/PHPMailer.php';
 require_once __DIR__ . '/../PHPMailer/src/SMTP.php';
 require_once __DIR__ . '/../PHPMailer/src/Exception.php';
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -36,21 +38,21 @@ function handleResetRequest($pdo) {
     $stmt = $pdo->prepare("INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)");
     $stmt->execute([$email, $token, $expires]);
 
-    $resetLink = "http://vladskv.xsph.ru/reset-password?token=$token&email=$email";
+    $resetLink = SITE_URL . "/reset-password?token=$token&email=" . urlencode($email);
 
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
-        $mail->Host       = 'smtp.mail.ru';
+        $mail->Host       = SMTP_HOST;
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'miniontop52@mail.ru';
-        $mail->Password   = 'gKq4NdMa0fcayv6OZI75';
+        $mail->Username   = SMTP_USER;
+        $mail->Password   = SMTP_PASS;
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-        $mail->Port       = 465;
+        $mail->Port       = SMTP_PORT;
         $mail->CharSet    = 'UTF-8';
         $mail->Encoding   = 'base64';
 
-        $mail->setFrom('miniontop52@mail.ru', 'Sapore');
+        $mail->setFrom(SMTP_FROM_EMAIL, SMTP_FROM_NAME);
         $mail->addAddress($email);
         $mail->Subject = 'Восстановление пароля на Sapore';
         $mail->Body    = "Здравствуйте!\n\nДля сброса пароля перейдите по ссылке:\n$resetLink\n\nСсылка действительна 5 часов.\n\nЕсли вы не запрашивали сброс, проигнорируйте это письмо.";

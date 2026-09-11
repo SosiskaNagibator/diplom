@@ -71,8 +71,8 @@ function handleAuth($pdo) {
             $stmt->execute([$referrer, $login]);
         }
 
-        $_SESSION['user_login'] = $login;
         session_regenerate_id(true);
+        $_SESSION['user_login'] = $login;
 
         echo json_encode([
             'status' => 'registered',
@@ -95,60 +95,50 @@ function handleAuth($pdo) {
             return;
         }
 
-        if ($login === 'admin') {
-            $stmt = $pdo->prepare("SELECT Password FROM users WHERE Login = 'admin'");
-            $stmt->execute();
-            $adminRow = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!$adminRow) {
-                $hashed = password_hash('11111', PASSWORD_DEFAULT);
-                $pdo->prepare("INSERT INTO users (Login, Password, full_name) VALUES ('admin', ?, 'Администратор')")->execute([$hashed]);
-                $pdo->prepare("INSERT INTO bonuses (login, balance) VALUES ('admin', 0)")->execute();
-                $adminRow = ['Password' => $hashed];
-            }
-
-            if (password_verify($password, $adminRow['Password'])) {
-                $_SESSION['is_admin'] = true;
-                $_SESSION['user_login'] = 'admin';
-                session_regenerate_id(true);
-                echo json_encode([
-                    'status' => 'success',
-                    'message' => 'Вход выполнен',
-                    'role' => 'admin',
-                    'user' => ['login' => 'admin', 'fullName' => 'Администратор', 'phone' => '', 'email' => '']
-                ]);
-                return;
-            } else {
-                echo json_encode(['status' => 'error', 'message' => 'Неверный пароль администратора']);
-                return;
-            }
-        }
-
         $stmt = $pdo->prepare("SELECT Login, full_name, phone, email, Password FROM users WHERE Login = ?");
         $stmt->execute([$login]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($user && password_verify($password, $user['Password'])) {
-            $stmt = $pdo->prepare("SELECT balance FROM bonuses WHERE login = ?");
-            $stmt->execute([$login]);
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            $balance = $row ? (int)$row['balance'] : 0;
 
-            $_SESSION['user_login'] = $login;
-            session_regenerate_id(true);
+        if (!$user || !password_verify($password, $user['Password'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Неверный логин или пароль']);
+            return;
+        }
 
+        session_regenerate_id(true);
+        $_SESSION['user_login'] = $user['Login'];
+
+        if ($user['Login'] === 'admin') {
+            $_SESSION['is_admin'] = true;
             echo json_encode([
                 'status' => 'success',
-                'message' => 'Успешный вход',
-                'bonuses' => $balance,
+                'message' => 'Вход выполнен',
+                'role' => 'admin',
                 'user' => [
-                    'login' => $user['Login'],
-                    'fullName' => $user['full_name'],
+                    'login' => 'admin',
+                    'fullName' => $user['full_name'] ?? 'Администратор',
                     'phone' => $user['phone'] ?? '',
                     'email' => $user['email'] ?? ''
                 ]
             ]);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Неверный логин или пароль']);
+            return;
         }
+
+        $stmt = $pdo->prepare("SELECT balance FROM bonuses WHERE login = ?");
+        $stmt->execute([$user['Login']]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $balance = $row ? (int)$row['balance'] : 0;
+
+        echo json_encode([
+            'status' => 'success',
+            'message' => 'Успешный вход',
+            'bonuses' => $balance,
+            'user' => [
+                'login' => $user['Login'],
+                'fullName' => $user['full_name'],
+                'phone' => $user['phone'] ?? '',
+                'email' => $user['email'] ?? ''
+            ]
+        ]);
         return;
     }
     echo json_encode(['status' => 'error', 'message' => 'Неизвестное действие']);

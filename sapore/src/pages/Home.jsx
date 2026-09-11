@@ -242,7 +242,7 @@ function Home({ addToCart }) {
             >
               <Link to={`/product/${pizza.slug}`} className="block">
                 <Card hover className="overflow-hidden border border-gray-100 relative">
-                  <div className="relative overflow-hidden">
+                  <div className="relative overflow-hidden aspect-square bg-gray-50">
                     <picture>
                       <source
                         srcSet={getImageUrl(pizza.image, 'thumb')}
@@ -255,7 +255,7 @@ function Home({ addToCart }) {
                       <img
                         src={getImageUrl(pizza.image, 'medium')}
                         alt={pizza.name}
-                        className="w-full h-52 object-cover transition-transform duration-300 hover:scale-105"
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                         loading="lazy"
                         decoding="async"
                       />

@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/config.php';
+
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
@@ -11,12 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 header('Cache-Control: public, max-age=300');
 header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 300) . ' GMT');
 
-$host = 'localhost';
-$user = 'vladskv_saporedb';
-$password = 'Play999111.';
-$dbname = 'vladskv_saporedb';
-
-$conn = new mysqli($host, $user, $password, $dbname);
+$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
     http_response_code(500);
     echo json_encode(['error' => 'Ошибка подключения к базе данных']);

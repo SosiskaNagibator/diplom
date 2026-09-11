@@ -126,14 +126,14 @@ const CategoryPage = ({ addToCart }) => {
           >
             <Link to={`/product/${pizza.slug}`} className="block h-full">
               <Card hover className="overflow-hidden border border-gray-100 relative h-full flex flex-col">
-                <div className="relative overflow-hidden flex-shrink-0">
+                <div className="relative overflow-hidden flex-shrink-0 aspect-square bg-gray-50">
                   <picture>
                     <source srcSet={getImageUrl(pizza.image, 'thumb')} media="(max-width: 640px)" />
                     <source srcSet={getImageUrl(pizza.image, 'medium')} media="(min-width: 641px)" />
                     <img
                       src={getImageUrl(pizza.image, 'medium')}
                       alt={pizza.name}
-                      className="w-full h-48 object-cover"
+                      className="absolute inset-0 w-full h-full object-cover"
                       loading="lazy"
                       decoding="async"
                     />

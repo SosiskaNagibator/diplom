@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/config.php';
+
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
@@ -11,13 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 header('Cache-Control: public, max-age=600');
 header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 600) . ' GMT');
 
-$host = 'localhost';
-$user = 'vladskv_saporedb';
-$password = 'Play999111.';
-$dbname = 'vladskv_saporedb';
-
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $password);
+    $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch(PDOException $e) {
     http_response_code(500);

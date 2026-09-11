@@ -1,5 +1,7 @@
 <?php
-$allowedOrigins = ['http://localhost', 'http://localhost:5173', 'http://vladskv.xsph.ru', 'https://vladskv.xsph.ru'];
+require_once __DIR__ . '/config.php';
+
+$allowedOrigins = ['http://localhost', 'http://localhost:5173', SITE_URL];
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 if (in_array($origin, $allowedOrigins)) {
     header("Access-Control-Allow-Origin: $origin");
@@ -12,7 +14,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 header('Content-Type: application/json');
 
 session_set_cookie_params([
-    'lifetime' => 86400 * 7,
+    'lifetime' => SESSION_LIFETIME,
     'path' => '/',
     'domain' => '',
     'secure' => false,
@@ -26,14 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-$server = "localhost";
-$dbname = "vladskv_saporedb";
-$dblogin = "vladskv_saporedb";
-$dbpass = "Play999111.";
-
 try {
-    $dbstr = "mysql:host=$server;dbname=$dbname;charset=utf8mb4";
-    $pdo = new PDO($dbstr, $dblogin, $dbpass);
+    $dbstr = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
+    $pdo = new PDO($dbstr, DB_USER, DB_PASS);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch(PDOException $e) {
     http_response_code(500);

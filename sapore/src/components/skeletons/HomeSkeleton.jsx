@@ -21,7 +21,7 @@ const HomeSkeleton = () => {
             <div className="w-40 h-12 bg-gray-200 rounded-full" />
             <div className="w-40 h-12 bg-gray-200 rounded-full" />
           </div>
-        </div>  
+        </div>
       </div>
 
       <div className="mb-16">
@@ -51,7 +51,7 @@ const HomeSkeleton = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {Array.from({ length: 4 }).map((_, index) => (
             <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="w-full h-52 bg-gray-200" />
+              <div className="w-full aspect-square bg-gray-200" />
               <div className="p-4 space-y-3">
                 <div className="flex justify-between items-start">
                   <div className="w-3/4 h-5 bg-gray-200 rounded" />

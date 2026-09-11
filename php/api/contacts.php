@@ -1,10 +1,12 @@
 <?php
+require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/../PHPMailer/src/Exception.php';
 require_once __DIR__ . '/../PHPMailer/src/PHPMailer.php';
 require_once __DIR__ . '/../PHPMailer/src/SMTP.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+
 function handleContact($pdo) {
     $rawInput = file_get_contents('php://input');
     $input = json_decode($rawInput, true);
@@ -25,18 +27,18 @@ function handleContact($pdo) {
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
-        $mail->Host       = 'smtp.mail.ru';
+        $mail->Host       = SMTP_HOST;
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'miniontop52@mail.ru';
-        $mail->Password   = 'gKq4NdMa0fcayv6OZI75';
+        $mail->Username   = SMTP_USER;
+        $mail->Password   = SMTP_PASS;
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-        $mail->Port       = 465;
+        $mail->Port       = SMTP_PORT;
 
         $mail->CharSet = 'UTF-8';
         $mail->Encoding = 'base64';
 
-        $mail->setFrom('miniontop52@mail.ru', 'Sapore');
-        $mail->addAddress('miniontop52@mail.ru');
+        $mail->setFrom(SMTP_FROM_EMAIL, SMTP_FROM_NAME);
+        $mail->addAddress(SMTP_TO_EMAIL);
 
         $mail->isHTML(false);
         $mail->Subject = "Новое сообщение с сайта Sapore от $name";

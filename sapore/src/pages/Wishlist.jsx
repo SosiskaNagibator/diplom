@@ -78,13 +78,15 @@ const Wishlist = () => {
             >
               <Card hover className="overflow-hidden relative">
                 <Link to={`/product/${pizza.slug}`} className="block">
-                  <img
-                    src={getImageUrl(pizza.image, 'thumb')}
-                    alt={pizza.name}
-                    className="w-full h-48 object-cover"
-                    loading="lazy"
-                    decoding="async"
-                  />
+                  <div className="relative aspect-square bg-gray-50">
+                    <img
+                      src={getImageUrl(pizza.image, 'thumb')}
+                      alt={pizza.name}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
                   <div className="p-4">
                     <div className="font-bold text-gray-800">{pizza.name}</div>
                     <div className="text-amber-600 font-bold mt-2">{pizza.price} ₽</div>

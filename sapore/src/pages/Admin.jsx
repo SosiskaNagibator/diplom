@@ -18,8 +18,9 @@ function Admin() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const emptyPizzaForm = { name: '', category: '', category_id: '', description: '', price: '', image: '', sizes: '' };
   const [editingPizza, setEditingPizza] = useState(null);
-  const [pizzaForm, setPizzaForm] = useState({ name: '', category: '', description: '', price: '', image: '', sizes: '1,2,3' });
+  const [pizzaForm, setPizzaForm] = useState(emptyPizzaForm);
   const [selectedImageFile, setSelectedImageFile] = useState(null);
 
   const [editingSize, setEditingSize] = useState(null);
@@ -131,10 +132,10 @@ function Admin() {
     const formData = new FormData();
     formData.append('action', action);
     formData.append('name', pizzaForm.name);
-    formData.append('category', pizzaForm.category);
+    formData.append('category_id', pizzaForm.category_id);
     formData.append('description', pizzaForm.description);
     formData.append('price', pizzaForm.price);
-    formData.append('sizes', pizzaForm.sizes);
+    formData.append('sizes', pizzaForm.sizes || '');
     if (editingPizza) {
       formData.append('id', editingPizza.id);
     }
@@ -149,7 +150,7 @@ function Admin() {
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') {
-      setPizzaForm({ name: '', category: '', description: '', price: '', image: '', sizes: '1,2,3' });
+      setPizzaForm(emptyPizzaForm);
       setEditingPizza(null);
       setSelectedImageFile(null);
       fetchPizzas();
@@ -158,12 +159,20 @@ function Admin() {
 
   const handleEditPizza = (p) => {
     setEditingPizza(p);
-    setPizzaForm(p);
+    setPizzaForm({
+      name: p.name || '',
+      category: p.category || '',
+      category_id: p.category_id || '',
+      description: p.description || '',
+      price: p.price || '',
+      image: p.image || '',
+      sizes: p.sizes || ''
+    });
     setSelectedImageFile(null);
   };
 
   const handleDeletePizza = async (id) => {
-    if (!confirm('Удалить пиццу?')) return;
+    if (!confirm('Удалить товар?')) return;
     const payload = new URLSearchParams({ action: 'admin_delete_pizza', id });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     const data = await res.json();
@@ -314,7 +323,7 @@ function Admin() {
   };
 
   const handleDeleteCategory = async (id) => {
-    if (!confirm('Удалить категорию? Все пиццы с этой категорией потеряют связь.')) return;
+    if (!confirm('Удалить категорию? Все товары с этой категорией потеряют связь.')) return;
     const payload = new URLSearchParams({ action: 'admin_delete_category', id });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     const data = await res.json();
@@ -362,7 +371,7 @@ function Admin() {
             onClick={() => setActiveTab(tab)}
             className="px-4 py-2 rounded-lg text-sm"
           >
-            {tab === 'pizzas' ? 'Пиццы' :
+            {tab === 'pizzas' ? 'Товары' :
              tab === 'orders' ? 'Заказы' :
              tab === 'users' ? 'Пользователи' :
              tab === 'sizes' ? 'Размеры' :
@@ -376,12 +385,26 @@ function Admin() {
       {activeTab === 'pizzas' && (
         <div>
           <div className="bg-white rounded-xl shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">{editingPizza ? 'Редактировать пиццу' : 'Добавить пиццу'}</h2>
+            <h2 className="text-xl font-semibold mb-4">{editingPizza ? 'Редактировать товар' : 'Добавить товар'}</h2>
             <form onSubmit={handlePizzaSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input name="name" value={pizzaForm.name} onChange={e => setPizzaForm({...pizzaForm, name: e.target.value})} placeholder="Название" required />
-              <Input name="category" value={pizzaForm.category} onChange={e => setPizzaForm({...pizzaForm, category: e.target.value})} placeholder="Категория" />
+              <select
+                value={pizzaForm.category_id || ''}
+                onChange={e => {
+                  const id = e.target.value;
+                  const cat = categories.find(c => String(c.id) === String(id));
+                  setPizzaForm({...pizzaForm, category_id: id, category: cat ? cat.name : ''});
+                }}
+                className="border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                required
+              >
+                <option value="">— выберите категорию —</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
               <Input name="price" value={pizzaForm.price} onChange={e => setPizzaForm({...pizzaForm, price: e.target.value})} placeholder="Цена" type="number" required />
-              <Input name="sizes" value={pizzaForm.sizes} onChange={e => setPizzaForm({...pizzaForm, sizes: e.target.value})} placeholder="ID размеров (через запятую)" />
+              <Input name="sizes" value={pizzaForm.sizes} onChange={e => setPizzaForm({...pizzaForm, sizes: e.target.value})} placeholder="ID размеров через запятую (для пицц: 1,2,3)" />
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Изображение</label>
                 <input
@@ -402,7 +425,7 @@ function Admin() {
               </div>
               <textarea name="description" value={pizzaForm.description} onChange={e => setPizzaForm({...pizzaForm, description: e.target.value})} placeholder="Описание" className="border p-2 rounded col-span-2" rows="2" />
               <Button type="submit" variant="primary" className="col-span-2">{editingPizza ? 'Обновить' : 'Добавить'}</Button>
-              {editingPizza && <Button variant="secondary" className="col-span-2" onClick={() => { setEditingPizza(null); setPizzaForm({ name: '', category: '', description: '', price: '', image: '', sizes: '1,2,3' }); setSelectedImageFile(null); }}>Отменить</Button>}
+              {editingPizza && <Button variant="secondary" className="col-span-2" onClick={() => { setEditingPizza(null); setPizzaForm(emptyPizzaForm); setSelectedImageFile(null); }}>Отменить</Button>}
             </form>
           </div>
           <div className="overflow-x-auto bg-white rounded-xl shadow">

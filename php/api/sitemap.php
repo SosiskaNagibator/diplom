@@ -1,12 +1,9 @@
 <?php
+require_once __DIR__ . '/config.php';
+
 header('Content-Type: application/xml; charset=utf-8');
 
-$host = 'localhost';
-$user = 'vladskv_saporedb';
-$password = 'Play999111.';
-$dbname = 'vladskv_saporedb';
-
-$conn = new mysqli($host, $user, $password, $dbname);
+$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 if ($conn->connect_error) {
     http_response_code(500);
     echo '<?xml version="1.0" encoding="UTF-8"?><error>DB connection error</error>';
@@ -14,7 +11,7 @@ if ($conn->connect_error) {
 }
 $conn->set_charset("utf8");
 
-$base = 'http://vladskv.xsph.ru';
+$base = SITE_URL;
 
 echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";

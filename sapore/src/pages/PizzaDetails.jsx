@@ -93,14 +93,16 @@ const PizzaDetails = ({ addToCart }) => {
 
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
-          <div className="flex justify-center relative">
-            <img
-              src={getImageUrl(pizza.image, 'large')}
-              alt={pizza.name}
-              className="w-full max-h-96 object-contain rounded-xl"
-              loading="lazy"
-              decoding="async"
-            />
+          <div className="relative">
+            <div className="relative aspect-square bg-gray-50 rounded-xl overflow-hidden">
+              <img
+                src={getImageUrl(pizza.image, 'large')}
+                alt={pizza.name}
+                className="absolute inset-0 w-full h-full object-contain p-4"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
             <div className="absolute top-2 right-2">
               <WishlistButton pizzaId={pizza.id} />
             </div>
@@ -171,13 +173,15 @@ const PizzaDetails = ({ addToCart }) => {
                 to={`/product/${item.slug}`}
                 className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition"
               >
-                <img
-                  src={getImageUrl(item.image, 'thumb')}
-                  alt={item.name}
-                  className="w-full h-32 object-cover"
-                  loading="lazy"
-                  decoding="async"
-                />
+                <div className="relative aspect-square bg-gray-50">
+                  <img
+                    src={getImageUrl(item.image, 'thumb')}
+                    alt={item.name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
                 <div className="p-3">
                   <div className="font-medium text-gray-800 text-sm line-clamp-2">{item.name}</div>
                   <div className="text-amber-600 font-bold text-sm mt-1">{item.price} ₽</div>

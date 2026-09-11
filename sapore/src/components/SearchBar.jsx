@@ -63,7 +63,7 @@ const SearchBar = () => {
   };
 
   const handleSuggestionClick = (pizza) => {
-    navigate(`/pizza/${pizza.id}`);
+    navigate(`/product/${pizza.slug}`);
     setIsOpen(false);
     setQuery('');
   };

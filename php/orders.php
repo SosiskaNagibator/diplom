@@ -1,5 +1,14 @@
 <?php
-header("Access-Control-Allow-Origin: *");
+require_once __DIR__ . '/config.php';
+
+$allowedOrigins = ['http://localhost', 'http://localhost:5173', SITE_URL];
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if (in_array($origin, $allowedOrigins)) {
+    header("Access-Control-Allow-Origin: $origin");
+} else {
+    header("Access-Control-Allow-Origin: http://localhost");
+}
+header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header('Content-Type: application/json');
@@ -9,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 session_set_cookie_params([
-    'lifetime' => 86400 * 7,
+    'lifetime' => SESSION_LIFETIME,
     'path' => '/',
     'domain' => '',
     'secure' => false,
@@ -18,14 +27,8 @@ session_set_cookie_params([
 ]);
 session_start();
 
-
-$host = 'localhost';
-$user = 'vladskv_saporedb';
-$password = 'Play999111.';
-$dbname = 'vladskv_saporedb';
-
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $password);
+    $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch(PDOException $e) {
     echo json_encode(['status' => 'error', 'message' => 'Ошибка подключения к БД: ' . $e->getMessage()]);
@@ -43,9 +46,6 @@ switch($action) {
         break;
     case 'get_orders':
         handleGetOrders($pdo, $input);
-        break;
-    case 'update_status':
-        handleUpdateStatus($pdo, $input);
         break;
     case 'get_order_by_number':
         handleGetOrderByNumber($pdo, $input);
@@ -252,21 +252,22 @@ function handleSaveOrder($pdo, $input) {
 
 function handleGetOrders($pdo, $input) {
     $userLogin = $_SESSION['user_login'] ?? '';
+    if (empty($userLogin)) {
+        echo json_encode(['status' => 'error', 'message' => 'Не авторизован']);
+        return;
+    }
+
     try {
         $sql = "SELECT id, order_number, total, status, items, delivery_address, delivery_time,
                        promo_code, discount_amount, final_total,
                        customer_name, customer_phone, customer_email, order_date, user_login 
-                FROM orders";
-        if ($userLogin) {
-            $sql .= " WHERE user_login = ?";
-            $stmt = $pdo->prepare($sql . " ORDER BY order_date DESC");
-            $stmt->execute([$userLogin]);
-        } else {
-            $sql .= " ORDER BY order_date DESC";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute();
-        }
+                FROM orders
+                WHERE user_login = ?
+                ORDER BY order_date DESC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$userLogin]);
         $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         $result = [];
         foreach ($orders as $order) {
             $result[] = [
@@ -293,37 +294,46 @@ function handleGetOrders($pdo, $input) {
     }
 }
 
-function handleUpdateStatus($pdo, $input) {
-    $orderId = isset($input['orderId']) ? (int)$input['orderId'] : 0;
-    $newStatus = trim($input['status'] ?? '');
-    if (!$orderId || !$newStatus) {
-        echo json_encode(['status' => 'error', 'message' => 'Неверные данные']);
-        return;
-    }
-    $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
-    if ($stmt->execute([$newStatus, $orderId])) {
-        echo json_encode(['status' => 'success', 'message' => 'Статус обновлён']);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления']);
-    }
-}
-
 function handleGetOrderByNumber($pdo, $input) {
+    $userLogin = $_SESSION['user_login'] ?? '';
     $orderNumber = trim($input['orderNumber'] ?? $_GET['orderNumber'] ?? $_POST['orderNumber'] ?? '');
+    $phone = trim($input['phone'] ?? $_GET['phone'] ?? $_POST['phone'] ?? '');
+
     if (empty($orderNumber)) {
         echo json_encode(['status' => 'error', 'message' => 'Не указан номер заказа']);
         return;
     }
+
     $stmt = $pdo->prepare("SELECT id, order_number, total, status, items, delivery_address, delivery_time,
                                   promo_code, discount_amount, final_total,
                                   customer_name, customer_phone, customer_email, order_date, user_login 
                            FROM orders WHERE order_number = ?");
     $stmt->execute([$orderNumber]);
     $order = $stmt->fetch(PDO::FETCH_ASSOC);
+
     if (!$order) {
         echo json_encode(['status' => 'error', 'message' => 'Заказ не найден']);
         return;
     }
+
+    $owner = $order['user_login'];
+    $canView = false;
+
+    if ($userLogin && $owner === $userLogin) {
+        $canView = true;
+    } elseif ($owner === 'guest' && !empty($phone)) {
+        $phoneDigits = preg_replace('/[^0-9]/', '', $phone);
+        $orderPhoneDigits = preg_replace('/[^0-9]/', '', $order['customer_phone'] ?? '');
+        if (strlen($phoneDigits) >= 10 && $phoneDigits === $orderPhoneDigits) {
+            $canView = true;
+        }
+    }
+
+    if (!$canView) {
+        echo json_encode(['status' => 'error', 'message' => 'Заказ не найден']);
+        return;
+    }
+
     $result = [
         'id' => $order['id'],
         'orderNumber' => $order['order_number'],
