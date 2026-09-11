@@ -8,6 +8,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
+header('Cache-Control: public, max-age=300');
+header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 300) . ' GMT');
+
 $host = 'localhost';
 $user = 'vladskv_saporedb';
 $password = 'Play999111.';

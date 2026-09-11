@@ -8,6 +8,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
+header('Cache-Control: public, max-age=600');
+header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 600) . ' GMT');
+
 $host = 'localhost';
 $user = 'vladskv_saporedb';
 $password = 'Play999111.';
@@ -34,4 +37,3 @@ $stmt = $pdo->query("SELECT id, name, icon, price FROM constructor_toppings ORDE
 $result['toppings'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 echo json_encode($result);
-?>
