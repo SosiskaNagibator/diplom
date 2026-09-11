@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { API_CATALOG } from '../constants/api';
 
 const fetchPizzas = async (categoryId, page, limit, search) => {
-  const url = new URL(API_CATALOG);
+  const url = new URL(API_CATALOG, window.location.origin);
   if (categoryId && categoryId > 0) url.searchParams.append('category_id', categoryId);
   if (search) url.searchParams.append('search', search);
   url.searchParams.append('page', page);

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../autoload_intervention.php';
+require_once __DIR__ . '/slugify.php';
 
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -168,6 +169,8 @@ function addPizza($pdo) {
         return;
     }
 
+    $slug = uniqueSlug($pdo, 'items', slugify($name));
+
     $uploadDir = __DIR__ . '/uploads/pizzas/';
     if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
@@ -188,9 +191,9 @@ function addPizza($pdo) {
         $imageName = $filename . '.webp';
     }
 
-    $stmt = $pdo->prepare("INSERT INTO items (name, category, description, price, image, sizes, calories, protein, fat, carbs) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    if ($stmt->execute([$name, $category, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs])) {
-        echo json_encode(['status' => 'success', 'message' => 'Пицца добавлена', 'id' => $pdo->lastInsertId()]);
+    $stmt = $pdo->prepare("INSERT INTO items (name, slug, category, description, price, image, sizes, calories, protein, fat, carbs) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    if ($stmt->execute([$name, $slug, $category, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs])) {
+        echo json_encode(['status' => 'success', 'message' => 'Пицца добавлена', 'id' => $pdo->lastInsertId(), 'slug' => $slug]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления']);
     }
@@ -223,6 +226,8 @@ function updatePizza($pdo) {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($row) $oldImage = $row['image'];
 
+    $slug = uniqueSlug($pdo, 'items', slugify($name), $id);
+
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
         $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
         $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -245,9 +250,9 @@ function updatePizza($pdo) {
         $imageName = $oldImage;
     }
 
-    $stmt = $pdo->prepare("UPDATE items SET name=?, category=?, description=?, price=?, image=?, sizes=?, calories=?, protein=?, fat=?, carbs=? WHERE id=?");
-    if ($stmt->execute([$name, $category, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs, $id])) {
-        echo json_encode(['status' => 'success', 'message' => 'Пицца обновлена']);
+    $stmt = $pdo->prepare("UPDATE items SET name=?, slug=?, category=?, description=?, price=?, image=?, sizes=?, calories=?, protein=?, fat=?, carbs=? WHERE id=?");
+    if ($stmt->execute([$name, $slug, $category, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs, $id])) {
+        echo json_encode(['status' => 'success', 'message' => 'Пицца обновлена', 'slug' => $slug]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления']);
     }
@@ -293,7 +298,7 @@ function updateUserBonus($pdo) {
         $stmt = $pdo->prepare("INSERT INTO bonus_history (login, amount, description) VALUES (?, ?, ?)");
         $stmt->execute([$login, $newBalance, 'Админ изменил баланс']);
         
-        require_once __DIR__ . '/api/levels.php';
+        require_once __DIR__ . '/levels.php';
         updateUserLevel($pdo, $login);
         
         echo json_encode(['status' => 'success', 'message' => 'Баланс обновлён']);
@@ -509,9 +514,10 @@ function addCategory($pdo) {
         echo json_encode(['status' => 'error', 'message' => 'Категория уже существует']);
         return;
     }
-    $stmt = $pdo->prepare("INSERT INTO categories (name, sort_order) VALUES (?, ?)");
-    if ($stmt->execute([$name, $sort_order])) {
-        echo json_encode(['status' => 'success', 'message' => 'Категория добавлена']);
+    $slug = uniqueSlug($pdo, 'categories', slugify($name));
+    $stmt = $pdo->prepare("INSERT INTO categories (name, slug, sort_order) VALUES (?, ?, ?)");
+    if ($stmt->execute([$name, $slug, $sort_order])) {
+        echo json_encode(['status' => 'success', 'message' => 'Категория добавлена', 'slug' => $slug]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления']);
     }
@@ -525,9 +531,10 @@ function updateCategory($pdo) {
         echo json_encode(['status' => 'error', 'message' => 'Неверные данные']);
         return;
     }
-    $stmt = $pdo->prepare("UPDATE categories SET name = ?, sort_order = ? WHERE id = ?");
-    if ($stmt->execute([$name, $sort_order, $id])) {
-        echo json_encode(['status' => 'success', 'message' => 'Категория обновлена']);
+    $slug = uniqueSlug($pdo, 'categories', slugify($name), $id);
+    $stmt = $pdo->prepare("UPDATE categories SET name = ?, slug = ?, sort_order = ? WHERE id = ?");
+    if ($stmt->execute([$name, $slug, $sort_order, $id])) {
+        echo json_encode(['status' => 'success', 'message' => 'Категория обновлена', 'slug' => $slug]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления']);
     }
@@ -553,4 +560,3 @@ function deleteCategory($pdo) {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления']);
     }
 }
-?>

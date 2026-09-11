@@ -8,6 +8,7 @@ import { Card, Button } from '../components/ui';
 import WishlistButton from '../components/WishlistButton';
 import WishlistSkeleton from '../components/skeletons/WishlistSkeleton';
 import { FaHeart } from 'react-icons/fa';
+import SEO from '../components/SEO';
 
 const fetchPizzasByIds = async (ids) => {
   if (!ids || ids.length === 0) return [];
@@ -48,6 +49,7 @@ const Wishlist = () => {
   if (!wishlistIds.length) {
     return (
       <div className="text-center py-16">
+        <SEO title="Избранное" description="Ваши любимые пиццы в Sapore" url="/wishlist" />
         <FaHeart className="text-6xl text-gray-300 mx-auto mb-4" />
         <h2 className="text-2xl font-bold text-gray-800">Избранное пусто</h2>
         <p className="text-gray-500 mt-2">Добавляйте пиццы, которые вам понравились</p>
@@ -58,6 +60,7 @@ const Wishlist = () => {
 
   return (
     <div className="fade-in">
+      <SEO title="Избранное" description="Ваши любимые пиццы в Sapore" url="/wishlist" />
       <h1 className="text-3xl font-bold text-gray-800 mb-6">
         <FaHeart className="inline text-red-500 mr-2" /> Избранное
       </h1>
@@ -74,7 +77,7 @@ const Wishlist = () => {
               layout
             >
               <Card hover className="overflow-hidden relative">
-                <Link to={`/pizza/${pizza.id}`} className="block">
+                <Link to={`/product/${pizza.slug}`} className="block">
                   <img
                     src={getImageUrl(pizza.image, 'thumb')}
                     alt={pizza.name}

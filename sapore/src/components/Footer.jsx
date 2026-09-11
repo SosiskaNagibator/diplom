@@ -30,10 +30,13 @@ function Footer() {
           <div>
             <h4 className="font-semibold text-gray-800 mb-4">Меню</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/catalog" className="text-gray-600 hover:text-amber-500 transition-colors">Каталог пицц</Link></li>
-              <li><Link to="/constructor" className="text-gray-600 hover:text-amber-500 transition-colors">Конструктор</Link></li>
-              <li><Link to="/tracking" className="text-gray-600 hover:text-amber-500 transition-colors">Отслеживание заказа</Link></li>
-              <li><Link to="/contacts" className="text-gray-600 hover:text-amber-500 transition-colors">Контакты</Link></li>
+              <li><Link to="/catalog" className="text-gray-600 hover:text-amber-500 transition-colors">Весь каталог</Link></li>
+              <li><Link to="/category/klassika" className="text-gray-600 hover:text-amber-500 transition-colors">Классические пиццы</Link></li>
+              <li><Link to="/category/myasnye" className="text-gray-600 hover:text-amber-500 transition-colors">Мясные пиццы</Link></li>
+              <li><Link to="/category/vegetarianskie" className="text-gray-600 hover:text-amber-500 transition-colors">Вегетарианские</Link></li>
+              <li><Link to="/category/ostrye" className="text-gray-600 hover:text-amber-500 transition-colors">Острые пиццы</Link></li>
+              <li><Link to="/category/sladkie" className="text-gray-600 hover:text-amber-500 transition-colors">Сладкие пиццы</Link></li>
+              <li><Link to="/category/rybnye" className="text-gray-600 hover:text-amber-500 transition-colors">Рыбные пиццы</Link></li>
             </ul>
           </div>
 

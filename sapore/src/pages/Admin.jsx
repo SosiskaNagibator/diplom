@@ -373,7 +373,6 @@ function Admin() {
         ))}
       </div>
 
-      {/* Вкладки (контент без изменений, всё как в оригинале) */}
       {activeTab === 'pizzas' && (
         <div>
           <div className="bg-white rounded-xl shadow p-6 mb-6">

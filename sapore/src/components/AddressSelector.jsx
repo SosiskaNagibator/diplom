@@ -93,7 +93,7 @@ const AddressSelector = ({ onSelect }) => {
       const formData = new URLSearchParams();
       formData.append('action', 'delete_user_address');
       formData.append('id', id);
-      formData.append('login', userLogin); // <-- обязательно передаём логин
+      formData.append('login', userLogin); 
       const res = await fetch(API_BASE, {
         method: 'POST',
         credentials: 'include',

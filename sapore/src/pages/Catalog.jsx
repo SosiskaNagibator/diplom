@@ -8,6 +8,7 @@ import PizzaSkeleton from '../components/PizzaSkeleton';
 import { getImageUrl } from '../utils/imageUtils';
 import Pagination from '../components/Pagination';
 import WishlistButton from '../components/WishlistButton';
+import SEO from '../components/SEO';
 
 function Catalog({ addToCart }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -89,6 +90,12 @@ function Catalog({ addToCart }) {
 
   return (
     <div className="fade-in">
+      <SEO
+        title={searchQuery ? `Поиск: ${searchQuery}` : 'Меню — все пиццы'}
+        description="Полный каталог пиццы Sapore: классические, мясные, вегетарианские, острые, сладкие и рыбные. Доставка за 30 минут в Ростове-на-Дону."
+        url="/catalog"
+      />
+
       <h1 className="text-3xl font-bold text-gray-800 mb-6">
         {searchQuery ? `Результаты поиска: "${searchQuery}"` : 'Меню'}
       </h1>
@@ -133,7 +140,7 @@ function Catalog({ addToCart }) {
               transition={{ delay: index * 0.04, duration: 0.3, ease: 'easeOut' }}
               className="h-full"
             >
-              <Link to={`/pizza/${pizza.id}`} className="block h-full">
+              <Link to={`/product/${pizza.slug}`} className="block h-full">
                 <Card hover className="overflow-hidden border border-gray-100 relative h-full flex flex-col">
                   <div className="relative overflow-hidden flex-shrink-0">
                     <picture>

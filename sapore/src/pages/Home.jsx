@@ -8,6 +8,7 @@ import { Button, Card } from '../components/ui';
 import { getImageUrl } from '../utils/imageUtils';
 import WishlistButton from '../components/WishlistButton';
 import HomeSkeleton from '../components/skeletons/HomeSkeleton';
+import SEO from '../components/SEO';
 
 function Home({ addToCart }) {
   const [popularPizzas, setPopularPizzas] = useState([]);
@@ -92,6 +93,12 @@ function Home({ addToCart }) {
 
   return (
     <div className="fade-in">
+      <SEO
+        title="Итальянская пицца с доставкой в Ростове-на-Дону"
+        description="Sapore — настоящая итальянская пицца из дровяной печи. Свежие ингредиенты, доставка за 30 минут. Заказать пиццу, закуски и напитки."
+        url="/"
+      />
+
       <motion.section
         initial="hidden"
         animate="visible"
@@ -233,7 +240,7 @@ function Home({ addToCart }) {
               animate="visible"
               variants={cardVariants}
             >
-              <Link to={`/pizza/${pizza.id}`} className="block">
+              <Link to={`/product/${pizza.slug}`} className="block">
                 <Card hover className="overflow-hidden border border-gray-100 relative">
                   <div className="relative overflow-hidden">
                     <picture>

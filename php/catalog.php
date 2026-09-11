@@ -22,11 +22,24 @@ if ($conn->connect_error) {
 $conn->set_charset("utf8");
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if ($id > 0) {
-    $stmt = $conn->prepare("SELECT id, name, category, description, price, image, sizes, category_id, 
-                                   calories, protein, fat, carbs 
-                            FROM items WHERE id = ?");
-    $stmt->bind_param("i", $id);
+$slug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
+
+if ($id > 0 || $slug !== '') {
+    if ($id > 0) {
+        $stmt = $conn->prepare("SELECT i.id, i.name, i.slug, i.category, i.description, i.price, i.image, i.sizes, i.category_id,
+                                       i.calories, i.protein, i.fat, i.carbs, c.slug AS category_slug
+                                FROM items i
+                                LEFT JOIN categories c ON c.id = i.category_id
+                                WHERE i.id = ?");
+        $stmt->bind_param("i", $id);
+    } else {
+        $stmt = $conn->prepare("SELECT i.id, i.name, i.slug, i.category, i.description, i.price, i.image, i.sizes, i.category_id,
+                                       i.calories, i.protein, i.fat, i.carbs, c.slug AS category_slug
+                                FROM items i
+                                LEFT JOIN categories c ON c.id = i.category_id
+                                WHERE i.slug = ?");
+        $stmt->bind_param("s", $slug);
+    }
     $stmt->execute();
     $result = $stmt->get_result();
     if ($row = $result->fetch_assoc()) {
@@ -60,7 +73,7 @@ if ($id > 0) {
         $row['available_sizes'] = $availableSizes;
         echo json_encode(['status' => 'success', 'pizza' => $row]);
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'Пицца не найдена']);
+        echo json_encode(['status' => 'error', 'message' => 'Товар не найден']);
     }
     $conn->close();
     exit;
@@ -70,9 +83,22 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 9;
 $offset = ($page - 1) * $limit;
 $categoryId = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
+$categorySlug = isset($_GET['category_slug']) ? trim($_GET['category_slug']) : '';
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
-$categoriesResult = $conn->query("SELECT id, name FROM categories ORDER BY sort_order");
+if ($categorySlug !== '' && $categoryId === 0) {
+    $stmt = $conn->prepare("SELECT id FROM categories WHERE slug = ?");
+    $stmt->bind_param("s", $categorySlug);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($r = $res->fetch_assoc()) {
+        $categoryId = (int)$r['id'];
+    } else {
+        $categoryId = -1;
+    }
+}
+
+$categoriesResult = $conn->query("SELECT id, name, slug FROM categories ORDER BY sort_order");
 $categories = [];
 while ($row = $categoriesResult->fetch_assoc()) {
     $categories[] = $row;
@@ -92,6 +118,8 @@ if ($categoryId > 0) {
     $where = " WHERE category_id = ?";
     $params[] = $categoryId;
     $types .= 'i';
+} elseif ($categoryId === -1) {
+    $where = " WHERE 1=0";
 }
 
 if (!empty($search)) {
@@ -117,7 +145,7 @@ $countResult = $countStmt->get_result();
 $totalRow = $countResult->fetch_assoc();
 $total = (int)$totalRow['total'];
 
-$sql = "SELECT id, name, category, description, price, image, sizes, category_id,
+$sql = "SELECT id, name, slug, category, description, price, image, sizes, category_id,
                calories, protein, fat, carbs 
         FROM items" . $where . " ORDER BY id LIMIT ? OFFSET ?";
 $params[] = $limit;

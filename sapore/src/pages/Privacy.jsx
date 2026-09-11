@@ -144,7 +144,7 @@ const Privacy = () => {
       </div>
 
       <div className="mt-10 text-sm text-gray-500 border-t border-gray-200 pt-4">
-        <p>© 2026 ООО «Сапоре». Все права защищены.</p>
+        <p>© 2026 ООО «Сапоре».</p>
       </div>
     </motion.div>
   );

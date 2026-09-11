@@ -7,6 +7,7 @@ import Footer from './components/Footer';
 import CookieBanner from './components/CookieBanner';
 import Home from './pages/Home';
 import Catalog from './pages/Catalog';
+import CategoryPage from './pages/CategoryPage';
 import Constructor from './pages/Constructor';
 import Cart from './pages/Cart';
 import Profile from './pages/Profile';
@@ -63,6 +64,21 @@ function App() {
                 <Catalog addToCart={handleAddToCart} />
               </motion.div>
             } />
+            <Route path="/category/:slug" element={
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
+                <CategoryPage addToCart={handleAddToCart} />
+              </motion.div>
+            } />
+            <Route path="/product/:slug" element={
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
+                <PizzaDetails addToCart={handleAddToCart} />
+              </motion.div>
+            } />
+            <Route path="/pizza/:id" element={
+              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
+                <PizzaDetails addToCart={handleAddToCart} />
+              </motion.div>
+            } />
             <Route path="/constructor" element={
               <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
                 <Constructor addToCart={handleAddToCart} />
@@ -91,11 +107,6 @@ function App() {
             <Route path="/contacts" element={
               <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
                 <Contacts />
-              </motion.div>
-            } />
-            <Route path="/pizza/:id" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <PizzaDetails addToCart={handleAddToCart} />
               </motion.div>
             } />
             <Route path="/wishlist" element={

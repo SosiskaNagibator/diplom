@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import MapPicker from '../components/MapPicker/MapPicker';
 import { Button, Input } from '../components/ui';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaTelegramPlane, FaVk, FaYoutube } from 'react-icons/fa';
-import { API_BASE } from '../constants/api'; // FIXED: импорт константы
+import { API_BASE } from '../constants/api';
 
 function Contacts() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -26,7 +26,7 @@ function Contacts() {
 
     setLoading(true);
     try {
-      // FIXED: используем API_BASE вместо локальной константы
+
       const response = await fetch(API_BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -76,7 +76,6 @@ function Contacts() {
       </motion.h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Левая колонка */}
         <motion.div initial="hidden" animate="visible" variants={cardVariants} custom={0} className="space-y-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Свяжитесь с нами</h2>
@@ -156,7 +155,6 @@ function Contacts() {
           </motion.div>
         </motion.div>
 
-        {/* Правая колонка – форма */}
         <motion.div
           initial="hidden"
           animate="visible"
@@ -211,7 +209,6 @@ function Contacts() {
         </motion.div>
       </div>
 
-      {/* Карта */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}

@@ -95,7 +95,6 @@ const MapPicker = ({ onAddressSelect, initialAddress }) => {
   const selectedAddressRef = useRef('');
   const isInitialized = useRef(false);
 
-  // Геокодирование адреса (для поиска и обновления)
   const geocodeAddress = (text) => {
     if (!text || text.length < 2) return;
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(text)}&addressdetails=1&limit=1`)
@@ -123,14 +122,12 @@ const MapPicker = ({ onAddressSelect, initialAddress }) => {
       .catch(() => {});
   };
 
-  // Обновление карты при изменении initialAddress извне (например, выбор из списка)
   useEffect(() => {
     if (initialAddress && initialAddress !== selectedAddressRef.current && !isSelecting.current) {
       geocodeAddress(initialAddress);
     }
   }, [initialAddress]);
 
-  // Инициализация при первом рендере
   useEffect(() => {
     if (initialAddress && !isInitialized.current) {
       isInitialized.current = true;
@@ -183,7 +180,6 @@ const MapPicker = ({ onAddressSelect, initialAddress }) => {
       .catch(() => setError('Ошибка поиска'));
   };
 
-  // Debounce для автопоиска (подсказки)
   useEffect(() => {
     if (!query || query.length < 2 || isSelecting.current) return;
     if (query === selectedAddressRef.current) return;
@@ -192,7 +188,6 @@ const MapPicker = ({ onAddressSelect, initialAddress }) => {
     return () => { if (searchTimeout.current) clearTimeout(searchTimeout.current); };
   }, [query]);
 
-  // Подсказки при вводе
   useEffect(() => {
     if (!query || query.length < 2) {
       setSuggestions([]);
@@ -316,7 +311,7 @@ const MapPicker = ({ onAddressSelect, initialAddress }) => {
         ref={mapRef}
       >
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
         <LocationMarker setAddress={setAddress} setCoords={setCoords} mapRef={mapRef} />
@@ -329,7 +324,6 @@ const MapPicker = ({ onAddressSelect, initialAddress }) => {
   );
 };
 
-// Компонент подсказки (без изменений)
 const SuggestionItem = ({ suggestion, onSelect }) => {
   const addr = suggestion.address || {};
   let mainLine = '';

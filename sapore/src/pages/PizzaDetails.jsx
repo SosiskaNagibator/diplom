@@ -1,16 +1,29 @@
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { usePizza } from '../hooks/usePizza';
+import { useProduct } from '../hooks/useProduct';
+import { useQuery } from '@tanstack/react-query';
 import { getImageUrl } from '../utils/imageUtils';
 import { getPriceWithSize } from '../utils/priceUtils';
+import { API_CATALOG } from '../constants/api';
 import { Button } from '../components/ui';
 import { useState, useEffect } from 'react';
 import WishlistButton from '../components/WishlistButton';
 import PizzaDetailsSkeleton from '../components/skeletons/PizzaDetailsSkeleton';
+import SEO from '../components/SEO';
+import Breadcrumbs from '../components/Breadcrumbs';
+
+const fetchRelated = async (categorySlug, excludeId) => {
+  if (!categorySlug) return [];
+  const res = await fetch(`${API_CATALOG}?category_slug=${encodeURIComponent(categorySlug)}&limit=5`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  if (data.status !== 'success') return [];
+  return data.pizzas.filter(p => p.id !== excludeId).slice(0, 4);
+};
 
 const PizzaDetails = ({ addToCart }) => {
-  const { id } = useParams();
-  const { data: pizza, isLoading, error } = usePizza(id);
+  const { slug } = useParams();
+  const { data: pizza, isLoading, error } = useProduct(slug);
   const [selectedSize, setSelectedSize] = useState(null);
 
   useEffect(() => {
@@ -19,13 +32,19 @@ const PizzaDetails = ({ addToCart }) => {
     }
   }, [pizza, selectedSize]);
 
+  const { data: related = [] } = useQuery({
+    queryKey: ['related', pizza?.category_slug, pizza?.id],
+    queryFn: () => fetchRelated(pizza.category_slug, pizza.id),
+    enabled: !!pizza?.category_slug && !!pizza?.id,
+    staleTime: 5 * 60 * 1000,
+  });
+
   if (isLoading) return <PizzaDetailsSkeleton />;
   if (error) return <div className="text-center py-12 text-red-500">Ошибка загрузки</div>;
-  if (!pizza) return <div className="text-center py-12">Пицца не найдена</div>;
+  if (!pizza) return <div className="text-center py-12">Товар не найден</div>;
 
   const handleSizeSelect = (size) => setSelectedSize(size);
   const price = getPriceWithSize(pizza.price, selectedSize);
-
   const multiplier = selectedSize?.price_multiplier || 1;
 
   const calcNutrition = (baseValue) => {
@@ -38,18 +57,14 @@ const PizzaDetails = ({ addToCart }) => {
   const protein = calcNutrition(pizza.protein);
   const fat = calcNutrition(pizza.fat);
   const carbs = calcNutrition(pizza.carbs);
+  const hasNutrition = pizza.calories > 0 || pizza.protein > 0 || pizza.fat > 0 || pizza.carbs > 0;
 
   const handleAddToCart = () => {
-    if (!selectedSize) {
-      alert('Пожалуйста, выберите размер');
-      return;
-    }
     const pizzaWithSize = {
       ...pizza,
       price,
-      name: pizza.name,
-      size: selectedSize.name,
-      size_label: selectedSize.label,
+      size: selectedSize?.name || 'Стандартная',
+      size_label: selectedSize?.label || '',
     };
     addToCart(pizzaWithSize);
   };
@@ -61,9 +76,21 @@ const PizzaDetails = ({ addToCart }) => {
       exit={{ opacity: 0, y: -20 }}
       className="max-w-4xl mx-auto"
     >
-      <Link to="/catalog" className="inline-flex items-center text-amber-600 hover:text-amber-700 mb-6">
-        ← Назад к меню
-      </Link>
+      <SEO
+        title={`${pizza.name} — заказать с доставкой`}
+        description={pizza.description}
+        image={getImageUrl(pizza.image, 'medium')}
+        url={`/product/${pizza.slug}`}
+        type="product"
+      />
+
+      <Breadcrumbs items={[
+        { label: 'Главная', to: '/' },
+        { label: 'Меню', to: '/catalog' },
+        ...(pizza.category_slug ? [{ label: pizza.category, to: `/category/${pizza.category_slug}` }] : []),
+        { label: pizza.name },
+      ]} />
+
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
           <div className="flex justify-center relative">
@@ -84,53 +111,82 @@ const PizzaDetails = ({ addToCart }) => {
               <p className="text-gray-600 mt-2">{pizza.description}</p>
               <div className="mt-4">
                 <p className="text-sm font-medium text-gray-500">Категория: {pizza.category}</p>
-                <div className="mt-2 grid grid-cols-4 gap-2 text-sm">
-                  <div className="bg-amber-50 p-2 rounded-lg text-center">
-                    <span className="block font-bold text-amber-600">{calories}</span>
-                    <span className="text-gray-500 text-xs">ккал</span>
+                {hasNutrition && (
+                  <div className="mt-2 grid grid-cols-4 gap-2 text-sm">
+                    <div className="bg-amber-50 p-2 rounded-lg text-center">
+                      <span className="block font-bold text-amber-600">{calories}</span>
+                      <span className="text-gray-500 text-xs">ккал</span>
+                    </div>
+                    <div className="bg-amber-50 p-2 rounded-lg text-center">
+                      <span className="block font-bold text-amber-600">{protein} г</span>
+                      <span className="text-gray-500 text-xs">Белки</span>
+                    </div>
+                    <div className="bg-amber-50 p-2 rounded-lg text-center">
+                      <span className="block font-bold text-amber-600">{fat} г</span>
+                      <span className="text-gray-500 text-xs">Жиры</span>
+                    </div>
+                    <div className="bg-amber-50 p-2 rounded-lg text-center">
+                      <span className="block font-bold text-amber-600">{carbs} г</span>
+                      <span className="text-gray-500 text-xs">Углеводы</span>
+                    </div>
                   </div>
-                  <div className="bg-amber-50 p-2 rounded-lg text-center">
-                    <span className="block font-bold text-amber-600">{protein} г</span>
-                    <span className="text-gray-500 text-xs">Белки</span>
-                  </div>
-                  <div className="bg-amber-50 p-2 rounded-lg text-center">
-                    <span className="block font-bold text-amber-600">{fat} г</span>
-                    <span className="text-gray-500 text-xs">Жиры</span>
-                  </div>
-                  <div className="bg-amber-50 p-2 rounded-lg text-center">
-                    <span className="block font-bold text-amber-600">{carbs} г</span>
-                    <span className="text-gray-500 text-xs">Углеводы</span>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
             <div className="mt-6">
-              <div className="flex flex-wrap gap-2 mb-4">
-                {pizza.available_sizes.map((size) => (
-                  <button
-                    key={size.id}
-                    onClick={() => handleSizeSelect(size)}
-                    className={`px-4 py-2 rounded-full border text-sm font-medium transition ${
-                      selectedSize?.id === size.id
-                        ? 'bg-amber-500 text-white border-amber-500'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-amber-400'
-                    }`}
-                  >
-                    {size.label}
-                  </button>
-                ))}
-              </div>
+              {pizza.available_sizes && pizza.available_sizes.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {pizza.available_sizes.map((size) => (
+                    <button
+                      key={size.id}
+                      onClick={() => handleSizeSelect(size)}
+                      className={`px-4 py-2 rounded-full border text-sm font-medium transition ${
+                        selectedSize?.id === size.id
+                          ? 'bg-amber-500 text-white border-amber-500'
+                          : 'bg-white text-gray-700 border-gray-300 hover:border-amber-400'
+                      }`}
+                    >
+                      {size.label}
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <span className="text-2xl font-bold text-amber-600">{price} ₽</span>
-                <Button variant="primary" onClick={handleAddToCart}>
-                  В корзину
-                </Button>
+                <Button variant="primary" onClick={handleAddToCart}>В корзину</Button>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {related.length > 0 && (
+        <section className="mt-12">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Похожие товары</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {related.map(item => (
+              <Link
+                key={item.id}
+                to={`/product/${item.slug}`}
+                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition"
+              >
+                <img
+                  src={getImageUrl(item.image, 'thumb')}
+                  alt={item.name}
+                  className="w-full h-32 object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div className="p-3">
+                  <div className="font-medium text-gray-800 text-sm line-clamp-2">{item.name}</div>
+                  <div className="text-amber-600 font-bold text-sm mt-1">{item.price} ₽</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </motion.div>
   );
 };

@@ -8,6 +8,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
+session_set_cookie_params([
+    'lifetime' => 86400 * 7,
+    'path' => '/',
+    'domain' => '',
+    'secure' => false,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
+session_start();
+
+
 $host = 'localhost';
 $user = 'vladskv_saporedb';
 $password = 'Play999111.';
