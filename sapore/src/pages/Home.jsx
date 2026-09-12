@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaPlus, FaStar } from 'react-icons/fa';
@@ -41,6 +41,20 @@ function Home({ addToCart }) {
     fetchPopular();
   }, []);
 
+  useLayoutEffect(() => {
+    if (loading) return;
+    const saved = sessionStorage.getItem('homeScroll');
+    if (saved !== null) {
+      const y = parseInt(saved, 10);
+      sessionStorage.removeItem('homeScroll');
+      if (!isNaN(y) && y > 0) {
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: y, behavior: 'instant' });
+        });
+      }
+    }
+  }, [loading]);
+
   const handleSizeChange = (pizzaId, size) => {
     setSelectedSizes(prev => ({ ...prev, [pizzaId]: size }));
     setPriceAnimations(prev => ({ ...prev, [pizzaId]: 'price-pop-small' }));
@@ -65,6 +79,10 @@ function Home({ addToCart }) {
       size_label: selectedSize?.label || '25 см'
     };
     addToCart(pizzaWithSize);
+  };
+
+  const saveScroll = () => {
+    sessionStorage.setItem('homeScroll', String(window.scrollY));
   };
 
   if (loading) return <HomeSkeleton />;
@@ -265,7 +283,11 @@ function Home({ addToCart }) {
               animate="visible"
               variants={cardVariants}
             >
-              <Link to={`/product/${pizza.slug}`} className="block">
+              <Link
+                to={`/product/${pizza.slug}`}
+                className="block"
+                onClick={saveScroll}
+              >
                 <Card hover className="overflow-hidden border border-gray-100 relative">
                   <div className="relative overflow-hidden aspect-square bg-gray-50">
                     <picture>

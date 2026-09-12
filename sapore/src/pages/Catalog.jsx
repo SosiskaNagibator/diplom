@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback, useMemo } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -73,6 +73,20 @@ function Catalog({ addToCart }) {
     queryFn: () => fetchCatalog(searchQuery),
     staleTime: 5 * 60 * 1000,
   });
+
+  useLayoutEffect(() => {
+    if (isLoading) return;
+    const saved = sessionStorage.getItem('catalogScroll');
+    if (saved !== null) {
+      const y = parseInt(saved, 10);
+      sessionStorage.removeItem('catalogScroll');
+      if (!isNaN(y) && y > 0) {
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: y, behavior: 'instant' });
+        });
+      }
+    }
+  }, [isLoading]);
 
   const items = data?.pizzas || [];
   const categories = data?.categories || [];
@@ -167,9 +181,17 @@ function Catalog({ addToCart }) {
     window.scrollTo({ top: y, behavior: 'smooth' });
   }, []);
 
+  const saveScroll = useCallback(() => {
+    sessionStorage.setItem('catalogScroll', String(window.scrollY));
+  }, []);
+
   const renderCard = (pizza) => (
     <motion.div variants={cardItemVariants} className="h-full">
-      <Link to={`/product/${pizza.slug}`} className="block h-full">
+      <Link
+        to={`/product/${pizza.slug}`}
+        className="block h-full"
+        onClick={saveScroll}
+      >
         <motion.div
           whileHover={{ y: -6 }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}

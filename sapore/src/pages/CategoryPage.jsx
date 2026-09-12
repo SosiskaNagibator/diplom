@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useLayoutEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -39,6 +39,20 @@ const CategoryPage = ({ addToCart }) => {
     queryFn: () => fetchCategory(slug),
   });
 
+  useLayoutEffect(() => {
+    if (isLoading) return;
+    const saved = sessionStorage.getItem('categoryScroll');
+    if (saved !== null) {
+      const y = parseInt(saved, 10);
+      sessionStorage.removeItem('categoryScroll');
+      if (!isNaN(y) && y > 0) {
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: y, behavior: 'instant' });
+        });
+      }
+    }
+  }, [isLoading]);
+
   useEffect(() => {
     if (data?.pizzas) {
       const defaults = {};
@@ -73,6 +87,10 @@ const CategoryPage = ({ addToCart }) => {
       size_label: size?.label || '',
     });
   }, [selectedSizes, getPrice, addToCart]);
+
+  const saveScroll = useCallback(() => {
+    sessionStorage.setItem('categoryScroll', String(window.scrollY));
+  }, []);
 
   if (isLoading) {
     return (
@@ -124,7 +142,11 @@ const CategoryPage = ({ addToCart }) => {
             transition={{ delay: index * 0.04, duration: 0.3 }}
             className="h-full"
           >
-            <Link to={`/product/${pizza.slug}`} className="block h-full">
+            <Link
+              to={`/product/${pizza.slug}`}
+              className="block h-full"
+              onClick={saveScroll}
+            >
               <Card hover className="overflow-hidden border border-gray-100 relative h-full flex flex-col">
                 <div className="relative overflow-hidden flex-shrink-0 aspect-square bg-gray-50">
                   <picture>

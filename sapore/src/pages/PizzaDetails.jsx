@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useProduct } from '../hooks/useProduct';
 import { useQuery } from '@tanstack/react-query';
@@ -6,7 +6,8 @@ import { getImageUrl } from '../utils/imageUtils';
 import { getPriceWithSize } from '../utils/priceUtils';
 import { API_CATALOG } from '../constants/api';
 import { Button } from '../components/ui';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useLayoutEffect } from 'react';
+import { FaTimes } from 'react-icons/fa';
 import WishlistButton from '../components/WishlistButton';
 import PizzaDetailsSkeleton from '../components/skeletons/PizzaDetailsSkeleton';
 import SEO from '../components/SEO';
@@ -23,8 +24,13 @@ const fetchRelated = async (categorySlug, excludeId) => {
 
 const PizzaDetails = ({ addToCart }) => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const { data: pizza, isLoading, error } = useProduct(slug);
   const [selectedSize, setSelectedSize] = useState(null);
+
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [slug]);
 
   useEffect(() => {
     if (pizza?.available_sizes?.length > 0 && !selectedSize) {
@@ -38,6 +44,14 @@ const PizzaDetails = ({ addToCart }) => {
     enabled: !!pizza?.category_slug && !!pizza?.id,
     staleTime: 5 * 60 * 1000,
   });
+
+  const handleClose = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/catalog');
+    }
+  };
 
   if (isLoading) return <PizzaDetailsSkeleton />;
   if (error) return <div className="text-center py-12 text-red-500">Ошибка загрузки</div>;
@@ -91,20 +105,37 @@ const PizzaDetails = ({ addToCart }) => {
         { label: pizza.name },
       ]} />
 
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden relative">
+        <button
+          type="button"
+          onClick={handleClose}
+          className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-700 transition-colors"
+          aria-label="Закрыть"
+          title="Закрыть"
+        >
+          <FaTimes className="text-xl" />
+        </button>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
           <div className="relative">
-            <div className="relative aspect-square bg-gray-50 rounded-xl overflow-hidden">
+            <div className="relative aspect-square rounded-xl overflow-hidden">
+              <img
+                src={getImageUrl(pizza.image, 'medium')}
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-60"
+              />
+              <div className="absolute inset-0 bg-white/30" />
               <img
                 src={getImageUrl(pizza.image, 'large')}
                 alt={pizza.name}
-                className="absolute inset-0 w-full h-full object-contain p-4"
+                className="relative w-full h-full object-contain drop-shadow-xl"
                 loading="lazy"
                 decoding="async"
               />
-            </div>
-            <div className="absolute top-2 right-2">
-              <WishlistButton pizzaId={pizza.id} />
+              <div className="absolute top-3 right-3 z-10">
+                <WishlistButton pizzaId={pizza.id} />
+              </div>
             </div>
           </div>
           <div className="flex flex-col justify-between">
