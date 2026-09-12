@@ -6,7 +6,7 @@ import { getImageUrl } from '../utils/imageUtils';
 import { getPriceWithSize } from '../utils/priceUtils';
 import { API_CATALOG } from '../constants/api';
 import { Button } from '../components/ui';
-import { useState, useEffect, useLayoutEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import WishlistButton from '../components/WishlistButton';
 import PizzaDetailsSkeleton from '../components/skeletons/PizzaDetailsSkeleton';
@@ -27,10 +27,6 @@ const PizzaDetails = ({ addToCart }) => {
   const navigate = useNavigate();
   const { data: pizza, isLoading, error } = useProduct(slug);
   const [selectedSize, setSelectedSize] = useState(null);
-
-  useLayoutEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [slug]);
 
   useEffect(() => {
     if (pizza?.available_sizes?.length > 0 && !selectedSize) {

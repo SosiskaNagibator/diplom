@@ -1,5 +1,5 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useLayoutEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 import Header from './components/Header';
@@ -22,6 +22,16 @@ import Privacy from './pages/Privacy';
 import Offer from './pages/Offer';
 import NotFound from './pages/NotFound';
 import { useCart } from './contexts/CartContext';
+
+function ScrollManager() {
+  const location = useLocation();
+
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [location.pathname]);
+
+  return null;
+}
 
 function App() {
   const { addToCart } = useCart();
@@ -51,6 +61,7 @@ function App() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <ScrollManager />
       <Header />
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 w-full">
         <AnimatePresence mode="wait">
