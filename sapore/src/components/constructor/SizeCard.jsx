@@ -9,7 +9,7 @@ const SizeCard = ({ size, selected, onSelect }) => {
       onClick={() => onSelect(size)}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 ${
+      className={`w-full h-full flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 ${
         selected
           ? 'border-amber-500 bg-amber-50 shadow-sm'
           : 'border-gray-200 bg-white hover:border-amber-300 hover:bg-gray-50'

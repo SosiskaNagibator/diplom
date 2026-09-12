@@ -2,16 +2,48 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaCheck } from 'react-icons/fa';
+import { FaCheck, FaGift } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import { useUserLevel } from '../hooks/useLevels';
 import { API_CONSTRUCTOR, CONSTRUCTOR_PREVIEW } from '../constants/api';
 import PizzaPreview from '../components/constructor/PizzaPreview';
 import SizeCard from '../components/constructor/SizeCard';
 import ToppingCard from '../components/constructor/ToppingCard';
+import ConstructorSkeleton from '../components/skeletons/ConstructorSkeleton';
 
 const STORAGE_KEY = 'constructorDraft';
 const BASE_PRICE = 350;
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 25 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
+};
+
+const sizesContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.05 },
+  },
+};
+
+const sizeItemVariants = {
+  hidden: { opacity: 0, y: 15, scale: 0.95 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.3, ease: 'easeOut' } },
+};
+
+const toppingsContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.04, delayChildren: 0.05 },
+  },
+};
+
+const toppingItemVariants = {
+  hidden: { opacity: 0, y: 15, scale: 0.95 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.3, ease: 'easeOut' } },
+};
 
 function Constructor({ addToCart }) {
   const navigate = useNavigate();
@@ -163,14 +195,7 @@ function Constructor({ addToCart }) {
     navigate('/cart');
   };
 
-  if (loading) {
-    return (
-      <div className="text-center py-12">
-        <div className="inline-block animate-spin text-4xl">🍕</div>
-        <div className="text-gray-500 mt-4">Загрузка конструктора...</div>
-      </div>
-    );
-  }
+  if (loading) return <ConstructorSkeleton />;
 
   return (
     <div className="max-w-6xl mx-auto fade-in">
@@ -184,15 +209,25 @@ function Constructor({ addToCart }) {
       </motion.h1>
 
       {hasFreeTopping && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg mb-6 text-sm flex items-center gap-2">
-          <span className="text-lg">🎁</span>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.4 }}
+          className="bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-lg mb-6 text-sm flex items-center gap-2"
+        >
+          <FaGift className="text-green-600 text-base flex-shrink-0" />
           У вас активна бесплатная начинка! Первая выбранная начинка — бесплатно.
-        </div>
+        </motion.div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-8">
         <div className="hidden lg:block">
-          <div className="sticky top-24">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="sticky top-24"
+          >
             <PizzaPreview
               image={CONSTRUCTOR_PREVIEW}
               selectedSize={selectedSize}
@@ -204,51 +239,85 @@ function Constructor({ addToCart }) {
               onClear={clearAll}
               priceAnimation={priceAnimation}
             />
-          </div>
+          </motion.div>
         </div>
 
         <div className="space-y-6 pb-24 lg:pb-0">
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <motion.section
+            variants={sectionVariants}
+            initial="hidden"
+            animate="visible"
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+          >
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Размер</h2>
-            <div className="grid grid-cols-3 gap-3">
+            <motion.div
+              variants={sizesContainerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-3 gap-3"
+            >
               {sizes.map(size => (
-                <SizeCard
-                  key={size.id}
-                  size={size}
-                  selected={selectedSize?.id === size.id}
-                  onSelect={handleSelectSize}
-                />
+                <motion.div key={size.id} variants={sizeItemVariants} className="h-full">
+                  <SizeCard
+                    size={size}
+                    selected={selectedSize?.id === size.id}
+                    onSelect={handleSelectSize}
+                  />
+                </motion.div>
               ))}
-            </div>
-          </section>
+            </motion.div>
+          </motion.section>
 
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <motion.section
+            variants={sectionVariants}
+            initial="hidden"
+            animate="visible"
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+          >
             <div className="flex items-baseline justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-800">Начинки</h2>
-              <span className="text-sm text-gray-500">
+              <motion.span
+                key={selectedToppings.length}
+                initial={{ scale: 1 }}
+                animate={{ scale: [1, 1.15, 1] }}
+                transition={{ duration: 0.3 }}
+                className="text-sm text-gray-500"
+              >
                 {selectedToppings.length > 0 ? `Выбрано: ${selectedToppings.length}` : 'Не выбрано'}
-              </span>
+              </motion.span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <motion.div
+              variants={toppingsContainerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
+            >
               {toppings.map(topping => {
                 const selected = !!selectedToppings.find(t => t.id === topping.id);
                 const isFree = hasFreeTopping && selected && selectedToppings.findIndex(t => t.id === topping.id) === 0;
                 return (
-                  <ToppingCard
-                    key={topping.id}
-                    topping={topping}
-                    selected={selected}
-                    isFree={isFree}
-                    onToggle={() => toggleTopping(topping)}
-                  />
+                  <motion.div key={topping.id} variants={toppingItemVariants} className="h-full">
+                    <ToppingCard
+                      topping={topping}
+                      selected={selected}
+                      isFree={isFree}
+                      onToggle={() => toggleTopping(topping)}
+                    />
+                  </motion.div>
                 );
               })}
-            </div>
-          </section>
+            </motion.div>
+          </motion.section>
         </div>
       </div>
 
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 px-4 py-3 shadow-lg">
+      <motion.div
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 px-4 py-3 shadow-lg"
+      >
         <div className="flex items-center justify-between gap-3">
           <div>
             <div className="text-xs text-gray-500">Итого</div>
@@ -272,17 +341,19 @@ function Constructor({ addToCart }) {
                 Очистить
               </button>
             )}
-            <button
+            <motion.button
               type="button"
               onClick={handleAddToCart}
               disabled={!selectedSize}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-3 rounded-full transition-all duration-200 shadow-md disabled:opacity-50"
             >
               В корзину
-            </button>
+            </motion.button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {createPortal(
         <AnimatePresence>
@@ -317,20 +388,24 @@ function Constructor({ addToCart }) {
                 </div>
 
                 <div className="mt-6 space-y-2">
-                  <button
+                  <motion.button
                     type="button"
                     onClick={handleGoToCart}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-full transition-all duration-200 shadow-md hover:shadow-lg"
                   >
                     Перейти в корзину
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
                     type="button"
                     onClick={handleBuildNew}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-3 rounded-full transition-all duration-200"
                   >
                     Собрать новую
-                  </button>
+                  </motion.button>
                   <button
                     type="button"
                     onClick={handleContinue}

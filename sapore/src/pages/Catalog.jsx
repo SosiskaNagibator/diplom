@@ -20,6 +20,47 @@ const fetchCatalog = async (search) => {
   return res.json();
 };
 
+const sectionVariants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: 'easeOut' },
+  },
+};
+
+const gridContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06, delayChildren: 0.05 },
+  },
+};
+
+const cardItemVariants = {
+  hidden: { opacity: 0, y: 25, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.4, ease: 'easeOut' },
+  },
+};
+
+const tabsContainerVariants = {
+  hidden: { opacity: 0, y: -15 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: 'easeOut', staggerChildren: 0.05 },
+  },
+};
+
+const tabItemVariants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.25 } },
+};
+
 function Catalog({ addToCart }) {
   const [selectedSizes, setSelectedSizes] = useState({});
   const [priceAnimations, setPriceAnimations] = useState({});
@@ -126,86 +167,95 @@ function Catalog({ addToCart }) {
     window.scrollTo({ top: y, behavior: 'smooth' });
   }, []);
 
-  const renderCard = (pizza, index = 0) => (
-    <motion.div
-      key={pizza.id}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03, duration: 0.3 }}
-      className="h-full"
-    >
+  const renderCard = (pizza) => (
+    <motion.div variants={cardItemVariants} className="h-full">
       <Link to={`/product/${pizza.slug}`} className="block h-full">
-        <Card
-          hover
-          className="overflow-hidden border border-gray-100 relative h-full flex flex-col"
+        <motion.div
+          whileHover={{ y: -6 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          className="h-full"
         >
-          <div className="relative overflow-hidden flex-shrink-0 aspect-square bg-gray-50">
-            <picture>
-              <source
-                srcSet={getImageUrl(pizza.image, 'thumb')}
-                media="(max-width: 640px)"
-              />
-              <source
-                srcSet={getImageUrl(pizza.image, 'medium')}
-                media="(min-width: 641px)"
-              />
-              <img
-                src={getImageUrl(pizza.image, 'medium')}
-                alt={pizza.name}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                loading="lazy"
-                decoding="async"
-              />
-            </picture>
-          </div>
-          <div className="p-4 flex-1 flex flex-col">
-            <div className="font-semibold text-gray-800 text-lg">
-              {pizza.name}
+          <Card
+            hover
+            className="overflow-hidden border border-gray-100 relative h-full flex flex-col"
+          >
+            <div className="relative overflow-hidden flex-shrink-0 aspect-square bg-gray-50">
+              <picture>
+                <source
+                  srcSet={getImageUrl(pizza.image, 'thumb')}
+                  media="(max-width: 640px)"
+                />
+                <source
+                  srcSet={getImageUrl(pizza.image, 'medium')}
+                  media="(min-width: 641px)"
+                />
+                <motion.img
+                  src={getImageUrl(pizza.image, 'medium')}
+                  alt={pizza.name}
+                  whileHover={{ scale: 1.08 }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </picture>
             </div>
-            <div className="text-sm text-gray-500 mt-1 line-clamp-2 flex-1">
-              {pizza.description}
-            </div>
-            {pizza.available_sizes && pizza.available_sizes.length > 0 && (
-              <div className="mt-3 flex gap-1 flex-wrap">
-                {pizza.available_sizes.map((size) => (
-                  <button
-                    key={size.id}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition ${
-                      selectedSizes[pizza.id]?.id === size.id
-                        ? 'bg-amber-500 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleSizeChange(pizza.id, size);
-                    }}
-                  >
-                    {size.label}
-                  </button>
-                ))}
+            <div className="p-4 flex-1 flex flex-col">
+              <div className="font-semibold text-gray-800 text-lg">
+                {pizza.name}
               </div>
-            )}
-            <div className="flex items-center justify-between mt-3 pt-1">
-              <span
-                className={`text-amber-600 font-bold text-xl ${
-                  priceAnimations[pizza.id] || ''
-                }`}
-              >
-                {getPrice(pizza)} ₽
-              </span>
-              <Button
-                variant="primary"
-                onClick={(e) => handleAddToCart(e, pizza)}
-              >
-                В корзину
-              </Button>
+              <div className="text-sm text-gray-500 mt-1 line-clamp-2 flex-1">
+                {pizza.description}
+              </div>
+              {pizza.available_sizes && pizza.available_sizes.length > 0 && (
+                <div className="mt-3 flex gap-1 flex-wrap">
+                  {pizza.available_sizes.map((size) => (
+                    <motion.button
+                      key={size.id}
+                      whileTap={{ scale: 0.92 }}
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition ${
+                        selectedSizes[pizza.id]?.id === size.id
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleSizeChange(pizza.id, size);
+                      }}
+                    >
+                      {size.label}
+                    </motion.button>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center justify-between mt-3 pt-1">
+                <motion.span
+                  key={`${pizza.id}-${getPrice(pizza)}`}
+                  initial={{ scale: 1 }}
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 0.35 }}
+                  className={`text-amber-600 font-bold text-xl ${
+                    priceAnimations[pizza.id] || ''
+                  }`}
+                >
+                  {getPrice(pizza)} ₽
+                </motion.span>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    variant="primary"
+                    onClick={(e) => handleAddToCart(e, pizza)}
+                  >
+                    В корзину
+                  </Button>
+                </motion.div>
+              </div>
             </div>
-          </div>
-          <WishlistButton
-            pizzaId={pizza.id}
-            className="absolute top-2 right-2"
-          />
-        </Card>
+            <WishlistButton
+              pizzaId={pizza.id}
+              className="absolute top-2 right-2"
+            />
+          </Card>
+        </motion.div>
       </Link>
     </motion.div>
   );
@@ -230,13 +280,23 @@ function Catalog({ addToCart }) {
         url="/catalog"
       />
 
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">
+      <motion.h1
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-3xl font-bold text-gray-800 mb-6"
+      >
         {searchQuery ? 'Поиск' : 'Меню'}
-      </h1>
+      </motion.h1>
 
       {searchQuery ? (
         <>
-          <div className="flex flex-wrap items-center gap-3 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="flex flex-wrap items-center gap-3 mb-8"
+          >
             <span className="text-gray-600">
               Результаты по запросу{' '}
               <span className="font-semibold text-amber-600">
@@ -248,14 +308,16 @@ function Catalog({ addToCart }) {
                 </span>
               )}
             </span>
-            <button
+            <motion.button
               type="button"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/catalog')}
               className="text-sm px-3 py-1.5 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
             >
               Сбросить поиск
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
 
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -264,7 +326,12 @@ function Catalog({ addToCart }) {
               ))}
             </div>
           ) : items.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+              className="text-center py-16 bg-white rounded-2xl border border-gray-100"
+            >
               <div className="text-xl font-medium text-gray-800 mb-2">
                 Ничего не найдено
               </div>
@@ -274,11 +341,16 @@ function Catalog({ addToCart }) {
               <Button variant="primary" onClick={() => navigate('/catalog')}>
                 Перейти в меню
               </Button>
-            </div>
+            </motion.div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {items.map((pizza, index) => renderCard(pizza, index))}
-            </div>
+            <motion.div
+              variants={gridContainerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {items.map((pizza) => renderCard(pizza))}
+            </motion.div>
           )}
         </>
       ) : isLoading ? (
@@ -301,13 +373,21 @@ function Catalog({ addToCart }) {
         </>
       ) : (
         <>
-          <div className="sticky top-20 z-40 bg-white rounded-2xl px-2 py-2 mb-8 border border-gray-100 shadow-sm">
+          <motion.div
+            variants={tabsContainerVariants}
+            initial="hidden"
+            animate="visible"
+            className="sticky top-20 z-40 bg-white rounded-2xl px-2 py-2 mb-8 border border-gray-100 shadow-sm"
+          >
             <div className="flex gap-2 overflow-x-auto no-scrollbar">
               {grouped.map((group) => {
                 const isActive = activeSectionId === `category-${group.id}`;
                 return (
-                  <button
+                  <motion.button
                     key={group.id}
+                    variants={tabItemVariants}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => scrollToSection(`category-${group.id}`)}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition whitespace-nowrap flex-shrink-0 ${
                       isActive
@@ -323,17 +403,21 @@ function Catalog({ addToCart }) {
                     >
                       {group.items.length}
                     </span>
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
-          </div>
+          </motion.div>
 
           <div className="space-y-12">
             {grouped.map((group) => (
-              <section
+              <motion.section
                 key={group.id}
                 id={`category-${group.id}`}
+                variants={sectionVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: '-80px' }}
                 className="scroll-mt-40"
               >
                 <div className="flex items-baseline justify-between mb-4">
@@ -347,10 +431,16 @@ function Catalog({ addToCart }) {
                     Открыть страницу →
                   </Link>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {group.items.map((pizza, index) => renderCard(pizza, index))}
-                </div>
-              </section>
+                <motion.div
+                  variants={gridContainerVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: '-50px' }}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                >
+                  {group.items.map((pizza) => renderCard(pizza))}
+                </motion.div>
+              </motion.section>
             ))}
           </div>
 

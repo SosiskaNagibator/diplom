@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { LEVELS_BASE } from '../constants/api';
-import { FaGift, FaChartLine } from 'react-icons/fa';
+import { FaGift, FaChartLine, FaStar } from 'react-icons/fa';
 
 const LevelUpModal = ({ level, onClose, ordersSum }) => {
     if (!level) return null;
@@ -27,8 +27,11 @@ const LevelUpModal = ({ level, onClose, ordersSum }) => {
 
                     <div className="relative -mt-12 px-6 pb-6">
                         <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
-                            <h2 className="text-2xl font-bold text-gray-800">Поздравляем! 🎉</h2>
-                            <p className="text-lg text-gray-700">
+                            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                                <FaStar className="text-amber-500" />
+                                Поздравляем!
+                            </h2>
+                            <p className="text-lg text-gray-700 mt-2">
                                 Вы открыли <strong>{level.region} – {level.name}</strong>
                             </p>
                             <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">
@@ -37,7 +40,7 @@ const LevelUpModal = ({ level, onClose, ordersSum }) => {
                             </p>
                             <p className="text-sm text-gray-600 mt-2">{level.fact}</p>
                             <p className="mt-3 bg-amber-100 text-amber-800 px-3 py-2 rounded-lg text-sm flex items-center gap-2">
-                                <FaGift className="text-amber-600 text-lg" />
+                                <FaGift className="text-amber-600 text-lg flex-shrink-0" />
                                 {level.bonus_description}
                             </p>
                             <button

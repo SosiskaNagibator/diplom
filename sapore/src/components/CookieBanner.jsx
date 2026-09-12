@@ -42,7 +42,7 @@ const CookieBanner = () => {
             </div>
             <div className="flex-1 text-sm text-gray-700">
               <p className="font-semibold text-gray-800 flex items-center gap-2 text-base">
-                <span className="md:hidden text-amber-500 text-xl">🍪</span>
+                <FaCookieBite className="md:hidden text-amber-500 text-xl flex-shrink-0" />
                 Мы используем файлы cookie
               </p>
               <p className="mt-1 leading-relaxed">

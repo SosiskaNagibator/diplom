@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaPizzaSlice, FaPlus } from 'react-icons/fa';
+import { FaPlus, FaStar } from 'react-icons/fa';
 import { API_CATALOG, STATIC_HOME } from '../constants/api';
 import { getPriceWithSize } from '../utils/priceUtils';
 import { Button, Card } from '../components/ui';
@@ -103,36 +103,61 @@ function Home({ addToCart }) {
         initial="hidden"
         animate="visible"
         variants={fadeInUp}
-        className="relative bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 rounded-3xl overflow-hidden shadow-xl mb-16"
+        className="relative rounded-3xl overflow-hidden shadow-xl mb-16 min-h-[520px] sm:min-h-[600px] flex items-center"
       >
-        <div className="absolute inset-0 opacity-10">
-          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <circle cx="20" cy="20" r="30" fill="#f59e0b" />
-            <circle cx="80" cy="80" r="40" fill="#f59e0b" />
-            <circle cx="60" cy="10" r="20" fill="#f59e0b" />
-          </svg>
-        </div>
-        <div className="relative px-6 py-12 sm:py-16 md:py-20 text-center">
-          <div className="max-w-3xl mx-auto">
-            <div className="flex justify-center mb-4">
-              <FaPizzaSlice className="text-7xl text-amber-600 animate-bounce-in" />
-            </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-800 leading-tight">
-              Sapore — <span className="text-amber-600">вкус Италии</span>
-            </h1>
-            <p className="mt-4 text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
-              Настоящая итальянская пицца из печи на дровах. Свежие ингредиенты, доставка за 30 минут.
-            </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-4">
-              <Link to="/constructor">
-                <Button variant="primary" className="text-lg">Собрать свою пиццу →</Button>
-              </Link>
-              <Link to="/catalog">
-                <Button variant="secondary" className="text-lg">Посмотреть меню</Button>
-              </Link>
-            </div>
-            <div className="mt-6 text-sm text-gray-500">⭐ 4.8 из 5 на основе 1200+ отзывов</div>
-          </div>
+        <img
+          src={`${STATIC_HOME}hero.webp`}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+          loading="eager"
+          decoding="async"
+        />
+
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+
+        <div className="relative px-6 py-12 sm:px-12 md:px-16 max-w-2xl">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight drop-shadow-lg"
+          >
+            Sapore — <span className="text-amber-400">вкус Италии</span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.25 }}
+            className="mt-4 text-lg sm:text-xl text-white/90 max-w-xl drop-shadow"
+          >
+            Настоящая итальянская пицца из печи на дровах. Свежие ингредиенты, доставка за 30 минут.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-8 flex flex-wrap gap-4"
+          >
+            <Link to="/constructor">
+              <Button variant="primary" className="text-lg">Собрать свою пиццу →</Button>
+            </Link>
+            <Link to="/catalog">
+              <Button variant="secondary" className="text-lg">Посмотреть меню</Button>
+            </Link>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.55 }}
+            className="mt-8 flex items-center gap-1.5 text-sm text-white/80 drop-shadow"
+          >
+            <FaStar className="text-amber-400" />
+            <span>4.8 из 5 на основе 1200+ отзывов</span>
+          </motion.div>
         </div>
       </motion.section>
 
@@ -292,7 +317,7 @@ function Home({ addToCart }) {
                         {getPrice(pizza)} ₽
                       </span>
                       <Button variant="primary" onClick={(e) => handleAddToCart(e, pizza)}>
-                        + В корзину
+                        <FaPlus className="inline mr-1 text-xs" /> В корзину
                       </Button>
                     </div>
                   </div>

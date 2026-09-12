@@ -9,13 +9,13 @@ const ToppingCard = ({ topping, selected, isFree, onToggle }) => {
       onClick={onToggle}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.97 }}
-      className={`relative flex flex-col overflow-hidden rounded-xl border-2 transition-all duration-200 text-left ${
+      className={`w-full h-full relative flex flex-col overflow-hidden rounded-xl border-2 transition-all duration-200 text-left ${
         selected
           ? 'border-amber-500 bg-amber-50 shadow-sm'
           : 'border-gray-200 bg-white hover:border-amber-300'
       }`}
     >
-      <div className="relative aspect-square bg-gray-50 overflow-hidden">
+      <div className="relative aspect-square bg-gray-50 overflow-hidden flex-shrink-0">
         <img
           src={`${CONSTRUCTOR_TOPPINGS_BASE}${topping.image}`}
           alt={topping.name}
@@ -38,7 +38,7 @@ const ToppingCard = ({ topping, selected, isFree, onToggle }) => {
           </motion.div>
         )}
       </div>
-      <div className="p-2 pt-1.5">
+      <div className="p-2 pt-1.5 flex-1 flex flex-col justify-between">
         <div className={`text-xs font-medium leading-tight line-clamp-2 ${selected ? 'text-amber-700' : 'text-gray-800'}`}>
           {topping.name}
         </div>

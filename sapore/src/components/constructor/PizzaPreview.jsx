@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaGift } from 'react-icons/fa';
 
 const PizzaPreview = ({
   image,
@@ -47,7 +47,10 @@ const PizzaPreview = ({
                     : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
                 }`}
               >
-                <span>{t.name}{isFree && ' 🎁'}</span>
+                <span className="flex items-center gap-1">
+                  {t.name}
+                  {isFree && <FaGift className="text-xs" />}
+                </span>
                 <FaTimes className="text-xs opacity-60" />
               </button>
             );
