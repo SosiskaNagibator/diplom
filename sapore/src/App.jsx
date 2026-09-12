@@ -31,6 +31,7 @@ function App() {
 
   const handleAddToCart = (pizza) => {
     addToCart(pizza);
+    if (pizza.name === 'Пицца на заказ') return;
     setLastAdded(pizza.name);
     setShowNotification(true);
     setTimeout(() => setShowNotification(false), 2000);

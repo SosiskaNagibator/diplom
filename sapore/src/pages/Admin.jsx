@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API_BASE } from '../constants/api';
+import { API_BASE, CONSTRUCTOR_TOPPINGS_BASE } from '../constants/api';
 import { ORDER_STATUSES } from '../constants/statuses';
 import { STORAGE_KEYS } from '../constants/storage';
-import { Button, Input, Card, Badge, LoadingSpinner } from '../components/ui';
+import { Button, Input, Badge, LoadingSpinner } from '../components/ui';
 import { getImageUrl } from '../utils/imageUtils';
 
 function Admin() {
@@ -13,7 +13,6 @@ function Admin() {
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
   const [sizes, setSizes] = useState([]);
-  const [sauces, setSauces] = useState([]);
   const [toppings, setToppings] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,11 +25,10 @@ function Admin() {
   const [editingSize, setEditingSize] = useState(null);
   const [sizeForm, setSizeForm] = useState({ name: '', label: '', circle_size: '', price: '0', sort_order: '0' });
 
-  const [editingSauce, setEditingSauce] = useState(null);
-  const [sauceForm, setSauceForm] = useState({ name: '', icon: '', price: '0', sort_order: '0' });
-
+  const emptyToppingForm = { name: '', image: '', price: '0', sort_order: '0' };
   const [editingTopping, setEditingTopping] = useState(null);
-  const [toppingForm, setToppingForm] = useState({ name: '', icon: '', price: '0', sort_order: '0' });
+  const [toppingForm, setToppingForm] = useState(emptyToppingForm);
+  const [selectedToppingFile, setSelectedToppingFile] = useState(null);
 
   const [editingCategory, setEditingCategory] = useState(null);
   const [categoryForm, setCategoryForm] = useState({ name: '', sort_order: 0 });
@@ -47,7 +45,6 @@ function Admin() {
         fetchOrders(),
         fetchUsers(),
         fetchSizes(),
-        fetchSauces(),
         fetchToppings(),
         fetchCategories()
       ]);
@@ -94,16 +91,6 @@ function Admin() {
     });
     const data = await res.json();
     if (data.status === 'success') setSizes(data.sizes);
-  };
-
-  const fetchSauces = async () => {
-    const res = await fetch(API_BASE, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ action: 'admin_get_sauces' })
-    });
-    const data = await res.json();
-    if (data.status === 'success') setSauces(data.sauces);
   };
 
   const fetchToppings = async () => {
@@ -180,15 +167,6 @@ function Admin() {
     if (data.status === 'success') fetchPizzas();
   };
 
-  const handleUpdateUserBonus = async (login, newBalance) => {
-    if (!confirm(`Изменить баланс пользователя ${login} на ${newBalance}?`)) return;
-    const payload = new URLSearchParams({ action: 'admin_update_user_bonus', login, balance: newBalance });
-    const res = await fetch(API_BASE, { method: 'POST', body: payload });
-    const data = await res.json();
-    alert(data.message);
-    if (data.status === 'success') fetchUsers();
-  };
-
   const handleUpdateUser = async (login, fullName, phone, email, balance) => {
     if (!confirm(`Обновить данные пользователя ${login}?`)) return;
     try {
@@ -244,53 +222,37 @@ function Admin() {
     if (data.status === 'success') fetchSizes();
   };
 
-  const handleSauceSubmit = async (e) => {
-    e.preventDefault();
-    const action = editingSauce ? 'admin_update_sauce' : 'admin_add_sauce';
-    const payload = new URLSearchParams({ action, ...sauceForm });
-    if (editingSauce) payload.append('id', editingSauce.id);
-    const res = await fetch(API_BASE, { method: 'POST', body: payload });
-    const data = await res.json();
-    alert(data.message);
-    if (data.status === 'success') {
-      setSauceForm({ name: '', icon: '', price: '0', sort_order: '0' });
-      setEditingSauce(null);
-      fetchSauces();
-    }
-  };
-
-  const handleEditSauce = (s) => {
-    setEditingSauce(s);
-    setSauceForm(s);
-  };
-
-  const handleDeleteSauce = async (id) => {
-    if (!confirm('Удалить соус?')) return;
-    const payload = new URLSearchParams({ action: 'admin_delete_sauce', id });
-    const res = await fetch(API_BASE, { method: 'POST', body: payload });
-    const data = await res.json();
-    alert(data.message);
-    if (data.status === 'success') fetchSauces();
-  };
-
   const handleToppingSubmit = async (e) => {
     e.preventDefault();
     const action = editingTopping ? 'admin_update_topping' : 'admin_add_topping';
-    const payload = new URLSearchParams({ action, ...toppingForm });
-    if (editingTopping) payload.append('id', editingTopping.id);
-    const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    const formData = new FormData();
+    formData.append('action', action);
+    formData.append('name', toppingForm.name);
+    formData.append('price', toppingForm.price);
+    formData.append('sort_order', toppingForm.sort_order);
+    if (editingTopping) formData.append('id', editingTopping.id);
+    if (selectedToppingFile) formData.append('image', selectedToppingFile);
+
+    const res = await fetch(API_BASE, { method: 'POST', body: formData });
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') {
-      setToppingForm({ name: '', icon: '', price: '0', sort_order: '0' });
+      setToppingForm(emptyToppingForm);
       setEditingTopping(null);
+      setSelectedToppingFile(null);
       fetchToppings();
     }
   };
 
   const handleEditTopping = (t) => {
     setEditingTopping(t);
-    setToppingForm(t);
+    setToppingForm({
+      name: t.name || '',
+      image: t.image || '',
+      price: t.price || '0',
+      sort_order: t.sort_order || '0'
+    });
+    setSelectedToppingFile(null);
   };
 
   const handleDeleteTopping = async (id) => {
@@ -364,7 +326,7 @@ function Admin() {
       </div>
 
       <div className="flex flex-wrap gap-2 mb-6">
-        {['pizzas','orders','users','sizes','sauces','toppings','categories'].map(tab => (
+        {['pizzas','orders','users','sizes','toppings','categories'].map(tab => (
           <Button
             key={tab}
             variant={activeTab === tab ? 'primary' : 'secondary'}
@@ -375,7 +337,6 @@ function Admin() {
              tab === 'orders' ? 'Заказы' :
              tab === 'users' ? 'Пользователи' :
              tab === 'sizes' ? 'Размеры' :
-             tab === 'sauces' ? 'Соусы' :
              tab === 'toppings' ? 'Начинки' :
              'Категории'}
           </Button>
@@ -524,46 +485,61 @@ function Admin() {
         </div>
       )}
 
-      {activeTab === 'sauces' && (
-        <div>
-          <div className="bg-white rounded-xl shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">{editingSauce ? 'Редактировать соус' : 'Добавить соус'}</h2>
-            <form onSubmit={handleSauceSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input name="name" value={sauceForm.name} onChange={e => setSauceForm({...sauceForm, name: e.target.value})} placeholder="Название" required />
-              <Input name="icon" value={sauceForm.icon} onChange={e => setSauceForm({...sauceForm, icon: e.target.value})} placeholder="Иконка (эмодзи)" required />
-              <Input name="price" value={sauceForm.price} onChange={e => setSauceForm({...sauceForm, price: e.target.value})} placeholder="Доп. цена" type="number" />
-              <Input name="sort_order" value={sauceForm.sort_order} onChange={e => setSauceForm({...sauceForm, sort_order: e.target.value})} placeholder="Порядок" type="number" />
-              <Button type="submit" variant="primary" className="col-span-2">{editingSauce ? 'Обновить' : 'Добавить'}</Button>
-              {editingSauce && <Button variant="secondary" className="col-span-2" onClick={() => { setEditingSauce(null); setSauceForm({ name: '', icon: '', price: '0', sort_order: '0' }); }}>Отменить</Button>}
-            </form>
-          </div>
-          <div className="overflow-x-auto bg-white rounded-xl shadow">
-            <table className="w-full text-sm"><thead className="bg-gray-100"><tr><th>ID</th><th>Название</th><th>Иконка</th><th>Цена</th><th>Действия</th></tr></thead>
-            <tbody>{sauces.map(s => (
-              <tr key={s.id} className="border-t"><td className="p-3">{s.id}</td><td>{s.name}</td><td>{s.icon}</td><td>{s.price} ₽</td><td className="flex gap-2"><Button variant="outline" onClick={() => handleEditSauce(s)} className="px-3 py-1 text-sm">✎</Button><Button variant="danger" onClick={() => handleDeleteSauce(s.id)} className="px-3 py-1 text-sm">✕</Button></td></tr>
-            ))}</tbody></table>
-          </div>
-        </div>
-      )}
-
       {activeTab === 'toppings' && (
         <div>
           <div className="bg-white rounded-xl shadow p-6 mb-6">
             <h2 className="text-xl font-semibold mb-4">{editingTopping ? 'Редактировать начинку' : 'Добавить начинку'}</h2>
             <form onSubmit={handleToppingSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input name="name" value={toppingForm.name} onChange={e => setToppingForm({...toppingForm, name: e.target.value})} placeholder="Название" required />
-              <Input name="icon" value={toppingForm.icon} onChange={e => setToppingForm({...toppingForm, icon: e.target.value})} placeholder="Иконка (эмодзи)" required />
-              <Input name="price" value={toppingForm.price} onChange={e => setToppingForm({...toppingForm, price: e.target.value})} placeholder="Доп. цена" type="number" />
+              <Input name="price" value={toppingForm.price} onChange={e => setToppingForm({...toppingForm, price: e.target.value})} placeholder="Цена" type="number" />
               <Input name="sort_order" value={toppingForm.sort_order} onChange={e => setToppingForm({...toppingForm, sort_order: e.target.value})} placeholder="Порядок" type="number" />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Изображение</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setSelectedToppingFile(e.target.files[0])}
+                  className="w-full p-2 border border-gray-200 rounded-xl"
+                />
+                {editingTopping && toppingForm.image && !selectedToppingFile && (
+                  <div className="mt-1 text-xs text-gray-500">Текущее: {toppingForm.image}</div>
+                )}
+                {selectedToppingFile && (
+                  <div className="mt-1 text-xs text-green-600">Выбран: {selectedToppingFile.name}</div>
+                )}
+              </div>
               <Button type="submit" variant="primary" className="col-span-2">{editingTopping ? 'Обновить' : 'Добавить'}</Button>
-              {editingTopping && <Button variant="secondary" className="col-span-2" onClick={() => { setEditingTopping(null); setToppingForm({ name: '', icon: '', price: '0', sort_order: '0' }); }}>Отменить</Button>}
+              {editingTopping && <Button variant="secondary" className="col-span-2" onClick={() => { setEditingTopping(null); setToppingForm(emptyToppingForm); setSelectedToppingFile(null); }}>Отменить</Button>}
             </form>
           </div>
           <div className="overflow-x-auto bg-white rounded-xl shadow">
-            <table className="w-full text-sm"><thead className="bg-gray-100"><tr><th>ID</th><th>Название</th><th>Иконка</th><th>Цена</th><th>Действия</th></tr></thead>
-            <tbody>{toppings.map(t => (
-              <tr key={t.id} className="border-t"><td className="p-3">{t.id}</td><td>{t.name}</td><td>{t.icon}</td><td>{t.price} ₽</td><td className="flex gap-2"><Button variant="outline" onClick={() => handleEditTopping(t)} className="px-3 py-1 text-sm">✎</Button><Button variant="danger" onClick={() => handleDeleteTopping(t.id)} className="px-3 py-1 text-sm">✕</Button></td></tr>
-            ))}</tbody></table>
+            <table className="w-full text-sm">
+              <thead className="bg-gray-100">
+                <tr><th className="p-3 text-left">ID</th><th>Фото</th><th>Название</th><th>Цена</th><th>Действия</th></tr>
+              </thead>
+              <tbody>
+                {toppings.map(t => (
+                  <tr key={t.id} className="border-t">
+                    <td className="p-3">{t.id}</td>
+                    <td>
+                      {t.image && (
+                        <img
+                          src={`${CONSTRUCTOR_TOPPINGS_BASE}${t.image}`}
+                          alt={t.name}
+                          className="h-12 w-12 object-contain rounded-lg bg-gray-50"
+                        />
+                      )}
+                    </td>
+                    <td>{t.name}</td>
+                    <td>{t.price} ₽</td>
+                    <td className="flex gap-2">
+                      <Button variant="outline" onClick={() => handleEditTopping(t)} className="px-3 py-1 text-sm">✎</Button>
+                      <Button variant="danger" onClick={() => handleDeleteTopping(t.id)} className="px-3 py-1 text-sm">✕</Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

@@ -5,3 +5,5 @@ export const API_CONSTRUCTOR = '/constructor.php';
 export const STATIC_BASE = '/uploads/pizzas/';
 export const LEVELS_BASE = '/uploads/levels/';
 export const STATIC_HOME = '/uploads/home/';
+export const CONSTRUCTOR_TOPPINGS_BASE = '/uploads/constructor/toppings/';
+export const CONSTRUCTOR_PREVIEW = '/uploads/constructor/preview.webp';

@@ -46,18 +46,6 @@ function handleAdminAction($pdo, $action) {
         case 'admin_delete_size':
             deleteSize($pdo);
             break;
-        case 'admin_get_sauces':
-            getSauces($pdo);
-            break;
-        case 'admin_add_sauce':
-            addSauce($pdo);
-            break;
-        case 'admin_update_sauce':
-            updateSauce($pdo);
-            break;
-        case 'admin_delete_sauce':
-            deleteSauce($pdo);
-            break;
         case 'admin_get_toppings':
             getToppings($pdo);
             break;
@@ -411,61 +399,6 @@ function deleteSize($pdo) {
     }
 }
 
-function getSauces($pdo) {
-    $stmt = $pdo->query("SELECT * FROM constructor_sauces ORDER BY sort_order");
-    $sauces = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    echo json_encode(['status' => 'success', 'sauces' => $sauces]);
-}
-
-function addSauce($pdo) {
-    $name = $_POST['name'] ?? '';
-    $icon = $_POST['icon'] ?? '';
-    $price = (int)($_POST['price'] ?? 0);
-    $sort_order = (int)($_POST['sort_order'] ?? 0);
-    if (empty($name) || empty($icon)) {
-        echo json_encode(['status' => 'error', 'message' => 'Заполните обязательные поля']);
-        return;
-    }
-    $stmt = $pdo->prepare("INSERT INTO constructor_sauces (name, icon, price, sort_order) VALUES (?, ?, ?, ?)");
-    if ($stmt->execute([$name, $icon, $price, $sort_order])) {
-        echo json_encode(['status' => 'success', 'message' => 'Соус добавлен']);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления']);
-    }
-}
-
-function updateSauce($pdo) {
-    $id = (int)($_POST['id'] ?? 0);
-    $name = $_POST['name'] ?? '';
-    $icon = $_POST['icon'] ?? '';
-    $price = (int)($_POST['price'] ?? 0);
-    $sort_order = (int)($_POST['sort_order'] ?? 0);
-    if (!$id || empty($name) || empty($icon)) {
-        echo json_encode(['status' => 'error', 'message' => 'Неверные данные']);
-        return;
-    }
-    $stmt = $pdo->prepare("UPDATE constructor_sauces SET name=?, icon=?, price=?, sort_order=? WHERE id=?");
-    if ($stmt->execute([$name, $icon, $price, $sort_order, $id])) {
-        echo json_encode(['status' => 'success', 'message' => 'Соус обновлён']);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления']);
-    }
-}
-
-function deleteSauce($pdo) {
-    $id = (int)($_POST['id'] ?? 0);
-    if (!$id) {
-        echo json_encode(['status' => 'error', 'message' => 'Не указан ID']);
-        return;
-    }
-    $stmt = $pdo->prepare("DELETE FROM constructor_sauces WHERE id = ?");
-    if ($stmt->execute([$id])) {
-        echo json_encode(['status' => 'success', 'message' => 'Соус удалён']);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления']);
-    }
-}
-
 function getToppings($pdo) {
     $stmt = $pdo->query("SELECT * FROM constructor_toppings ORDER BY sort_order");
     $toppings = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -473,16 +406,46 @@ function getToppings($pdo) {
 }
 
 function addTopping($pdo) {
-    $name = $_POST['name'] ?? '';
-    $icon = $_POST['icon'] ?? '';
+    $name = sanitize($_POST['name'] ?? '');
     $price = (int)($_POST['price'] ?? 0);
     $sort_order = (int)($_POST['sort_order'] ?? 0);
-    if (empty($name) || empty($icon)) {
-        echo json_encode(['status' => 'error', 'message' => 'Заполните обязательные поля']);
+
+    if (empty($name)) {
+        echo json_encode(['status' => 'error', 'message' => 'Введите название']);
         return;
     }
-    $stmt = $pdo->prepare("INSERT INTO constructor_toppings (name, icon, price, sort_order) VALUES (?, ?, ?, ?)");
-    if ($stmt->execute([$name, $icon, $price, $sort_order])) {
+    if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+        echo json_encode(['status' => 'error', 'message' => 'Загрузите изображение']);
+        return;
+    }
+
+    $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+    $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    if (!in_array($ext, $allowed)) {
+        echo json_encode(['status' => 'error', 'message' => 'Недопустимый формат файла']);
+        return;
+    }
+
+    $uploadDir = __DIR__ . '/uploads/constructor/toppings/';
+    if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+    $filename = uniqid();
+    $sourcePath = $_FILES['image']['tmp_name'];
+
+    $manager = new ImageManager(new Driver());
+    try {
+        $image = $manager->read($sourcePath);
+        $image->scale(width: 400);
+        $image->toWebp(85)->save($uploadDir . $filename . '.webp');
+    } catch (Exception $e) {
+        echo json_encode(['status' => 'error', 'message' => 'Ошибка обработки изображения']);
+        return;
+    }
+
+    $imageName = $filename . '.webp';
+
+    $stmt = $pdo->prepare("INSERT INTO constructor_toppings (name, image, price, sort_order) VALUES (?, ?, ?, ?)");
+    if ($stmt->execute([$name, $imageName, $price, $sort_order])) {
         echo json_encode(['status' => 'success', 'message' => 'Начинка добавлена']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления']);
@@ -491,16 +454,53 @@ function addTopping($pdo) {
 
 function updateTopping($pdo) {
     $id = (int)($_POST['id'] ?? 0);
-    $name = $_POST['name'] ?? '';
-    $icon = $_POST['icon'] ?? '';
+    $name = sanitize($_POST['name'] ?? '');
     $price = (int)($_POST['price'] ?? 0);
     $sort_order = (int)($_POST['sort_order'] ?? 0);
-    if (!$id || empty($name) || empty($icon)) {
+
+    if (!$id || empty($name)) {
         echo json_encode(['status' => 'error', 'message' => 'Неверные данные']);
         return;
     }
-    $stmt = $pdo->prepare("UPDATE constructor_toppings SET name=?, icon=?, price=?, sort_order=? WHERE id=?");
-    if ($stmt->execute([$name, $icon, $price, $sort_order, $id])) {
+
+    $uploadDir = __DIR__ . '/uploads/constructor/toppings/';
+    if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+    $stmt = $pdo->prepare("SELECT image FROM constructor_toppings WHERE id = ?");
+    $stmt->execute([$id]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $oldImage = $row ? $row['image'] : '';
+    $imageName = $oldImage;
+
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        if (!in_array($ext, $allowed)) {
+            echo json_encode(['status' => 'error', 'message' => 'Недопустимый формат файла']);
+            return;
+        }
+
+        if ($oldImage && file_exists($uploadDir . $oldImage)) {
+            unlink($uploadDir . $oldImage);
+        }
+
+        $filename = uniqid();
+        $sourcePath = $_FILES['image']['tmp_name'];
+
+        $manager = new ImageManager(new Driver());
+        try {
+            $image = $manager->read($sourcePath);
+            $image->scale(width: 400);
+            $image->toWebp(85)->save($uploadDir . $filename . '.webp');
+            $imageName = $filename . '.webp';
+        } catch (Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Ошибка обработки изображения']);
+            return;
+        }
+    }
+
+    $stmt = $pdo->prepare("UPDATE constructor_toppings SET name=?, image=?, price=?, sort_order=? WHERE id=?");
+    if ($stmt->execute([$name, $imageName, $price, $sort_order, $id])) {
         echo json_encode(['status' => 'success', 'message' => 'Начинка обновлена']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления']);
@@ -513,6 +513,16 @@ function deleteTopping($pdo) {
         echo json_encode(['status' => 'error', 'message' => 'Не указан ID']);
         return;
     }
+
+    $stmt = $pdo->prepare("SELECT image FROM constructor_toppings WHERE id = ?");
+    $stmt->execute([$id]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($row && $row['image']) {
+        $uploadDir = __DIR__ . '/uploads/constructor/toppings/';
+        $filePath = $uploadDir . $row['image'];
+        if (file_exists($filePath)) unlink($filePath);
+    }
+
     $stmt = $pdo->prepare("DELETE FROM constructor_toppings WHERE id = ?");
     if ($stmt->execute([$id])) {
         echo json_encode(['status' => 'success', 'message' => 'Начинка удалена']);

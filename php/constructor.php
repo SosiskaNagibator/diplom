@@ -27,10 +27,7 @@ $result = [];
 $stmt = $pdo->query("SELECT id, name, label, circle_size, price FROM constructor_sizes ORDER BY sort_order");
 $result['sizes'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$stmt = $pdo->query("SELECT id, name, icon, price FROM constructor_sauces ORDER BY sort_order");
-$result['sauces'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$stmt = $pdo->query("SELECT id, name, icon, price FROM constructor_toppings ORDER BY sort_order");
+$stmt = $pdo->query("SELECT id, name, image, price FROM constructor_toppings ORDER BY sort_order");
 $result['toppings'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 echo json_encode($result);

@@ -5,6 +5,9 @@ export const getImageUrl = (image, size = '') => {
   if (image.startsWith('http://') || image.startsWith('https://')) {
     return image;
   }
+  if (image.startsWith('/')) {
+    return image;
+  }
   const prefix = size ? size + '_' : '';
   return `${STATIC_BASE}${prefix}${image}`;
 };
