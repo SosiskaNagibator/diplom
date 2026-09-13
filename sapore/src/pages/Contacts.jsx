@@ -4,12 +4,19 @@ import MapPicker from '../components/MapPicker/MapPicker';
 import { Button, Input } from '../components/ui';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaTelegramPlane, FaVk, FaYoutube } from 'react-icons/fa';
 import { API_BASE } from '../constants/api';
+import { usePageSeo } from '../hooks/usePageSeo';
+import SEO from '../components/SEO';
 
 function Contacts() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [status, setStatus] = useState({ type: '', text: '' });
   const [loading, setLoading] = useState(false);
   const socialLink = 'https://vk.com/video7266823_78234740';
+
+  const { data: pageSeo } = usePageSeo('contacts');
+  const seoTitle = pageSeo?.title || '';
+  const seoDescription = pageSeo?.description || '';
+  const seoH1 = pageSeo?.h1 || 'Контакты';
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -26,7 +33,6 @@ function Contacts() {
 
     setLoading(true);
     try {
-
       const response = await fetch(API_BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -66,13 +72,15 @@ function Contacts() {
 
   return (
     <motion.div initial="hidden" animate="visible" variants={fadeInUp} className="fade-in max-w-4xl mx-auto">
+      <SEO title={seoTitle} description={seoDescription} url="/contacts" />
+
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-3xl font-bold text-gray-800 mb-6"
       >
-        Контакты
+        {seoH1}
       </motion.h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

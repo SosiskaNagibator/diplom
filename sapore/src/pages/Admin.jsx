@@ -15,9 +15,21 @@ function Admin() {
   const [sizes, setSizes] = useState([]);
   const [toppings, setToppings] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [pagesSeo, setPagesSeo] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const emptyPizzaForm = { name: '', category: '', category_id: '', description: '', price: '', image: '', sizes: '' };
+  const emptyPizzaForm = {
+    name: '',
+    category: '',
+    category_id: '',
+    description: '',
+    price: '',
+    image: '',
+    sizes: '',
+    seo_title: '',
+    seo_description: '',
+    seo_h1: '',
+  };
   const [editingPizza, setEditingPizza] = useState(null);
   const [pizzaForm, setPizzaForm] = useState(emptyPizzaForm);
   const [selectedImageFile, setSelectedImageFile] = useState(null);
@@ -30,8 +42,13 @@ function Admin() {
   const [toppingForm, setToppingForm] = useState(emptyToppingForm);
   const [selectedToppingFile, setSelectedToppingFile] = useState(null);
 
+  const emptyCategoryForm = { name: '', sort_order: 0, seo_title: '', seo_description: '', seo_h1: '' };
   const [editingCategory, setEditingCategory] = useState(null);
-  const [categoryForm, setCategoryForm] = useState({ name: '', sort_order: 0 });
+  const [categoryForm, setCategoryForm] = useState(emptyCategoryForm);
+
+  const emptyPageForm = { page_key: '', seo_title: '', seo_description: '', seo_h1: '' };
+  const [editingPage, setEditingPage] = useState(null);
+  const [pageForm, setPageForm] = useState(emptyPageForm);
 
   useEffect(() => {
     const role = localStorage.getItem(STORAGE_KEYS.USER_ROLE);
@@ -46,7 +63,8 @@ function Admin() {
         fetchUsers(),
         fetchSizes(),
         fetchToppings(),
-        fetchCategories()
+        fetchCategories(),
+        fetchPagesSeo()
       ]);
       setLoading(false);
     };
@@ -113,6 +131,16 @@ function Admin() {
     if (data.status === 'success') setCategories(data.categories);
   };
 
+  const fetchPagesSeo = async () => {
+    const res = await fetch(API_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ action: 'admin_get_pages_seo' })
+    });
+    const data = await res.json();
+    if (data.status === 'success') setPagesSeo(data.pages);
+  };
+
   const handlePizzaSubmit = async (e) => {
     e.preventDefault();
     const action = editingPizza ? 'admin_update_pizza' : 'admin_add_pizza';
@@ -123,6 +151,9 @@ function Admin() {
     formData.append('description', pizzaForm.description);
     formData.append('price', pizzaForm.price);
     formData.append('sizes', pizzaForm.sizes || '');
+    formData.append('seo_title', pizzaForm.seo_title || '');
+    formData.append('seo_description', pizzaForm.seo_description || '');
+    formData.append('seo_h1', pizzaForm.seo_h1 || '');
     if (editingPizza) {
       formData.append('id', editingPizza.id);
     }
@@ -153,7 +184,10 @@ function Admin() {
       description: p.description || '',
       price: p.price || '',
       image: p.image || '',
-      sizes: p.sizes || ''
+      sizes: p.sizes || '',
+      seo_title: p.seo_title || '',
+      seo_description: p.seo_description || '',
+      seo_h1: p.seo_h1 || ''
     });
     setSelectedImageFile(null);
   };
@@ -267,13 +301,20 @@ function Admin() {
   const handleCategorySubmit = async (e) => {
     e.preventDefault();
     const action = editingCategory ? 'admin_update_category' : 'admin_add_category';
-    const payload = new URLSearchParams({ action, ...categoryForm });
+    const payload = new URLSearchParams({
+      action,
+      name: categoryForm.name,
+      sort_order: categoryForm.sort_order,
+      seo_title: categoryForm.seo_title || '',
+      seo_description: categoryForm.seo_description || '',
+      seo_h1: categoryForm.seo_h1 || ''
+    });
     if (editingCategory) payload.append('id', editingCategory.id);
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') {
-      setCategoryForm({ name: '', sort_order: 0 });
+      setCategoryForm(emptyCategoryForm);
       setEditingCategory(null);
       fetchCategories();
     }
@@ -281,7 +322,13 @@ function Admin() {
 
   const handleEditCategory = (c) => {
     setEditingCategory(c);
-    setCategoryForm(c);
+    setCategoryForm({
+      name: c.name || '',
+      sort_order: c.sort_order || 0,
+      seo_title: c.seo_title || '',
+      seo_description: c.seo_description || '',
+      seo_h1: c.seo_h1 || ''
+    });
   };
 
   const handleDeleteCategory = async (id) => {
@@ -291,6 +338,29 @@ function Admin() {
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') fetchCategories();
+  };
+
+  const handlePageSeoEdit = (p) => {
+    setEditingPage(p);
+    setPageForm({
+      page_key: p.page_key,
+      seo_title: p.seo_title || '',
+      seo_description: p.seo_description || '',
+      seo_h1: p.seo_h1 || ''
+    });
+  };
+
+  const handlePageSeoSubmit = async (e) => {
+    e.preventDefault();
+    const payload = new URLSearchParams({ action: 'admin_update_page_seo', ...pageForm });
+    const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    const data = await res.json();
+    alert(data.message);
+    if (data.status === 'success') {
+      setEditingPage(null);
+      setPageForm(emptyPageForm);
+      fetchPagesSeo();
+    }
   };
 
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
@@ -326,7 +396,7 @@ function Admin() {
       </div>
 
       <div className="flex flex-wrap gap-2 mb-6">
-        {['pizzas','orders','users','sizes','toppings','categories'].map(tab => (
+        {['pizzas','orders','users','sizes','toppings','categories','seo'].map(tab => (
           <Button
             key={tab}
             variant={activeTab === tab ? 'primary' : 'secondary'}
@@ -338,7 +408,8 @@ function Admin() {
              tab === 'users' ? 'Пользователи' :
              tab === 'sizes' ? 'Размеры' :
              tab === 'toppings' ? 'Начинки' :
-             'Категории'}
+             tab === 'categories' ? 'Категории' :
+             'SEO'}
           </Button>
         ))}
       </div>
@@ -385,6 +456,34 @@ function Admin() {
                 )}
               </div>
               <textarea name="description" value={pizzaForm.description} onChange={e => setPizzaForm({...pizzaForm, description: e.target.value})} placeholder="Описание" className="border p-2 rounded col-span-2" rows="2" />
+
+              <div className="col-span-2 border-t border-gray-200 pt-4 mt-2">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">SEO (мета-теги)</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  <Input
+                    name="seo_title"
+                    value={pizzaForm.seo_title}
+                    onChange={e => setPizzaForm({...pizzaForm, seo_title: e.target.value})}
+                    placeholder="SEO Title (если пусто — сгенерируется автоматически)"
+                  />
+                  <Input
+                    name="seo_h1"
+                    value={pizzaForm.seo_h1}
+                    onChange={e => setPizzaForm({...pizzaForm, seo_h1: e.target.value})}
+                    placeholder="SEO H1 (если пусто — возьмётся название)"
+                  />
+                  <textarea
+                    name="seo_description"
+                    value={pizzaForm.seo_description}
+                    onChange={e => setPizzaForm({...pizzaForm, seo_description: e.target.value})}
+                    placeholder="SEO Description (до 160 символов)"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all duration-200"
+                    rows="2"
+                    maxLength={160}
+                  />
+                </div>
+              </div>
+
               <Button type="submit" variant="primary" className="col-span-2">{editingPizza ? 'Обновить' : 'Добавить'}</Button>
               {editingPizza && <Button variant="secondary" className="col-span-2" onClick={() => { setEditingPizza(null); setPizzaForm(emptyPizzaForm); setSelectedImageFile(null); }}>Отменить</Button>}
             </form>
@@ -551,15 +650,148 @@ function Admin() {
             <form onSubmit={handleCategorySubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input name="name" value={categoryForm.name} onChange={e => setCategoryForm({...categoryForm, name: e.target.value})} placeholder="Название" required />
               <Input name="sort_order" value={categoryForm.sort_order} onChange={e => setCategoryForm({...categoryForm, sort_order: parseInt(e.target.value) || 0})} placeholder="Порядок" type="number" />
+
+              <div className="col-span-2 border-t border-gray-200 pt-4 mt-2">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">SEO (мета-теги)</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  <Input
+                    name="seo_title"
+                    value={categoryForm.seo_title}
+                    onChange={e => setCategoryForm({...categoryForm, seo_title: e.target.value})}
+                    placeholder="SEO Title"
+                  />
+                  <Input
+                    name="seo_h1"
+                    value={categoryForm.seo_h1}
+                    onChange={e => setCategoryForm({...categoryForm, seo_h1: e.target.value})}
+                    placeholder="SEO H1"
+                  />
+                  <textarea
+                    name="seo_description"
+                    value={categoryForm.seo_description}
+                    onChange={e => setCategoryForm({...categoryForm, seo_description: e.target.value})}
+                    placeholder="SEO Description (до 160 символов)"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all duration-200"
+                    rows="2"
+                    maxLength={160}
+                  />
+                </div>
+              </div>
+
               <Button type="submit" variant="primary" className="col-span-2">{editingCategory ? 'Обновить' : 'Добавить'}</Button>
-              {editingCategory && <Button variant="secondary" className="col-span-2" onClick={() => { setEditingCategory(null); setCategoryForm({ name: '', sort_order: 0 }); }}>Отменить</Button>}
+              {editingCategory && <Button variant="secondary" className="col-span-2" onClick={() => { setEditingCategory(null); setCategoryForm(emptyCategoryForm); }}>Отменить</Button>}
             </form>
           </div>
           <div className="overflow-x-auto bg-white rounded-xl shadow">
-            <table className="w-full text-sm"><thead className="bg-gray-100"><tr><th>ID</th><th>Название</th><th>Порядок</th><th>Действия</th></tr></thead>
-            <tbody>{categories.map(c => (
-              <tr key={c.id} className="border-t"><td className="p-3">{c.id}</td><td>{c.name}</td><td>{c.sort_order}</td><td className="flex gap-2"><Button variant="outline" onClick={() => handleEditCategory(c)} className="px-3 py-1 text-sm">✎</Button><Button variant="danger" onClick={() => handleDeleteCategory(c.id)} className="px-3 py-1 text-sm">✕</Button></td></tr>
-            ))}</tbody></table>
+            <table className="w-full text-sm">
+              <thead className="bg-gray-100">
+                <tr><th>ID</th><th>Название</th><th>Порядок</th><th>SEO Title</th><th>Действия</th></tr>
+              </thead>
+              <tbody>
+                {categories.map(c => (
+                  <tr key={c.id} className="border-t">
+                    <td className="p-3">{c.id}</td>
+                    <td>{c.name}</td>
+                    <td>{c.sort_order}</td>
+                    <td className="text-xs max-w-xs truncate">{c.seo_title || '—'}</td>
+                    <td className="flex gap-2">
+                      <Button variant="outline" onClick={() => handleEditCategory(c)} className="px-3 py-1 text-sm">✎</Button>
+                      <Button variant="danger" onClick={() => handleDeleteCategory(c.id)} className="px-3 py-1 text-sm">✕</Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'seo' && (
+        <div>
+          {editingPage && (
+            <div className="bg-white rounded-xl shadow p-6 mb-6">
+              <h2 className="text-xl font-semibold mb-4">Редактировать SEO: {editingPage.page_key}</h2>
+              <form onSubmit={handlePageSeoSubmit} className="grid grid-cols-1 gap-3">
+                <Input
+                  name="seo_title"
+                  value={pageForm.seo_title}
+                  onChange={e => setPageForm({...pageForm, seo_title: e.target.value})}
+                  placeholder="SEO Title"
+                />
+                <Input
+                  name="seo_h1"
+                  value={pageForm.seo_h1}
+                  onChange={e => setPageForm({...pageForm, seo_h1: e.target.value})}
+                  placeholder="SEO H1"
+                />
+                <textarea
+                  name="seo_description"
+                  value={pageForm.seo_description}
+                  onChange={e => setPageForm({...pageForm, seo_description: e.target.value})}
+                  placeholder="SEO Description (до 160 символов)"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all duration-200"
+                  rows="2"
+                  maxLength={160}
+                />
+                <div className="flex gap-2">
+                  <Button type="submit" variant="primary">Сохранить</Button>
+                  <Button variant="secondary" onClick={() => { setEditingPage(null); setPageForm(emptyPageForm); }}>Отменить</Button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          <div className="bg-white rounded-xl shadow p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4">SEO статических страниц</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="p-3 text-left">Страница</th>
+                    <th>Title</th>
+                    <th>H1</th>
+                    <th>Действия</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pagesSeo.map(p => (
+                    <tr key={p.page_key} className="border-t">
+                      <td className="p-3 font-medium">{p.page_key}</td>
+                      <td className="p-3 text-xs max-w-xs truncate">{p.seo_title || '—'}</td>
+                      <td className="p-3 text-xs max-w-xs truncate">{p.seo_h1 || '—'}</td>
+                      <td className="p-3">
+                        <Button variant="outline" onClick={() => handlePageSeoEdit(p)} className="px-3 py-1 text-sm">✎</Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow p-6">
+            <h2 className="text-xl font-semibold mb-4">SEO категорий</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="p-3 text-left">Категория</th>
+                    <th>Title</th>
+                    <th>H1</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categories.map(c => (
+                    <tr key={c.id} className="border-t">
+                      <td className="p-3 font-medium">{c.name}</td>
+                      <td className="p-3 text-xs max-w-xs truncate">{c.seo_title || '—'}</td>
+                      <td className="p-3 text-xs max-w-xs truncate">{c.seo_h1 || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-3 text-xs text-gray-500">Для редактирования SEO категории — перейдите во вкладку «Категории».</p>
           </div>
         </div>
       )}

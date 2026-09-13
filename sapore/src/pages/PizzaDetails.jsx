@@ -4,6 +4,7 @@ import { useProduct } from '../hooks/useProduct';
 import { useQuery } from '@tanstack/react-query';
 import { getImageUrl } from '../utils/imageUtils';
 import { getPriceWithSize } from '../utils/priceUtils';
+import { buildProductSeo } from '../utils/seoUtils';
 import { API_CATALOG } from '../constants/api';
 import { Button } from '../components/ui';
 import { useState, useEffect } from 'react';
@@ -53,6 +54,7 @@ const PizzaDetails = ({ addToCart }) => {
   if (error) return <div className="text-center py-12 text-red-500">Ошибка загрузки</div>;
   if (!pizza) return <div className="text-center py-12">Товар не найден</div>;
 
+  const seo = buildProductSeo(pizza);
   const handleSizeSelect = (size) => setSelectedSize(size);
   const price = getPriceWithSize(pizza.price, selectedSize);
   const multiplier = selectedSize?.price_multiplier || 1;
@@ -87,8 +89,8 @@ const PizzaDetails = ({ addToCart }) => {
       className="max-w-4xl mx-auto"
     >
       <SEO
-        title={`${pizza.name} — заказать с доставкой`}
-        description={pizza.description}
+        title={seo.title}
+        description={seo.description}
         image={getImageUrl(pizza.image, 'medium')}
         url={`/product/${pizza.slug}`}
         type="product"
@@ -136,7 +138,7 @@ const PizzaDetails = ({ addToCart }) => {
           </div>
           <div className="flex flex-col justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">{pizza.name}</h1>
+              <h1 className="text-3xl font-bold text-gray-800">{seo.h1 || pizza.name}</h1>
               <p className="text-gray-600 mt-2">{pizza.description}</p>
               <div className="mt-4">
                 <p className="text-sm font-medium text-gray-500">Категория: {pizza.category}</p>

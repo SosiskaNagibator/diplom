@@ -141,6 +141,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             handleGeneratePromo($pdo);
             exit;
 
+        case 'get_page_seo':
+            require_api_file('seo.php');
+            handleGetPageSeo($pdo);
+            exit;
+
         default:
             echo json_encode(['status' => 'error', 'message' => 'Неизвестное действие для GET']);
             exit;

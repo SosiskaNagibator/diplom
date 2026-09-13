@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { API_CATALOG } from '../constants/api';
 import { getImageUrl } from '../utils/imageUtils';
 import { getPriceWithSize } from '../utils/priceUtils';
+import { buildCategorySeo } from '../utils/seoUtils';
 import { Button, Card } from '../components/ui';
 import SEO from '../components/SEO';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -15,18 +16,6 @@ const fetchCategory = async (slug) => {
   const res = await fetch(`${API_CATALOG}?category_slug=${encodeURIComponent(slug)}&limit=100`);
   if (!res.ok) throw new Error('Ошибка загрузки');
   return res.json();
-};
-
-const categoryDescriptions = {
-  'klassika': 'Классические итальянские пиццы по традиционным рецептам: Маргарита, Карбонара, Четыре сыра. Готовим в дровяной печи, доставляем за 30 минут.',
-  'myasnye': 'Пиццы с мясом: пепперони, бекон, ветчина, охотничьи колбаски. Сытные и ароматные.',
-  'vegetarianskie': 'Вегетарианские пиццы с овощами, грибами и сыром. Без мяса, но с ярким вкусом.',
-  'ostrye': 'Острые пиццы с халапеньо, чили и салями. Для тех, кто любит поострее.',
-  'sladkie': 'Сладкие пиццы с ягодами и фруктами. Отличный выбор на десерт.',
-  'rybnye': 'Пиццы с морепродуктами: креветки, мидии, кальмары. Свежие поставки каждый день.',
-  'zakuski': 'Закуски к пицце: чесночный хлеб, крылышки, картофель фри.',
-  'napitki': 'Напитки: кола, соки, лимонады, кофе.',
-  'salaty': 'Свежие салаты: Цезарь, Греческий, овощной.',
 };
 
 const CategoryPage = ({ addToCart }) => {
@@ -113,14 +102,14 @@ const CategoryPage = ({ addToCart }) => {
   }
 
   const items = data.pizzas;
-  const categoryName = items[0]?.category || 'Категория';
-  const categoryDesc = categoryDescriptions[slug] || `Товары категории «${categoryName}»`;
+  const seo = buildCategorySeo(data.category, items);
+  const categoryName = seo.h1 || items[0]?.category || 'Категория';
 
   return (
     <div className="fade-in">
       <SEO
-        title={`${categoryName} — доставка в Ростове-на-Дону`}
-        description={categoryDesc}
+        title={seo.title}
+        description={seo.description}
         url={`/category/${slug}`}
       />
 
@@ -131,7 +120,7 @@ const CategoryPage = ({ addToCart }) => {
       ]} />
 
       <h1 className="text-3xl font-bold text-gray-800 mb-2">{categoryName}</h1>
-      <p className="text-gray-600 mb-8 max-w-3xl">{categoryDesc}</p>
+      <p className="text-gray-600 mb-8 max-w-3xl">{seo.description}</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {items.map((pizza, index) => (

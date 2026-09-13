@@ -5,11 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaCheck, FaGift } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
 import { useUserLevel } from '../hooks/useLevels';
+import { usePageSeo } from '../hooks/usePageSeo';
 import { API_CONSTRUCTOR, CONSTRUCTOR_PREVIEW } from '../constants/api';
 import PizzaPreview from '../components/constructor/PizzaPreview';
 import SizeCard from '../components/constructor/SizeCard';
 import ToppingCard from '../components/constructor/ToppingCard';
 import ConstructorSkeleton from '../components/skeletons/ConstructorSkeleton';
+import SEO from '../components/SEO';
 
 const STORAGE_KEY = 'constructorDraft';
 const BASE_PRICE = 350;
@@ -51,6 +53,11 @@ function Constructor({ addToCart }) {
   const { data: userLevelData } = useUserLevel(userLogin);
   const allLevels = userLevelData?.all_levels || [];
   const ordersSum = userLevelData?.orders_sum || 0;
+
+  const { data: pageSeo } = usePageSeo('constructor');
+  const seoTitle = pageSeo?.title || '';
+  const seoDescription = pageSeo?.description || '';
+  const seoH1 = pageSeo?.h1 || 'Собери свою пиццу';
 
   const achievedLevels = useMemo(
     () => allLevels.filter(level => Number(level.min_bonus) <= ordersSum),
@@ -192,6 +199,7 @@ function Constructor({ addToCart }) {
 
   const handleGoToCart = () => {
     setShowSuccess(false);
+    clearAll();
     navigate('/cart');
   };
 
@@ -199,13 +207,15 @@ function Constructor({ addToCart }) {
 
   return (
     <div className="max-w-6xl mx-auto fade-in">
+      <SEO title={seoTitle} description={seoDescription} url="/constructor" />
+
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="text-3xl font-bold text-gray-800 mb-8 text-center lg:text-left"
       >
-        Собери свою пиццу
+        {seoH1}
       </motion.h1>
 
       {hasFreeTopping && (

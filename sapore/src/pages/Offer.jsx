@@ -1,7 +1,14 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import SEO from '../components/SEO';
+import { usePageSeo } from '../hooks/usePageSeo';
 
 const Offer = () => {
+  const { data: pageSeo } = usePageSeo('offer');
+  const seoTitle = pageSeo?.title || '';
+  const seoDescription = pageSeo?.description || '';
+  const seoH1 = pageSeo?.h1 || 'Публичная оферта';
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -9,7 +16,9 @@ const Offer = () => {
       transition={{ duration: 0.5 }}
       className="max-w-4xl mx-auto py-8"
     >
-      <h1 className="text-3xl font-bold text-gray-800 mb-2">Публичная оферта</h1>
+      <SEO title={seoTitle} description={seoDescription} url="/offer" />
+
+      <h1 className="text-3xl font-bold text-gray-800 mb-2">{seoH1}</h1>
       <p className="text-sm text-gray-500 mb-8">Дата публикации: 1 августа 2026 года</p>
 
       <div className="space-y-6">

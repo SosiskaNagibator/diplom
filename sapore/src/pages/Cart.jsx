@@ -13,7 +13,7 @@ import { useBonuses } from '../hooks/useProfile';
 import { useSaveOrder } from '../hooks/useCart';
 import CartItem from '../components/CartItem';
 import { API_ORDERS, API_BASE } from '../constants/api';
-import { FaBolt, FaClock, FaPizzaSlice, FaClipboardList, FaGift, FaCoins, FaCheck } from 'react-icons/fa';
+import { FaBolt, FaClock, FaPizzaSlice, FaClipboardList, FaGift, FaCoins, FaCheck, FaTimes } from 'react-icons/fa';
 import LevelUpModal from '../components/LevelUpModal';
 import { useUserLevel } from '../hooks/useLevels';
 
@@ -314,7 +314,7 @@ function Cart() {
       if (data.status === 'success') {
         setPromoDiscount(data.discount);
         setAppliedPromo(promoCode);
-        setPromoMessage('Промокод применён! Скидка: ' + data.discount + ' ₽');
+        setPromoMessage('');
       } else {
         setPromoMessage('Ошибка: ' + data.message);
         setPromoDiscount(0);
@@ -568,15 +568,27 @@ function Cart() {
                 {isApplyingPromo ? 'Проверка...' : 'Применить'}
               </Button>
             </div>
-            {promoMessage && (
-              <div className={`text-sm mt-1 ${promoMessage.includes('Скидка') ? 'text-green-600' : 'text-red-600'}`}>
+            {promoMessage && !appliedPromo && (
+              <div className="text-sm mt-1 text-red-600">
                 {promoMessage}
               </div>
             )}
             {appliedPromo && (
-              <button onClick={handleRemovePromo} className="text-sm text-gray-500 hover:text-gray-700 mt-1 transition">
-                Удалить промокод
-              </button>
+              <div className="mt-2 flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2">
+                <FaCheck className="text-green-600 text-sm flex-shrink-0" />
+                <span className="text-sm text-green-700 flex-1">
+                  Промокод <strong>{appliedPromo}</strong> применён
+                </span>
+                <button
+                  type="button"
+                  onClick={handleRemovePromo}
+                  className="text-green-600 hover:text-red-500 transition-colors flex-shrink-0"
+                  aria-label="Удалить промокод"
+                  title="Удалить промокод"
+                >
+                  <FaTimes className="text-sm" />
+                </button>
+              </div>
             )}
           </div>
         </div>

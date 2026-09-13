@@ -27,14 +27,16 @@ $slug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
 if ($id > 0 || $slug !== '') {
     if ($id > 0) {
         $stmt = $conn->prepare("SELECT i.id, i.name, i.slug, i.category, i.description, i.price, i.image, i.sizes, i.category_id,
-                                       i.calories, i.protein, i.fat, i.carbs, c.slug AS category_slug
+                                       i.calories, i.protein, i.fat, i.carbs, i.seo_title, i.seo_description, i.seo_h1,
+                                       c.slug AS category_slug
                                 FROM items i
                                 LEFT JOIN categories c ON c.id = i.category_id
                                 WHERE i.id = ?");
         $stmt->bind_param("i", $id);
     } else {
         $stmt = $conn->prepare("SELECT i.id, i.name, i.slug, i.category, i.description, i.price, i.image, i.sizes, i.category_id,
-                                       i.calories, i.protein, i.fat, i.carbs, c.slug AS category_slug
+                                       i.calories, i.protein, i.fat, i.carbs, i.seo_title, i.seo_description, i.seo_h1,
+                                       c.slug AS category_slug
                                 FROM items i
                                 LEFT JOIN categories c ON c.id = i.category_id
                                 WHERE i.slug = ?");
@@ -146,7 +148,7 @@ $totalRow = $countResult->fetch_assoc();
 $total = (int)$totalRow['total'];
 
 $sql = "SELECT id, name, slug, category, description, price, image, sizes, category_id,
-               calories, protein, fat, carbs 
+               calories, protein, fat, carbs, seo_title, seo_description, seo_h1
         FROM items" . $where . " ORDER BY id LIMIT ? OFFSET ?";
 $params[] = $limit;
 $params[] = $offset;

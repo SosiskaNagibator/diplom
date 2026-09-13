@@ -70,6 +70,14 @@ function handleAdminAction($pdo, $action) {
         case 'admin_delete_category':
             deleteCategory($pdo);
             break;
+        case 'admin_get_pages_seo':
+            require_once __DIR__ . '/seo.php';
+            getPagesSeo($pdo);
+            break;
+        case 'admin_update_page_seo':
+            require_once __DIR__ . '/seo.php';
+            updatePageSeo($pdo);
+            break;
         default:
             echo json_encode(['status' => 'error', 'message' => 'Неизвестное админ-действие']);
     }
@@ -147,6 +155,9 @@ function addPizza($pdo) {
     $protein = (float)($_POST['protein'] ?? 0);
     $fat = (float)($_POST['fat'] ?? 0);
     $carbs = (float)($_POST['carbs'] ?? 0);
+    $seoTitle = trim($_POST['seo_title'] ?? '');
+    $seoDescription = trim($_POST['seo_description'] ?? '');
+    $seoH1 = trim($_POST['seo_h1'] ?? '');
 
     if (empty($name) || $price <= 0) {
         echo json_encode(['status' => 'error', 'message' => 'Заполните обязательные поля']);
@@ -192,8 +203,8 @@ function addPizza($pdo) {
         $imageName = $filename . '.webp';
     }
 
-    $stmt = $pdo->prepare("INSERT INTO items (name, slug, category, category_id, description, price, image, sizes, calories, protein, fat, carbs) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    if ($stmt->execute([$name, $slug, $category, $categoryId, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs])) {
+    $stmt = $pdo->prepare("INSERT INTO items (name, slug, category, category_id, description, price, image, sizes, calories, protein, fat, carbs, seo_title, seo_description, seo_h1) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    if ($stmt->execute([$name, $slug, $category, $categoryId, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs, $seoTitle ?: null, $seoDescription ?: null, $seoH1 ?: null])) {
         echo json_encode(['status' => 'success', 'message' => 'Товар добавлен', 'id' => $pdo->lastInsertId(), 'slug' => $slug]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления']);
@@ -211,6 +222,9 @@ function updatePizza($pdo) {
     $protein = (float)($_POST['protein'] ?? 0);
     $fat = (float)($_POST['fat'] ?? 0);
     $carbs = (float)($_POST['carbs'] ?? 0);
+    $seoTitle = trim($_POST['seo_title'] ?? '');
+    $seoDescription = trim($_POST['seo_description'] ?? '');
+    $seoH1 = trim($_POST['seo_h1'] ?? '');
 
     if (!$id || empty($name) || $price <= 0) {
         echo json_encode(['status' => 'error', 'message' => 'Заполните обязательные поля']);
@@ -264,8 +278,8 @@ function updatePizza($pdo) {
         $imageName = $oldImage;
     }
 
-    $stmt = $pdo->prepare("UPDATE items SET name=?, slug=?, category=?, category_id=?, description=?, price=?, image=?, sizes=?, calories=?, protein=?, fat=?, carbs=? WHERE id=?");
-    if ($stmt->execute([$name, $slug, $category, $categoryId, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs, $id])) {
+    $stmt = $pdo->prepare("UPDATE items SET name=?, slug=?, category=?, category_id=?, description=?, price=?, image=?, sizes=?, calories=?, protein=?, fat=?, carbs=?, seo_title=?, seo_description=?, seo_h1=? WHERE id=?");
+    if ($stmt->execute([$name, $slug, $category, $categoryId, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs, $seoTitle ?: null, $seoDescription ?: null, $seoH1 ?: null, $id])) {
         echo json_encode(['status' => 'success', 'message' => 'Товар обновлён', 'slug' => $slug]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления']);
@@ -532,7 +546,7 @@ function deleteTopping($pdo) {
 }
 
 function getCategories($pdo) {
-    $stmt = $pdo->query("SELECT * FROM categories ORDER BY sort_order");
+    $stmt = $pdo->query("SELECT id, name, slug, sort_order, seo_title, seo_description, seo_h1 FROM categories ORDER BY sort_order");
     $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
     echo json_encode(['status' => 'success', 'categories' => $categories]);
 }
@@ -540,6 +554,10 @@ function getCategories($pdo) {
 function addCategory($pdo) {
     $name = trim($_POST['name'] ?? '');
     $sort_order = (int)($_POST['sort_order'] ?? 0);
+    $seoTitle = trim($_POST['seo_title'] ?? '');
+    $seoDescription = trim($_POST['seo_description'] ?? '');
+    $seoH1 = trim($_POST['seo_h1'] ?? '');
+
     if (empty($name)) {
         echo json_encode(['status' => 'error', 'message' => 'Введите название']);
         return;
@@ -551,8 +569,8 @@ function addCategory($pdo) {
         return;
     }
     $slug = uniqueSlug($pdo, 'categories', slugify($name));
-    $stmt = $pdo->prepare("INSERT INTO categories (name, slug, sort_order) VALUES (?, ?, ?)");
-    if ($stmt->execute([$name, $slug, $sort_order])) {
+    $stmt = $pdo->prepare("INSERT INTO categories (name, slug, sort_order, seo_title, seo_description, seo_h1) VALUES (?, ?, ?, ?, ?, ?)");
+    if ($stmt->execute([$name, $slug, $sort_order, $seoTitle ?: null, $seoDescription ?: null, $seoH1 ?: null])) {
         echo json_encode(['status' => 'success', 'message' => 'Категория добавлена', 'slug' => $slug]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления']);
@@ -563,13 +581,17 @@ function updateCategory($pdo) {
     $id = (int)($_POST['id'] ?? 0);
     $name = trim($_POST['name'] ?? '');
     $sort_order = (int)($_POST['sort_order'] ?? 0);
+    $seoTitle = trim($_POST['seo_title'] ?? '');
+    $seoDescription = trim($_POST['seo_description'] ?? '');
+    $seoH1 = trim($_POST['seo_h1'] ?? '');
+
     if (!$id || empty($name)) {
         echo json_encode(['status' => 'error', 'message' => 'Неверные данные']);
         return;
     }
     $slug = uniqueSlug($pdo, 'categories', slugify($name), $id);
-    $stmt = $pdo->prepare("UPDATE categories SET name = ?, slug = ?, sort_order = ? WHERE id = ?");
-    if ($stmt->execute([$name, $slug, $sort_order, $id])) {
+    $stmt = $pdo->prepare("UPDATE categories SET name = ?, slug = ?, sort_order = ?, seo_title = ?, seo_description = ?, seo_h1 = ? WHERE id = ?");
+    if ($stmt->execute([$name, $slug, $sort_order, $seoTitle ?: null, $seoDescription ?: null, $seoH1 ?: null, $id])) {
         echo json_encode(['status' => 'success', 'message' => 'Категория обновлена', 'slug' => $slug]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления']);

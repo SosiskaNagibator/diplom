@@ -9,12 +9,18 @@ import { getImageUrl } from '../utils/imageUtils';
 import WishlistButton from '../components/WishlistButton';
 import HomeSkeleton from '../components/skeletons/HomeSkeleton';
 import SEO from '../components/SEO';
+import { usePageSeo } from '../hooks/usePageSeo';
 
 function Home({ addToCart }) {
   const [popularPizzas, setPopularPizzas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSizes, setSelectedSizes] = useState({});
   const [priceAnimations, setPriceAnimations] = useState({});
+
+  const { data: pageSeo } = usePageSeo('home');
+  const seoTitle = pageSeo?.title || '';
+  const seoDescription = pageSeo?.description || '';
+  const seoH1 = pageSeo?.h1 || 'Итальянская пицца с доставкой в Ростове-на-Дону';
 
   useEffect(() => {
     const fetchPopular = async () => {
@@ -111,11 +117,7 @@ function Home({ addToCart }) {
 
   return (
     <div className="fade-in">
-      <SEO
-        title="Итальянская пицца с доставкой в Ростове-на-Дону"
-        description="Sapore — настоящая итальянская пицца из дровяной печи. Свежие ингредиенты, доставка за 30 минут. Заказать пиццу, закуски и напитки."
-        url="/"
-      />
+      <SEO title={seoTitle} description={seoDescription} url="/" />
 
       <motion.section
         initial="hidden"
@@ -125,7 +127,7 @@ function Home({ addToCart }) {
       >
         <img
           src={`${STATIC_HOME}hero.webp`}
-          alt=""
+          alt="Итальянская пицца из дровяной печи Sapore"
           className="absolute inset-0 w-full h-full object-cover"
           loading="eager"
           decoding="async"
@@ -134,14 +136,14 @@ function Home({ addToCart }) {
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/30" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
-        <div className="relative px-6 py-12 sm:px-12 md:px-16 max-w-2xl">
+        <div className="relative px-6 py-12 sm:px-12 md:px-16 max-w-3xl">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight drop-shadow-lg"
+            className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight drop-shadow-lg"
           >
-            Sapore — <span className="text-amber-400">вкус Италии</span>
+            {seoH1}
           </motion.h1>
 
           <motion.p
@@ -150,7 +152,7 @@ function Home({ addToCart }) {
             transition={{ duration: 0.6, delay: 0.25 }}
             className="mt-4 text-lg sm:text-xl text-white/90 max-w-xl drop-shadow"
           >
-            Настоящая итальянская пицца из печи на дровах. Свежие ингредиенты, доставка за 30 минут.
+            Настоящая итальянская пицца из печи на дровах. Свежие ингредиенты, доставка за 30 минут по Ростову-на-Дону.
           </motion.p>
 
           <motion.div
@@ -159,11 +161,11 @@ function Home({ addToCart }) {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="mt-8 flex flex-wrap gap-4"
           >
-            <Link to="/constructor">
-              <Button variant="primary" className="text-lg">Собрать свою пиццу →</Button>
-            </Link>
             <Link to="/catalog">
-              <Button variant="secondary" className="text-lg">Посмотреть меню</Button>
+              <Button variant="primary" className="text-lg">Заказать пиццу →</Button>
+            </Link>
+            <Link to="/constructor">
+              <Button variant="secondary" className="text-lg">Собрать свою пиццу</Button>
             </Link>
           </motion.div>
 
@@ -218,7 +220,7 @@ function Home({ addToCart }) {
           >
             <img
               src={`${STATIC_HOME}fast-delivery.jpg`}
-              alt="Быстрая доставка"
+              alt="Быстрая доставка пиццы"
               className="w-full h-48 object-cover"
               loading="lazy"
               decoding="async"

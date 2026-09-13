@@ -10,6 +10,7 @@ import { getImageUrl } from '../utils/imageUtils';
 import WishlistButton from '../components/WishlistButton';
 import SEO from '../components/SEO';
 import { useActiveSection } from '../hooks/useActiveSection';
+import { usePageSeo } from '../hooks/usePageSeo';
 
 const fetchCatalog = async (search) => {
   const url = search
@@ -67,6 +68,11 @@ function Catalog({ addToCart }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const searchQuery = (searchParams.get('search') || '').trim();
+
+  const { data: pageSeo } = usePageSeo('catalog');
+  const seoTitle = pageSeo?.title || '';
+  const seoDescription = pageSeo?.description || '';
+  const seoH1 = pageSeo?.h1 || 'Меню пиццерии';
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['catalog-all', searchQuery],
@@ -293,12 +299,8 @@ function Catalog({ addToCart }) {
   return (
     <div className="fade-in">
       <SEO
-        title={
-          searchQuery
-            ? `Поиск: ${searchQuery} — Sapore`
-            : 'Меню — пицца, закуски, напитки, соусы'
-        }
-        description="Полное меню Sapore: итальянские пиццы, закуски, напитки и соусы. Доставка за 30 минут в Ростове-на-Дону."
+        title={searchQuery ? `Поиск: ${searchQuery}` : seoTitle}
+        description={seoDescription}
         url="/catalog"
       />
 
@@ -308,7 +310,7 @@ function Catalog({ addToCart }) {
         transition={{ duration: 0.5 }}
         className="text-3xl font-bold text-gray-800 mb-6"
       >
-        {searchQuery ? 'Поиск' : 'Меню'}
+        {searchQuery ? 'Поиск' : seoH1}
       </motion.h1>
 
       {searchQuery ? (
