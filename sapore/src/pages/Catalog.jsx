@@ -22,11 +22,10 @@ const fetchCatalog = async (search) => {
 };
 
 const sectionVariants = {
-  hidden: { opacity: 0, y: 40 },
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
+    transition: { duration: 0.4, ease: 'easeOut' },
   },
 };
 
@@ -34,32 +33,29 @@ const gridContainerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.06, delayChildren: 0.05 },
+    transition: { staggerChildren: 0.04, delayChildren: 0.05 },
   },
 };
 
 const cardItemVariants = {
-  hidden: { opacity: 0, y: 25, scale: 0.95 },
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.4, ease: 'easeOut' },
+    transition: { duration: 0.3, ease: 'easeOut' },
   },
 };
 
 const tabsContainerVariants = {
-  hidden: { opacity: 0, y: -15 },
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: 'easeOut', staggerChildren: 0.05 },
+    transition: { duration: 0.3, ease: 'easeOut', staggerChildren: 0.05 },
   },
 };
 
 const tabItemVariants = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.25 } },
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.2 } },
 };
 
 function Catalog({ addToCart }) {
@@ -182,9 +178,9 @@ function Catalog({ addToCart }) {
   const scrollToSection = useCallback((id) => {
     const el = document.getElementById(id);
     if (!el) return;
-    const yOffset = -140;
-    const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-    window.scrollTo({ top: y, behavior: 'smooth' });
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }, []);
 
   const saveScroll = useCallback(() => {
