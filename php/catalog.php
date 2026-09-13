@@ -88,13 +88,22 @@ $categoryId = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
 $categorySlug = isset($_GET['category_slug']) ? trim($_GET['category_slug']) : '';
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
+$categoryInfo = null;
 if ($categorySlug !== '' && $categoryId === 0) {
-    $stmt = $conn->prepare("SELECT id FROM categories WHERE slug = ?");
+    $stmt = $conn->prepare("SELECT id, name, slug, seo_title, seo_description, seo_h1 FROM categories WHERE slug = ?");
     $stmt->bind_param("s", $categorySlug);
     $stmt->execute();
     $res = $stmt->get_result();
     if ($r = $res->fetch_assoc()) {
         $categoryId = (int)$r['id'];
+        $categoryInfo = [
+            'id' => (int)$r['id'],
+            'name' => $r['name'],
+            'slug' => $r['slug'],
+            'seo_title' => $r['seo_title'],
+            'seo_description' => $r['seo_description'],
+            'seo_h1' => $r['seo_h1']
+        ];
     } else {
         $categoryId = -1;
     }
@@ -193,6 +202,7 @@ echo json_encode([
     'pizzas' => $pizzas,
     'sizes' => $sizes,
     'categories' => $categories,
+    'category' => $categoryInfo,
     'pagination' => [
         'page' => $page,
         'limit' => $limit,
