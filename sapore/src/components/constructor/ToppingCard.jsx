@@ -1,15 +1,12 @@
-import { motion } from 'framer-motion';
 import { FaCheck } from 'react-icons/fa';
 import { CONSTRUCTOR_TOPPINGS_BASE } from '../../constants/api';
 
 const ToppingCard = ({ topping, selected, isFree, onToggle }) => {
   return (
-    <motion.button
+    <button
       type="button"
       onClick={onToggle}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.97 }}
-      className={`w-full h-full relative flex flex-col overflow-hidden rounded-xl border-2 transition-all duration-200 text-left ${
+      className={`w-full h-full relative flex flex-col overflow-hidden rounded-xl border-2 transition-all duration-200 text-left active:scale-[0.97] ${
         selected
           ? 'border-amber-500 bg-amber-50 shadow-sm'
           : 'border-gray-200 bg-white hover:border-amber-300'
@@ -28,14 +25,9 @@ const ToppingCard = ({ topping, selected, isFree, onToggle }) => {
           }}
         />
         {selected && (
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-            className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center shadow"
-          >
+          <div className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center shadow">
             <FaCheck className="text-white text-xs" />
-          </motion.div>
+          </div>
         )}
       </div>
       <div className="p-2 pt-1.5 flex-1 flex flex-col justify-between">
@@ -46,7 +38,7 @@ const ToppingCard = ({ topping, selected, isFree, onToggle }) => {
           {isFree ? 'Бесплатно' : `${topping.price} ₽`}
         </div>
       </div>
-    </motion.button>
+    </button>
   );
 };
 

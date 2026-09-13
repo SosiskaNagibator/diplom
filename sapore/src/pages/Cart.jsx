@@ -283,12 +283,12 @@ function Cart() {
     setBonusPercentage(value);
   }, []);
 
-  const handleUpdateQuantity = useCallback((id, newQuantity) => {
-    updateQuantity(id, newQuantity);
+  const handleUpdateQuantity = useCallback((cartKey, newQuantity) => {
+    updateQuantity(cartKey, newQuantity);
   }, [updateQuantity]);
 
-  const handleRemoveFromCart = useCallback((id) => {
-    removeFromCart(id);
+  const handleRemoveFromCart = useCallback((cartKey) => {
+    removeFromCart(cartKey);
   }, [removeFromCart]);
 
   const validatePhone = (phone) => {
@@ -476,7 +476,13 @@ function Cart() {
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Корзина</h1>
       <AnimatePresence mode="popLayout">
         {cart.map((item, index) => (
-          <CartItem key={item.id} item={item} index={index} onUpdateQuantity={handleUpdateQuantity} onRemove={handleRemoveFromCart} />
+          <CartItem
+            key={item.cartKey}
+            item={item}
+            index={index}
+            onUpdateQuantity={handleUpdateQuantity}
+            onRemove={handleRemoveFromCart}
+          />
         ))}
       </AnimatePresence>
 

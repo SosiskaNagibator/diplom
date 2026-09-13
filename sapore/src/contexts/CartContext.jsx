@@ -1,17 +1,34 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 
+const buildCartKey = (item) => {
+  if (item.cartKey) return item.cartKey;
+
+  const sizePart = item.size_label || item.size || '';
+  let toppingsPart = '';
+
+  if (Array.isArray(item.toppings)) {
+    toppingsPart = item.toppings
+      .map(t => (typeof t === 'object' ? t.id : t))
+      .sort()
+      .join('_');
+  } else if (typeof item.toppings === 'string') {
+    toppingsPart = item.toppings;
+  }
+
+  return `${item.id}-${sizePart}-${toppingsPart}`;
+};
+
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
-  const { userLogin } = useAuth();
 
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
       try {
-        setCart(JSON.parse(savedCart));
+        const parsed = JSON.parse(savedCart);
+        setCart(parsed.map(item => ({ ...item, cartKey: buildCartKey(item) })));
       } catch {
         setCart([]);
       }
@@ -23,30 +40,31 @@ export const CartProvider = ({ children }) => {
   }, [cart]);
 
   const addToCart = useCallback((pizza) => {
+    const newKey = buildCartKey(pizza);
     setCart(prev => {
-      const existing = prev.find(item => item.id === pizza.id);
+      const existing = prev.find(item => item.cartKey === newKey);
       if (existing) {
         return prev.map(item =>
-          item.id === pizza.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.cartKey === newKey ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      return [...prev, { ...pizza, quantity: 1 }];
+      return [...prev, { ...pizza, cartKey: newKey, quantity: 1 }];
     });
   }, []);
 
-  const removeFromCart = useCallback((id) => {
-    setCart(prev => prev.filter(item => item.id !== id));
+  const removeFromCart = useCallback((cartKey) => {
+    setCart(prev => prev.filter(item => item.cartKey !== cartKey));
   }, []);
 
-  const updateQuantity = useCallback((id, quantity) => {
+  const updateQuantity = useCallback((cartKey, quantity) => {
     if (quantity <= 0) {
-      removeFromCart(id);
+      setCart(prev => prev.filter(item => item.cartKey !== cartKey));
       return;
     }
     setCart(prev => prev.map(item =>
-      item.id === id ? { ...item, quantity } : item
+      item.cartKey === cartKey ? { ...item, quantity } : item
     ));
-  }, [removeFromCart]);
+  }, []);
 
   const clearCart = useCallback(() => {
     setCart([]);

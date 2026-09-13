@@ -1,13 +1,20 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
+import { FaPlus } from 'react-icons/fa';
 import { QuantityButton, IconButton } from './ui';
 import { getImageUrl } from '../utils/imageUtils';
 
 const CartItem = memo(({ item, index, onUpdateQuantity, onRemove }) => {
-  const { id, image, name, description, price, quantity } = item;
+  const { cartKey, image, name, description, price, quantity, size_label, toppings } = item;
 
-  const handleIncrement = () => onUpdateQuantity(id, quantity + 1);
-  const handleDecrement = () => onUpdateQuantity(id, quantity - 1);
+  const handleIncrement = () => onUpdateQuantity(cartKey, quantity + 1);
+  const handleDecrement = () => onUpdateQuantity(cartKey, quantity - 1);
+
+  const toppingsList = Array.isArray(toppings)
+    ? toppings.map(t => (typeof t === 'object' ? t.name : t))
+    : [];
+
+  const hasToppings = toppingsList.length > 0;
 
   const itemVariants = {
     hidden: { opacity: 0, x: 50, scale: 0.95 },
@@ -46,9 +53,27 @@ const CartItem = memo(({ item, index, onUpdateQuantity, onRemove }) => {
         loading="lazy"
         decoding="async"
       />
+
       <div className="flex-1 min-w-[120px]">
-        <div className="font-semibold text-gray-800">{name}</div>
-        {description && <div className="text-xs text-gray-500 mt-0.5">{description}</div>}
+        <div className="font-semibold text-gray-800">
+          {name}
+          {size_label && <span className="text-sm text-gray-400 font-normal"> · {size_label}</span>}
+        </div>
+
+        {hasToppings && (
+          <div className="mt-1 flex items-start gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1">
+            <FaPlus className="text-amber-600 text-xs mt-0.5 flex-shrink-0" />
+            <div className="text-xs text-amber-700 leading-snug">
+              <span className="font-medium">Доп. начинки:</span>{' '}
+              {toppingsList.join(', ')}
+            </div>
+          </div>
+        )}
+
+        {!hasToppings && description && (
+          <div className="text-xs text-gray-500 mt-0.5 line-clamp-2">{description}</div>
+        )}
+
         <motion.div
           className="text-sm text-amber-600 font-medium mt-1"
           key={price}
@@ -59,6 +84,7 @@ const CartItem = memo(({ item, index, onUpdateQuantity, onRemove }) => {
           {price} ₽
         </motion.div>
       </div>
+
       <div className="flex items-center gap-2">
         <QuantityButton onClick={handleDecrement}>−</QuantityButton>
         <motion.span
@@ -72,6 +98,7 @@ const CartItem = memo(({ item, index, onUpdateQuantity, onRemove }) => {
         </motion.span>
         <QuantityButton onClick={handleIncrement}>+</QuantityButton>
       </div>
+
       <motion.div
         className="text-amber-600 font-bold min-w-[70px] text-right"
         key={price * quantity}
@@ -81,7 +108,8 @@ const CartItem = memo(({ item, index, onUpdateQuantity, onRemove }) => {
       >
         {price * quantity} ₽
       </motion.div>
-      <IconButton onClick={() => onRemove(id)}>✕</IconButton>
+
+      <IconButton onClick={() => onRemove(cartKey)}>✕</IconButton>
     </motion.div>
   );
 });

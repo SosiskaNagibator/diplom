@@ -105,43 +105,79 @@ function Tracking() {
             <span className="font-bold text-amber-600 text-lg">Заказ №{order.orderNumber || order.id}</span>
             <span className="text-sm text-gray-500">{order.date}</span>
           </div>
+
           <div className="space-y-2 text-sm mb-4">
             {order.items.map((item, itemIndex) => {
               const key = `${order.id || 'order'}-${item.id || itemIndex}`;
               const isExpanded = expandedItems[key];
               const isCustom = isCustomPizza(item);
+              const additions = Array.isArray(item.toppings)
+                ? item.toppings.map(t => (typeof t === 'object' ? t.name : t))
+                : [];
+              const hasAdditions = !isCustom && additions.length > 0;
+
               return (
-                <div key={item.id || itemIndex} className="border-b border-gray-50 last:border-0 py-1">
+                <div key={item.id || itemIndex} className="border-b border-gray-50 last:border-0 py-2">
                   <div className="flex justify-between items-center">
-                    <div className={`flex items-center gap-1 ${isCustom ? 'cursor-pointer hover:text-amber-600' : ''}`} onClick={() => isCustom && toggleExpand(order.id || 'order', item.id || itemIndex)}>
+                    <div
+                      className={`flex items-center gap-1 ${isCustom ? 'cursor-pointer hover:text-amber-600' : ''}`}
+                      onClick={() => isCustom && toggleExpand(order.id || 'order', item.id || itemIndex)}
+                    >
                       <span className="font-medium text-gray-700">{item.name}</span>
                       {isCustom && (
-                        <motion.span className="inline-flex items-center transition-transform duration-300" animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
-                          <svg className="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+                        <motion.span
+                          className="inline-flex items-center transition-transform duration-300"
+                          animate={{ rotate: isExpanded ? 180 : 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <svg className="w-4 h-4 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
                         </motion.span>
                       )}
-                      {!isCustom && item.size_label && <span className="text-xs text-gray-400">({item.size_label})</span>}
+                      {!isCustom && item.size_label && (
+                        <span className="text-xs text-gray-400">({item.size_label})</span>
+                      )}
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="text-gray-500">x{item.quantity}</span>
                       <span className="font-medium text-amber-600">{item.price * item.quantity} ₽</span>
                     </div>
                   </div>
+
                   {isCustom && (
                     <AnimatePresence initial={false}>
                       {isExpanded && (
-                        <motion.div initial="hidden" animate="visible" exit="exit" variants={expandVariants} className="mt-1 text-xs text-gray-500 bg-amber-50 p-2 rounded border border-amber-200">
+                        <motion.div
+                          initial="hidden"
+                          animate="visible"
+                          exit="exit"
+                          variants={expandVariants}
+                          className="mt-1 text-xs text-gray-500 bg-amber-50 p-2 rounded border border-amber-200"
+                        >
                           {item.description || (item.toppings && `Состав: ${item.toppings}`) || 'Состав не указан'}
                         </motion.div>
                       )}
                     </AnimatePresence>
                   )}
+
+                  {hasAdditions && (
+                    <div className="mt-1.5 inline-flex items-start gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1">
+                      <span className="text-amber-600 text-xs mt-0.5 leading-none font-bold">+</span>
+                      <span className="text-xs text-amber-700 leading-snug">
+                        <span className="font-medium">Доп. начинки:</span> {additions.join(', ')}
+                      </span>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
+
           <div className="mt-4 pt-3 border-t border-gray-100">
-            <div className="mb-2"><span className="text-sm font-medium text-gray-700">Статус заказа</span></div>
+            <div className="mb-2">
+              <span className="text-sm font-medium text-gray-700">Статус заказа</span>
+            </div>
             <div className="relative flex items-center justify-between w-full">
               {ORDER_STATUSES.map((status, idx) => {
                 const isActive = idx <= currentStep;
@@ -150,17 +186,33 @@ function Tracking() {
                 return (
                   <div key={idx} className="flex items-center flex-1 last:flex-none">
                     <div className="flex flex-col items-center relative z-10">
-                      <motion.div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isActive ? 'border-amber-500 bg-amber-500 text-white' : 'border-gray-300 bg-white'} ${isCurrent ? 'ring-4 ring-amber-200' : ''}`} initial={false} animate={isActive ? { scale: [1, 1.15, 1] } : {}} transition={{ duration: 0.3 }}>
-                        {isActive && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>}
+                      <motion.div
+                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          isActive ? 'border-amber-500 bg-amber-500 text-white' : 'border-gray-300 bg-white'
+                        } ${isCurrent ? 'ring-4 ring-amber-200' : ''}`}
+                        initial={false}
+                        animate={isActive ? { scale: [1, 1.15, 1] } : {}}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {isActive && (
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
                       </motion.div>
-                      <span className={`text-xs mt-1 whitespace-nowrap ${isActive ? 'text-amber-600 font-medium' : 'text-gray-400'}`}>{status}</span>
+                      <span className={`text-xs mt-1 whitespace-nowrap ${isActive ? 'text-amber-600 font-medium' : 'text-gray-400'}`}>
+                        {status}
+                      </span>
                     </div>
-                    {!isLast && <div className={`flex-1 h-0.5 mx-1 transition-all duration-500 ${isActive && idx < currentStep ? 'bg-amber-500' : 'bg-gray-200'}`} />}
+                    {!isLast && (
+                      <div className={`flex-1 h-0.5 mx-1 transition-all duration-500 ${isActive && idx < currentStep ? 'bg-amber-500' : 'bg-gray-200'}`} />
+                    )}
                   </div>
                 );
               })}
             </div>
           </div>
+
           {order.deliveryAddress && (
             <div className="mt-4 text-sm text-gray-500 flex items-center gap-1">
               <FaMapMarkerAlt className="text-amber-500 flex-shrink-0" />
@@ -209,8 +261,14 @@ function Tracking() {
           </motion.div>
         ) : (
           <>
-            <div className="space-y-8"><AnimatePresence>{guestOrders.map((order, index) => renderOrderCard(order, index))}</AnimatePresence></div>
-            <div className="mt-6 flex justify-end"><Button variant="danger" onClick={() => { localStorage.removeItem('orders'); setGuestOrders([]); }}>Очистить историю</Button></div>
+            <div className="space-y-8">
+              <AnimatePresence>
+                {guestOrders.map((order, index) => renderOrderCard(order, index))}
+              </AnimatePresence>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <Button variant="danger" onClick={() => { localStorage.removeItem('orders'); setGuestOrders([]); }}>Очистить историю</Button>
+            </div>
           </>
         )}
       </div>
@@ -239,7 +297,11 @@ function Tracking() {
   return (
     <div className="fade-in">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Мои заказы</h1>
-      <div className="space-y-8"><AnimatePresence>{orders.map((order, index) => renderOrderCard(order, index))}</AnimatePresence></div>
+      <div className="space-y-8">
+        <AnimatePresence>
+          {orders.map((order, index) => renderOrderCard(order, index))}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
