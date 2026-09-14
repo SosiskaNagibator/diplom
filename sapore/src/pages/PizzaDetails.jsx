@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useProduct } from '../hooks/useProduct';
 import { useQuery } from '@tanstack/react-query';
 import { getImageUrl } from '../utils/imageUtils';
@@ -15,6 +15,8 @@ import SEO from '../components/SEO';
 import Breadcrumbs from '../components/Breadcrumbs';
 import NutritionModal from '../components/NutritionModal';
 import ToppingCard from '../components/constructor/ToppingCard';
+
+const PIZZA_CATEGORIES = ['klassika', 'myasnye', 'vegetarianskie', 'ostrye', 'sladkie', 'rybnye'];
 
 const fetchRelated = async (categorySlug, excludeId) => {
   if (!categorySlug) return [];
@@ -87,6 +89,7 @@ const PizzaDetails = ({ addToCart }) => {
   if (!pizza) return <div className="text-center py-12">Товар не найден</div>;
 
   const seo = buildProductSeo(pizza);
+  const isPizza = PIZZA_CATEGORIES.includes(pizza?.category_slug);
   const handleSizeSelect = (size) => setSelectedSize(size);
   const basePrice = getPriceWithSize(pizza.price, selectedSize);
   const multiplier = selectedSize?.price_multiplier || 1;
@@ -210,7 +213,7 @@ const PizzaDetails = ({ addToCart }) => {
               </div>
             )}
 
-            {allToppings.length > 0 && (
+            {isPizza && allToppings.length > 0 && (
               <div className="mt-5">
                 <div className="flex items-baseline justify-between mb-2">
                   <p className="text-sm font-medium text-gray-700">Дополнительные начинки</p>

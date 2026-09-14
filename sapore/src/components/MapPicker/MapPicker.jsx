@@ -85,7 +85,7 @@ const LocationMarker = ({ setAddress, setCoords, mapRef }) => {
 
 const MapPicker = ({ onAddressSelect, initialAddress }) => {
   const [address, setAddress] = useState(initialAddress || '');
-  const [coords, setCoords] = useState([55.76, 37.64]);
+  const [coords, setCoords] = useState([47.2226, 39.7188]);
   const [query, setQuery] = useState(initialAddress || '');
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -308,6 +308,8 @@ const MapPicker = ({ onAddressSelect, initialAddress }) => {
       <MapContainer
         center={coords}
         zoom={13}
+        minZoom={10}
+        maxZoom={18}
         zoomControl={false}
         className={styles.mapWrapper}
         ref={mapRef}
@@ -340,7 +342,7 @@ const SuggestionItem = ({ suggestion, onSelect }) => {
   if (addr.house_number) mainLine += `, ${addr.house_number}`;
   else if (addr.building) mainLine += `, ${addr.building}`;
   if (!mainLine) mainLine = suggestion.display_name.split(',').slice(0, 2).join(',');
-  
+
   let secondLine = '';
   if (addr.city) secondLine += addr.city;
   else if (addr.town) secondLine += addr.town;
