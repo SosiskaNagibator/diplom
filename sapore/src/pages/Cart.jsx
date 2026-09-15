@@ -11,6 +11,7 @@ import { useCart } from '../contexts/CartContext';
 import { InputMask } from '@react-input/mask';
 import { useBonuses } from '../hooks/useProfile';
 import { useSaveOrder } from '../hooks/useCart';
+import { useDeliveryRules, useFreeDeliveryCheck, calculateDeliveryCost } from '../hooks/useDeliveryRules';
 import CartItem from '../components/CartItem';
 import { API_ORDERS, API_BASE } from '../constants/api';
 import { FaBolt, FaClock, FaPizzaSlice, FaClipboardList, FaGift, FaCoins, FaCheck, FaTimes } from 'react-icons/fa';
@@ -127,6 +128,8 @@ function Cart() {
 
   const { data: availableBonuses = 0 } = useBonuses(userLogin);
   const { data: userLevelData, refetch: refetchUserLevel } = useUserLevel(userLogin);
+  const { data: deliveryRules = [] } = useDeliveryRules();
+  const { data: freeDeliveryData } = useFreeDeliveryCheck(userLogin);
   const allLevels = userLevelData?.all_levels || [];
   const ordersSum = userLevelData?.orders_sum || 0;
 
@@ -193,12 +196,21 @@ function Cart() {
   const effectivePromoDiscount = appliedPromo ? promoDiscount : 0;
   const finalTotalAfterDiscount = total - effectivePromoDiscount;
 
+  const baseDeliveryCost = useMemo(
+    () => calculateDeliveryCost(deliveryRules, total),
+    [deliveryRules, total]
+  );
+
+  const freeDeliveryAvailable = freeDeliveryData?.available === true;
+  const deliveryCost = freeDeliveryAvailable ? 0 : baseDeliveryCost;
+  const deliveryWasFree = freeDeliveryAvailable && baseDeliveryCost > 0;
+
   const maxBonusPercent = 20;
   const maxBonusAmount = Math.floor(finalTotalAfterDiscount * (maxBonusPercent / 100));
   const maxUsableBonus = Math.min(availableBonuses, maxBonusAmount);
   const bonusUsed = useBonus ? Math.floor(maxUsableBonus * (bonusPercentage / 100)) : 0;
   const totalAfterBonus = finalTotalAfterDiscount - bonusUsed;
-  const finalTotal = totalAfterBonus;
+  const finalTotal = totalAfterBonus + deliveryCost;
 
   useEffect(() => {
     if (appliedPromo) {
@@ -393,6 +405,7 @@ function Cart() {
       promoCode: appliedPromo,
       discountAmount: effectivePromoDiscount,
       finalTotal: finalTotal,
+      deliveryCost: deliveryCost,
       customerName: isGuest ? customerName.trim() : userProfile.fullName,
       customerPhone: isGuest ? customerPhone.trim() : userProfile.phone,
       customerEmail: isGuest ? customerEmail.trim() : userProfile.email,
@@ -414,6 +427,7 @@ function Cart() {
           orderNumber: data.orderNumber,
           items: cart,
           total: finalTotal,
+          deliveryCost: data.deliveryCost || deliveryCost,
           date: new Date().toLocaleString(),
           status: 'Принят',
           deliveryAddress: fullAddress,
@@ -451,7 +465,7 @@ function Cart() {
       alert('Произошла ошибка при оформлении заказа. Попробуйте еще раз.');
       return false;
     }
-  }, [isSaving, cart, isGuest, customerName, customerPhone, customerEmail, deliveryAddress, apartment, deliveryMode, selectedHour, selectedMinute, total, finalTotal, bonusUsed, effectivePromoDiscount, appliedPromo, consentPersonal, navigate, clearCart, userLogin, userProfile, saveOrder, refetchUserLevel]);
+  }, [isSaving, cart, isGuest, customerName, customerPhone, customerEmail, deliveryAddress, apartment, deliveryMode, selectedHour, selectedMinute, total, finalTotal, bonusUsed, effectivePromoDiscount, appliedPromo, consentPersonal, navigate, clearCart, userLogin, userProfile, saveOrder, refetchUserLevel, deliveryCost]);
 
   if (cart.length === 0) {
     return (
@@ -624,27 +638,55 @@ function Cart() {
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-t pt-4">
+        <div className="border-t border-gray-100 pt-4 mb-4">
+          <div className="space-y-1.5 text-sm">
+            <div className="flex justify-between text-gray-600">
+              <span>Товары</span>
+              <span>{total} ₽</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Доставка</span>
+              {deliveryWasFree ? (
+                <span className="flex items-center gap-1.5 text-green-600 font-medium">
+                  <FaGift className="text-sm" />
+                  Бесплатно
+                  <span className="text-gray-400 line-through text-xs">{baseDeliveryCost} ₽</span>
+                </span>
+              ) : (
+                <span className={deliveryCost === 0 ? 'text-green-600 font-medium' : 'text-gray-800'}>
+                  {deliveryCost === 0 ? 'Бесплатно' : `${deliveryCost} ₽`}
+                </span>
+              )}
+            </div>
+            {effectivePromoDiscount > 0 && (
+              <div className="flex justify-between text-amber-600">
+                <span>Промокод</span>
+                <span>-{effectivePromoDiscount} ₽</span>
+              </div>
+            )}
+            {bonusUsed > 0 && (
+              <div className="flex justify-between text-amber-600">
+                <span>Списано бонусов</span>
+                <span>-{bonusUsed} ₽</span>
+              </div>
+            )}
+          </div>
+          {deliveryWasFree && (
+            <div className="mt-2 text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 flex items-center gap-2">
+              <FaGift className="text-green-600 flex-shrink-0" />
+              <span>Бесплатная доставка по бонусу уровня «Катания» (1 раз в месяц)</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-t border-gray-100 pt-4">
           <div>
             <div className="flex items-baseline gap-2 flex-wrap">
               <span className="text-xl font-bold text-gray-800">Итого к оплате:</span>
               <motion.span key={finalTotal} className="text-2xl font-bold text-amber-600">
                 {finalTotal} ₽
               </motion.span>
-              {effectivePromoDiscount > 0 && (
-                <span className="text-sm text-gray-400 line-through">{total} ₽</span>
-              )}
             </div>
-
-            {effectivePromoDiscount > 0 && (
-              <div className="mt-1 text-sm text-amber-600">
-                Промокод: -{effectivePromoDiscount} ₽
-              </div>
-            )}
-
-            {bonusUsed > 0 && (
-              <div className="text-sm text-amber-600 mt-1">Списано бонусов: -{bonusUsed} ₽</div>
-            )}
           </div>
 
           {userLogin ? (

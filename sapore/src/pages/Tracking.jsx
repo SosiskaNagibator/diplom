@@ -8,7 +8,7 @@ import { ORDER_STATUSES } from '../constants/statuses';
 import { getStatusIndex } from '../utils/statusUtils';
 import { Button } from '../components/ui';
 import TrackingSkeleton from '../components/skeletons/TrackingSkeleton';
-import { FaBox, FaClock, FaTag, FaUser, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaBox, FaClock, FaTag, FaUser, FaMapMarkerAlt, FaTruck } from 'react-icons/fa';
 
 function Tracking() {
   const navigate = useNavigate();
@@ -217,6 +217,16 @@ function Tracking() {
             <div className="mt-4 text-sm text-gray-500 flex items-center gap-1">
               <FaMapMarkerAlt className="text-amber-500 flex-shrink-0" />
               <span>{order.deliveryAddress}</span>
+            </div>
+          )}
+          {order.deliveryCost !== undefined && order.deliveryCost !== null && (
+            <div className="mt-2 text-sm text-gray-500 flex items-center gap-1">
+              <FaTruck className="text-amber-500 flex-shrink-0" />
+              <span>
+                Доставка: {order.deliveryCost === 0
+                  ? <span className="text-green-600">бесплатно</span>
+                  : `${order.deliveryCost} ₽`}
+              </span>
             </div>
           )}
           {order.deliveryTime && (

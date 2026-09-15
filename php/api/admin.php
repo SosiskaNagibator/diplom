@@ -93,6 +93,22 @@ function handleAdminAction($pdo, $action) {
         case 'admin_toggle_promo':
             togglePromo($pdo);
             break;
+        case 'admin_get_delivery_rules':
+            require_once __DIR__ . '/delivery.php';
+            getDeliveryRules($pdo);
+            break;
+        case 'admin_add_delivery_rule':
+            require_once __DIR__ . '/delivery.php';
+            addDeliveryRule($pdo);
+            break;
+        case 'admin_update_delivery_rule':
+            require_once __DIR__ . '/delivery.php';
+            updateDeliveryRule($pdo);
+            break;
+        case 'admin_delete_delivery_rule':
+            require_once __DIR__ . '/delivery.php';
+            deleteDeliveryRule($pdo);
+            break;
         default:
             echo json_encode(['status' => 'error', 'message' => 'Неизвестное админ-действие']);
     }

@@ -56,6 +56,7 @@ function Admin() {
   const [categories, setCategories] = useState([]);
   const [pagesSeo, setPagesSeo] = useState([]);
   const [promos, setPromos] = useState([]);
+  const [deliveryRules, setDeliveryRules] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [pizzaSearch, setPizzaSearch] = useState('');
@@ -111,6 +112,10 @@ function Admin() {
   const [editingPromo, setEditingPromo] = useState(null);
   const [promoForm, setPromoForm] = useState(emptyPromoForm);
 
+  const emptyDeliveryForm = { min_amount: '', cost: '', sort_order: '0' };
+  const [editingDelivery, setEditingDelivery] = useState(null);
+  const [deliveryForm, setDeliveryForm] = useState(emptyDeliveryForm);
+
   useEffect(() => {
     const role = localStorage.getItem(STORAGE_KEYS.USER_ROLE);
     if (role !== 'admin') {
@@ -126,7 +131,8 @@ function Admin() {
         fetchToppings(),
         fetchCategories(),
         fetchPagesSeo(),
-        fetchPromos()
+        fetchPromos(),
+        fetchDeliveryRules()
       ]);
       setLoading(false);
     };
@@ -211,6 +217,16 @@ function Admin() {
     });
     const data = await res.json();
     if (data.status === 'success') setPromos(data.promos);
+  };
+
+  const fetchDeliveryRules = async () => {
+    const res = await fetch(API_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ action: 'admin_get_delivery_rules' })
+    });
+    const data = await res.json();
+    if (data.status === 'success') setDeliveryRules(data.rules);
   };
 
   const filteredPizzas = useMemo(() => {
@@ -549,6 +565,39 @@ function Admin() {
     else alert(data.message);
   };
 
+  const handleDeliverySubmit = async (e) => {
+    e.preventDefault();
+    const action = editingDelivery ? 'admin_update_delivery_rule' : 'admin_add_delivery_rule';
+    const payload = new URLSearchParams({ action, ...deliveryForm });
+    if (editingDelivery) payload.append('id', editingDelivery.id);
+    const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    const data = await res.json();
+    alert(data.message);
+    if (data.status === 'success') {
+      setDeliveryForm(emptyDeliveryForm);
+      setEditingDelivery(null);
+      fetchDeliveryRules();
+    }
+  };
+
+  const handleEditDelivery = (r) => {
+    setEditingDelivery(r);
+    setDeliveryForm({
+      min_amount: String(r.min_amount),
+      cost: String(r.cost),
+      sort_order: String(r.sort_order)
+    });
+  };
+
+  const handleDeleteDelivery = async (id) => {
+    if (!confirm('Удалить правило доставки?')) return;
+    const payload = new URLSearchParams({ action: 'admin_delete_delivery_rule', id });
+    const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    const data = await res.json();
+    alert(data.message);
+    if (data.status === 'success') fetchDeliveryRules();
+  };
+
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     const payload = new URLSearchParams({ action: 'admin_update_order_status', order_id: orderId, status: newStatus });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
@@ -582,7 +631,7 @@ function Admin() {
       </div>
 
       <div className="flex flex-wrap gap-2 mb-6">
-        {['pizzas','orders','users','promos','sizes','toppings','categories','seo'].map(tab => (
+        {['pizzas','orders','users','promos','delivery','sizes','toppings','categories','seo'].map(tab => (
           <Button
             key={tab}
             variant={activeTab === tab ? 'primary' : 'secondary'}
@@ -593,6 +642,7 @@ function Admin() {
              tab === 'orders' ? 'Заказы' :
              tab === 'users' ? 'Пользователи' :
              tab === 'promos' ? 'Промокоды' :
+             tab === 'delivery' ? 'Доставка' :
              tab === 'sizes' ? 'Размеры' :
              tab === 'toppings' ? 'Начинки' :
              tab === 'categories' ? 'Категории' :
@@ -1011,6 +1061,74 @@ function Admin() {
             </table>
             {filteredPromos.length === 0 && (
               <div className="p-6 text-center text-gray-500">Ничего не найдено</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'delivery' && (
+        <div>
+          <div className="bg-white rounded-xl shadow p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4">{editingDelivery ? 'Редактировать правило' : 'Добавить правило доставки'}</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Стоимость доставки определяется по сумме заказа. Система выбирает правило с наибольшим порогом, который не превышает сумму.
+            </p>
+            <form onSubmit={handleDeliverySubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Input
+                name="min_amount"
+                value={deliveryForm.min_amount}
+                onChange={e => setDeliveryForm({...deliveryForm, min_amount: e.target.value})}
+                placeholder="Минимальная сумма, ₽"
+                type="number"
+                required
+              />
+              <Input
+                name="cost"
+                value={deliveryForm.cost}
+                onChange={e => setDeliveryForm({...deliveryForm, cost: e.target.value})}
+                placeholder="Стоимость доставки, ₽"
+                type="number"
+                required
+              />
+              <Input
+                name="sort_order"
+                value={deliveryForm.sort_order}
+                onChange={e => setDeliveryForm({...deliveryForm, sort_order: e.target.value})}
+                placeholder="Порядок"
+                type="number"
+              />
+              <Button type="submit" variant="primary" className="col-span-1 md:col-span-3">{editingDelivery ? 'Обновить' : 'Добавить'}</Button>
+              {editingDelivery && <Button variant="secondary" className="col-span-1 md:col-span-3" onClick={() => { setEditingDelivery(null); setDeliveryForm(emptyDeliveryForm); }}>Отменить</Button>}
+            </form>
+          </div>
+          <div className="overflow-x-auto bg-white rounded-xl shadow">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-3 text-left">ID</th>
+                  <th>Мин. сумма</th>
+                  <th>Стоимость доставки</th>
+                  <th>Порядок</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deliveryRules.map(r => (
+                  <tr key={r.id} className="border-t">
+                    <td className="p-3">{r.id}</td>
+                    <td>от {r.min_amount} ₽</td>
+                    <td>{r.cost === 0 ? <span className="text-green-600 font-medium">Бесплатно</span> : `${r.cost} ₽`}</td>
+                    <td>{r.sort_order}</td>
+                    <td className="flex gap-2">
+                      <Button variant="outline" onClick={() => handleEditDelivery(r)} className="px-3 py-1 text-sm">✎</Button>
+                      <Button variant="danger" onClick={() => handleDeleteDelivery(r.id)} className="px-3 py-1 text-sm">✕</Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {deliveryRules.length === 0 && (
+              <div className="p-6 text-center text-gray-500">Правила не заданы</div>
             )}
           </div>
         </div>

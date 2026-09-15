@@ -149,6 +149,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             handleGetPageSeo($pdo);
             exit;
 
+        case 'get_delivery_rules':
+            require_api_file('delivery.php');
+            handleGetDeliveryRules($pdo);
+            exit;
+
+        case 'check_free_delivery':
+            require_api_file('delivery.php');
+            handleCheckFreeDelivery($pdo);
+            exit;
+
         default:
             echo json_encode(['status' => 'error', 'message' => 'Неизвестное действие для GET']);
             exit;

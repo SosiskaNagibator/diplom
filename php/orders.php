@@ -150,7 +150,13 @@ function handleSaveOrder($pdo, $input) {
             $stmt->execute([$promoCode]);
         }
 
-        $finalTotal = $originalTotal - $serverDiscount - $discount - $bonusUsed;
+        require_once __DIR__ . '/api/delivery.php';
+        $deliveryCost = getDeliveryCost($pdo, $originalTotal);
+        if ($freeDelivery) {
+            $deliveryCost = 0;
+        }
+
+        $finalTotal = $originalTotal - $serverDiscount - $discount - $bonusUsed + $deliveryCost;
         if ($finalTotal < 0) $finalTotal = 0;
 
         $itemsJson = json_encode($items, JSON_UNESCAPED_UNICODE);
@@ -236,6 +242,7 @@ function handleSaveOrder($pdo, $input) {
             'orderNumber' => $orderNumber,
             'newBalance' => $earnedBonuses,
             'discount' => $serverDiscount + $discount,
+            'deliveryCost' => $deliveryCost,
             'finalTotal' => $finalTotal,
             'new_level' => $newLevel,
             'applied_discount_percent' => $discountPercent,
