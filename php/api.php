@@ -75,8 +75,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($action)) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $limit = ($action === 'login' || $action === 'register') ? 10 : 60;
-    checkRateLimit($pdo, $action, $limit, 60);
+    if ($action === 'login' || $action === 'register') {
+        checkRateLimit($pdo, $action, 5, 300);
+    } else {
+        checkRateLimit($pdo, $action, 60, 60);
+    }
 }
 
 function require_api_file($filename) {

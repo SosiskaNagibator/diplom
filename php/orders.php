@@ -358,15 +358,48 @@ function handleApplyPromo($pdo, $input) {
     $code = trim($input['code'] ?? '');
     $login = $_SESSION['user_login'] ?? '';
     $orderTotal = (float)($input['orderTotal'] ?? 0);
+
     if (empty($code)) {
         echo json_encode(['status' => 'error', 'message' => 'Введите промокод']);
         return;
     }
-    $discount = applyPromoCode($pdo, $code, $login, $orderTotal);
-    if ($discount === false) {
-        echo json_encode(['status' => 'error', 'message' => 'Промокод недействителен или не принадлежит вам']);
+
+    $stmt = $pdo->prepare("SELECT * FROM promo_codes WHERE code = ? AND is_active = 1 AND (expires_at IS NULL OR expires_at > NOW()) AND (usage_limit IS NULL OR used_count < usage_limit)");
+    $stmt->execute([$code]);
+    $promo = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$promo) {
+        echo json_encode(['status' => 'error', 'message' => 'Промокод недействителен или просрочен']);
         return;
     }
+
+    if (!empty($promo['user_login']) && $promo['user_login'] !== $login) {
+        echo json_encode(['status' => 'error', 'message' => 'Промокод не принадлежит вам']);
+        return;
+    }
+
+    $minAmount = (float)$promo['min_order_amount'];
+    if ($minAmount > $orderTotal) {
+        $shortage = $minAmount - $orderTotal;
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Для активации промокода не хватает ' . number_format($shortage, 0, ',', ' ') . ' ₽. Минимальная сумма заказа — ' . number_format($minAmount, 0, ',', ' ') . ' ₽',
+            'min_order_amount' => $minAmount,
+            'shortage' => $shortage
+        ]);
+        return;
+    }
+
+    $discount = 0;
+    if ($promo['discount_type'] === 'percent') {
+        $discount = $orderTotal * ($promo['discount_value'] / 100);
+        if ($promo['max_discount'] !== null && $discount > $promo['max_discount']) {
+            $discount = (float)$promo['max_discount'];
+        }
+    } else {
+        $discount = (float)$promo['discount_value'];
+    }
+
     echo json_encode([
         'status' => 'success',
         'message' => 'Промокод применён',

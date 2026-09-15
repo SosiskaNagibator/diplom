@@ -316,7 +316,7 @@ function Cart() {
         setAppliedPromo(promoCode);
         setPromoMessage('');
       } else {
-        setPromoMessage('Ошибка: ' + data.message);
+        setPromoMessage(data.message);
         setPromoDiscount(0);
         setAppliedPromo('');
       }
@@ -553,50 +553,48 @@ function Cart() {
           )}
         </div>
 
-        <div className="mb-4 flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-          <div className="flex-1 w-full">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Промокод</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value)}
-                placeholder="Введите промокод"
-                className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
-                disabled={!!appliedPromo}
-              />
-              <Button
-                variant="primary"
-                onClick={handleApplyPromo}
-                disabled={isApplyingPromo || !!appliedPromo || !promoCode.trim()}
-                className="whitespace-nowrap"
-              >
-                {isApplyingPromo ? 'Проверка...' : 'Применить'}
-              </Button>
-            </div>
-            {promoMessage && !appliedPromo && (
-              <div className="text-sm mt-1 text-red-600">
-                {promoMessage}
-              </div>
-            )}
-            {appliedPromo && (
-              <div className="mt-2 flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2">
-                <FaCheck className="text-green-600 text-sm flex-shrink-0" />
-                <span className="text-sm text-green-700 flex-1">
-                  Промокод <strong>{appliedPromo}</strong> применён
-                </span>
-                <button
-                  type="button"
-                  onClick={handleRemovePromo}
-                  className="text-green-600 hover:text-red-500 transition-colors flex-shrink-0"
-                  aria-label="Удалить промокод"
-                  title="Удалить промокод"
-                >
-                  <FaTimes className="text-sm" />
-                </button>
-              </div>
-            )}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Промокод</label>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              value={promoCode}
+              onChange={(e) => setPromoCode(e.target.value)}
+              placeholder="Введите промокод"
+              className="w-full sm:flex-1 min-w-0 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+              disabled={!!appliedPromo}
+            />
+            <Button
+              variant="primary"
+              onClick={handleApplyPromo}
+              disabled={isApplyingPromo || !!appliedPromo || !promoCode.trim()}
+              className="w-full sm:w-auto sm:whitespace-nowrap flex-shrink-0"
+            >
+              {isApplyingPromo ? 'Проверка...' : 'Применить'}
+            </Button>
           </div>
+          {promoMessage && !appliedPromo && (
+            <div className="text-sm mt-1 text-red-600">
+              {promoMessage}
+            </div>
+          )}
+          {appliedPromo && (
+            <div className="mt-2 flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2">
+              <FaCheck className="text-green-600 text-sm flex-shrink-0" />
+              <span className="text-sm text-green-700 flex-1">
+                Промокод <strong>{appliedPromo}</strong> применён
+              </span>
+              <button
+                type="button"
+                onClick={handleRemovePromo}
+                className="text-green-600 hover:text-red-500 transition-colors flex-shrink-0"
+                aria-label="Удалить промокод"
+                title="Удалить промокод"
+              >
+                <FaTimes className="text-sm" />
+              </button>
+            </div>
+          )}
         </div>
 
         {isGuest ? (
