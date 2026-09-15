@@ -1,10 +1,49 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE, CONSTRUCTOR_TOPPINGS_BASE } from '../constants/api';
 import { ORDER_STATUSES } from '../constants/statuses';
 import { STORAGE_KEYS } from '../constants/storage';
 import { Button, Input, Badge, LoadingSpinner } from '../components/ui';
 import { getImageUrl } from '../utils/imageUtils';
+
+const pluralize = (n, forms) => {
+  const abs = Math.abs(n) % 100;
+  const lastDigit = abs % 10;
+  if (abs > 10 && abs < 20) return forms[2];
+  if (lastDigit > 1 && lastDigit < 5) return forms[1];
+  if (lastDigit === 1) return forms[0];
+  return forms[2];
+};
+
+const formatExpires = (expiresAt) => {
+  if (!expiresAt) {
+    return { text: 'Бессрочный', color: 'text-gray-500' };
+  }
+  const now = new Date();
+  const expires = new Date(expiresAt.replace(' ', 'T'));
+  const diffMs = expires - now;
+  const diffHours = diffMs / (1000 * 60 * 60);
+
+  if (diffHours < 0) {
+    const absDays = Math.max(1, Math.ceil(Math.abs(diffHours) / 24));
+    const w = pluralize(absDays, ['день', 'дня', 'дней']);
+    return { text: `Истёк ${absDays} ${w} назад`, color: 'text-red-600' };
+  }
+  if (diffHours < 24) {
+    const hours = Math.max(1, Math.round(diffHours));
+    const w = pluralize(hours, ['час', 'часа', 'часов']);
+    return { text: `Осталось ${hours} ${w}`, color: 'text-red-500' };
+  }
+  const diffDays = Math.ceil(diffHours / 24);
+  if (diffDays === 1) {
+    return { text: 'Истекает завтра', color: 'text-amber-600' };
+  }
+  const w = pluralize(diffDays, ['день', 'дня', 'дней']);
+  if (diffDays < 7) {
+    return { text: `Осталось ${diffDays} ${w}`, color: 'text-amber-600' };
+  }
+  return { text: `До ${expires.toLocaleDateString('ru-RU')}`, color: 'text-gray-500' };
+};
 
 function Admin() {
   const navigate = useNavigate();
@@ -16,7 +55,16 @@ function Admin() {
   const [toppings, setToppings] = useState([]);
   const [categories, setCategories] = useState([]);
   const [pagesSeo, setPagesSeo] = useState([]);
+  const [promos, setPromos] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [pizzaSearch, setPizzaSearch] = useState('');
+  const [pizzaCategoryFilter, setPizzaCategoryFilter] = useState('');
+  const [orderSearch, setOrderSearch] = useState('');
+  const [orderStatusFilter, setOrderStatusFilter] = useState('');
+  const [userSearch, setUserSearch] = useState('');
+  const [promoSearch, setPromoSearch] = useState('');
+  const [promoStatusFilter, setPromoStatusFilter] = useState('');
 
   const emptyPizzaForm = {
     name: '',
@@ -50,6 +98,19 @@ function Admin() {
   const [editingPage, setEditingPage] = useState(null);
   const [pageForm, setPageForm] = useState(emptyPageForm);
 
+  const emptyPromoForm = {
+    code: '',
+    discount_type: 'percent',
+    discount_value: '',
+    max_discount: '',
+    min_order_amount: '0',
+    expires_at: '',
+    usage_limit: '',
+    is_active: 1,
+  };
+  const [editingPromo, setEditingPromo] = useState(null);
+  const [promoForm, setPromoForm] = useState(emptyPromoForm);
+
   useEffect(() => {
     const role = localStorage.getItem(STORAGE_KEYS.USER_ROLE);
     if (role !== 'admin') {
@@ -64,7 +125,8 @@ function Admin() {
         fetchSizes(),
         fetchToppings(),
         fetchCategories(),
-        fetchPagesSeo()
+        fetchPagesSeo(),
+        fetchPromos()
       ]);
       setLoading(false);
     };
@@ -139,6 +201,70 @@ function Admin() {
     });
     const data = await res.json();
     if (data.status === 'success') setPagesSeo(data.pages);
+  };
+
+  const fetchPromos = async () => {
+    const res = await fetch(API_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ action: 'admin_get_promos' })
+    });
+    const data = await res.json();
+    if (data.status === 'success') setPromos(data.promos);
+  };
+
+  const filteredPizzas = useMemo(() => {
+    return pizzas.filter(p => {
+      const matchesSearch = !pizzaSearch || p.name?.toLowerCase().includes(pizzaSearch.toLowerCase());
+      const matchesCategory = !pizzaCategoryFilter || String(p.category_id) === String(pizzaCategoryFilter);
+      return matchesSearch && matchesCategory;
+    });
+  }, [pizzas, pizzaSearch, pizzaCategoryFilter]);
+
+  const filteredOrders = useMemo(() => {
+    const q = orderSearch.toLowerCase();
+    return orders.filter(o => {
+      const matchesSearch = !q ||
+        String(o.order_number || '').includes(q) ||
+        o.user_login?.toLowerCase().includes(q) ||
+        o.customer_name?.toLowerCase().includes(q) ||
+        o.customer_phone?.includes(q);
+      const matchesStatus = !orderStatusFilter || o.status === orderStatusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [orders, orderSearch, orderStatusFilter]);
+
+  const filteredUsers = useMemo(() => {
+    const q = userSearch.toLowerCase();
+    if (!q) return users;
+    return users.filter(u =>
+      u.Login?.toLowerCase().includes(q) ||
+      u.full_name?.toLowerCase().includes(q) ||
+      u.phone?.includes(q) ||
+      u.email?.toLowerCase().includes(q)
+    );
+  }, [users, userSearch]);
+
+  const filteredPromos = useMemo(() => {
+    return promos.filter(p => {
+      const matchesSearch = !promoSearch || p.code?.toLowerCase().includes(promoSearch.toLowerCase());
+      const matchesStatus = !promoStatusFilter ||
+        (promoStatusFilter === 'active' && Number(p.is_active) === 1) ||
+        (promoStatusFilter === 'inactive' && Number(p.is_active) === 0);
+      return matchesSearch && matchesStatus;
+    });
+  }, [promos, promoSearch, promoStatusFilter]);
+
+  const applyPromoPreset = (days) => {
+    const d = new Date();
+    d.setDate(d.getDate() + days);
+    d.setHours(23, 59, 0, 0);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    setPromoForm({ ...promoForm, expires_at: `${year}-${month}-${day}T${hours}:${minutes}` });
   };
 
   const handlePizzaSubmit = async (e) => {
@@ -363,6 +489,66 @@ function Admin() {
     }
   };
 
+  const handlePromoSubmit = async (e) => {
+    e.preventDefault();
+    const action = editingPromo ? 'admin_update_promo' : 'admin_add_promo';
+    const payload = new URLSearchParams({
+      action,
+      code: promoForm.code,
+      discount_type: promoForm.discount_type,
+      discount_value: promoForm.discount_value,
+      max_discount: promoForm.max_discount || '',
+      min_order_amount: promoForm.min_order_amount || '0',
+      expires_at: promoForm.expires_at || '',
+      usage_limit: promoForm.usage_limit || '',
+      is_active: promoForm.is_active
+    });
+    if (editingPromo) payload.append('id', editingPromo.id);
+    const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    const data = await res.json();
+    alert(data.message);
+    if (data.status === 'success') {
+      setPromoForm(emptyPromoForm);
+      setEditingPromo(null);
+      fetchPromos();
+    }
+  };
+
+  const handleEditPromo = (p) => {
+    setEditingPromo(p);
+    let expiresAtValue = '';
+    if (p.expires_at) {
+      expiresAtValue = p.expires_at.replace(' ', 'T').slice(0, 16);
+    }
+    setPromoForm({
+      code: p.code || '',
+      discount_type: p.discount_type || 'percent',
+      discount_value: p.discount_value || '',
+      max_discount: p.max_discount || '',
+      min_order_amount: p.min_order_amount || '0',
+      expires_at: expiresAtValue,
+      usage_limit: p.usage_limit || '',
+      is_active: Number(p.is_active)
+    });
+  };
+
+  const handleDeletePromo = async (id) => {
+    if (!confirm('Удалить промокод?')) return;
+    const payload = new URLSearchParams({ action: 'admin_delete_promo', id });
+    const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    const data = await res.json();
+    alert(data.message);
+    if (data.status === 'success') fetchPromos();
+  };
+
+  const handleTogglePromo = async (id) => {
+    const payload = new URLSearchParams({ action: 'admin_toggle_promo', id });
+    const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    const data = await res.json();
+    if (data.status === 'success') fetchPromos();
+    else alert(data.message);
+  };
+
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     const payload = new URLSearchParams({ action: 'admin_update_order_status', order_id: orderId, status: newStatus });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
@@ -396,7 +582,7 @@ function Admin() {
       </div>
 
       <div className="flex flex-wrap gap-2 mb-6">
-        {['pizzas','orders','users','sizes','toppings','categories','seo'].map(tab => (
+        {['pizzas','orders','users','promos','sizes','toppings','categories','seo'].map(tab => (
           <Button
             key={tab}
             variant={activeTab === tab ? 'primary' : 'secondary'}
@@ -406,6 +592,7 @@ function Admin() {
             {tab === 'pizzas' ? 'Товары' :
              tab === 'orders' ? 'Заказы' :
              tab === 'users' ? 'Пользователи' :
+             tab === 'promos' ? 'Промокоды' :
              tab === 'sizes' ? 'Размеры' :
              tab === 'toppings' ? 'Начинки' :
              tab === 'categories' ? 'Категории' :
@@ -488,10 +675,30 @@ function Admin() {
               {editingPizza && <Button variant="secondary" className="col-span-2" onClick={() => { setEditingPizza(null); setPizzaForm(emptyPizzaForm); setSelectedImageFile(null); }}>Отменить</Button>}
             </form>
           </div>
+
+          <div className="bg-white rounded-xl shadow p-4 mb-4 flex flex-col sm:flex-row gap-3">
+            <Input
+              value={pizzaSearch}
+              onChange={e => setPizzaSearch(e.target.value)}
+              placeholder="Поиск по названию..."
+              className="flex-1"
+            />
+            <select
+              value={pizzaCategoryFilter}
+              onChange={e => setPizzaCategoryFilter(e.target.value)}
+              className="border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            >
+              <option value="">Все категории</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
           <div className="overflow-x-auto bg-white rounded-xl shadow">
             <table className="w-full text-sm">
               <thead className="bg-gray-100"><tr><th className="p-3 text-left">ID</th><th>Название</th><th>Категория</th><th>Цена</th><th>Изображение</th><th>Действия</th></tr></thead>
-              <tbody>{pizzas.map(p => (
+              <tbody>{filteredPizzas.map(p => (
                 <tr key={p.id} className="border-t">
                   <td className="p-3">{p.id}</td>
                   <td>{p.name}</td>
@@ -505,59 +712,307 @@ function Admin() {
                 </tr>
               ))}</tbody>
             </table>
+            {filteredPizzas.length === 0 && (
+              <div className="p-6 text-center text-gray-500">Ничего не найдено</div>
+            )}
           </div>
         </div>
       )}
 
       {activeTab === 'orders' && (
-        <div className="overflow-x-auto bg-white rounded-xl shadow">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-100"><tr><th className="p-3 text-left">№</th><th>Пользователь</th><th>Сумма</th><th>Статус</th><th>Адрес</th><th>Время</th><th>Промокод</th><th>Действие</th></tr></thead>
-            <tbody>{orders.map(o => (
-              <tr key={o.id} className="border-t">
-                <td className="p-3">{o.order_number}</td>
-                <td>{o.user_login}</td>
-                <td>{o.total} ₽</td>
-                <td><Badge variant="primary">{o.status}</Badge></td>
-                <td>{o.delivery_address || '—'}</td>
-                <td>{o.delivery_time || '—'}</td>
-                <td>{o.promo_code || '—'}</td>
-                <td>
-                  <select value={o.status} onChange={e => handleUpdateOrderStatus(o.id, e.target.value)} className="border p-1 rounded">
-                    {ORDER_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </td>
-              </tr>
-            ))}</tbody>
-          </table>
+        <div>
+          <div className="bg-white rounded-xl shadow p-4 mb-4 flex flex-col sm:flex-row gap-3">
+            <Input
+              value={orderSearch}
+              onChange={e => setOrderSearch(e.target.value)}
+              placeholder="Поиск по номеру, логину, имени, телефону..."
+              className="flex-1"
+            />
+            <select
+              value={orderStatusFilter}
+              onChange={e => setOrderStatusFilter(e.target.value)}
+              className="border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            >
+              <option value="">Все статусы</option>
+              {ORDER_STATUSES.map(s => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="overflow-x-auto bg-white rounded-xl shadow">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-100"><tr><th className="p-3 text-left">№</th><th>Пользователь</th><th>Сумма</th><th>Статус</th><th>Адрес</th><th>Время</th><th>Промокод</th><th>Действие</th></tr></thead>
+              <tbody>{filteredOrders.map(o => (
+                <tr key={o.id} className="border-t">
+                  <td className="p-3">{o.order_number}</td>
+                  <td>{o.user_login}</td>
+                  <td>{o.total} ₽</td>
+                  <td><Badge variant="primary">{o.status}</Badge></td>
+                  <td>{o.delivery_address || '—'}</td>
+                  <td>{o.delivery_time || '—'}</td>
+                  <td>{o.promo_code || '—'}</td>
+                  <td>
+                    <select value={o.status} onChange={e => handleUpdateOrderStatus(o.id, e.target.value)} className="border p-1 rounded">
+                      {ORDER_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </td>
+                </tr>
+              ))}</tbody>
+            </table>
+            {filteredOrders.length === 0 && (
+              <div className="p-6 text-center text-gray-500">Ничего не найдено</div>
+            )}
+          </div>
         </div>
       )}
 
       {activeTab === 'users' && (
-        <div className="overflow-x-auto bg-white rounded-xl shadow">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-100"><tr><th>Логин</th><th>Имя</th><th>Телефон</th><th>Email</th><th>Бонусы</th><th>Действия</th></tr></thead>
-            <tbody>
-              {users.map(u => (
-                <tr key={u.Login} className="border-t">
-                  <td className="p-3">{u.Login}</td>
-                  <td><Input type="text" defaultValue={u.full_name || ''} id={`name-${u.Login}`} className="w-32" /></td>
-                  <td><Input type="text" defaultValue={u.phone || ''} id={`phone-${u.Login}`} className="w-32" /></td>
-                  <td><Input type="email" defaultValue={u.email || ''} id={`email-${u.Login}`} className="w-32" /></td>
-                  <td><Input type="number" defaultValue={u.balance} id={`bonus-${u.Login}`} className="w-24" /></td>
-                  <td>
-                    <Button variant="primary" onClick={() => {
-                      const name = document.getElementById(`name-${u.Login}`).value;
-                      const phone = document.getElementById(`phone-${u.Login}`).value;
-                      const email = document.getElementById(`email-${u.Login}`).value;
-                      const balance = parseInt(document.getElementById(`bonus-${u.Login}`).value);
-                      if (!isNaN(balance)) handleUpdateUser(u.Login, name, phone, email, balance);
-                    }} className="px-3 py-1 text-sm">Сохранить</Button>
-                  </td>
+        <div>
+          <div className="bg-white rounded-xl shadow p-4 mb-4">
+            <Input
+              value={userSearch}
+              onChange={e => setUserSearch(e.target.value)}
+              placeholder="Поиск по логину, имени, телефону, email..."
+            />
+          </div>
+
+          <div className="overflow-x-auto bg-white rounded-xl shadow">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-100"><tr><th>Логин</th><th>Имя</th><th>Телефон</th><th>Email</th><th>Бонусы</th><th>Действия</th></tr></thead>
+              <tbody>
+                {filteredUsers.map(u => (
+                  <tr key={u.Login} className="border-t">
+                    <td className="p-3">{u.Login}</td>
+                    <td><Input type="text" defaultValue={u.full_name || ''} id={`name-${u.Login}`} className="w-32" /></td>
+                    <td><Input type="text" defaultValue={u.phone || ''} id={`phone-${u.Login}`} className="w-32" /></td>
+                    <td><Input type="email" defaultValue={u.email || ''} id={`email-${u.Login}`} className="w-32" /></td>
+                    <td><Input type="number" defaultValue={u.balance} id={`bonus-${u.Login}`} className="w-24" /></td>
+                    <td>
+                      <Button variant="primary" onClick={() => {
+                        const name = document.getElementById(`name-${u.Login}`).value;
+                        const phone = document.getElementById(`phone-${u.Login}`).value;
+                        const email = document.getElementById(`email-${u.Login}`).value;
+                        const balance = parseInt(document.getElementById(`bonus-${u.Login}`).value);
+                        if (!isNaN(balance)) handleUpdateUser(u.Login, name, phone, email, balance);
+                      }} className="px-3 py-1 text-sm">Сохранить</Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {filteredUsers.length === 0 && (
+              <div className="p-6 text-center text-gray-500">Ничего не найдено</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'promos' && (
+        <div>
+          <div className="bg-white rounded-xl shadow p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4">{editingPromo ? 'Редактировать промокод' : 'Добавить промокод'}</h2>
+            <form onSubmit={handlePromoSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                name="code"
+                value={promoForm.code}
+                onChange={e => setPromoForm({...promoForm, code: e.target.value.toUpperCase()})}
+                placeholder="Код промокода (например, SAPORE20)"
+                required
+              />
+              <select
+                value={promoForm.discount_type}
+                onChange={e => setPromoForm({...promoForm, discount_type: e.target.value})}
+                className="border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400"
+              >
+                <option value="percent">Процент (%)</option>
+                <option value="fixed">Фиксированная (₽)</option>
+              </select>
+              <Input
+                name="discount_value"
+                value={promoForm.discount_value}
+                onChange={e => setPromoForm({...promoForm, discount_value: e.target.value})}
+                placeholder={promoForm.discount_type === 'percent' ? 'Размер скидки, %' : 'Размер скидки, ₽'}
+                type="number"
+                required
+              />
+              <Input
+                name="max_discount"
+                value={promoForm.max_discount}
+                onChange={e => setPromoForm({...promoForm, max_discount: e.target.value})}
+                placeholder="Макс. скидка, ₽ (необязательно)"
+                type="number"
+              />
+              <Input
+                name="min_order_amount"
+                value={promoForm.min_order_amount}
+                onChange={e => setPromoForm({...promoForm, min_order_amount: e.target.value})}
+                placeholder="Мин. сумма заказа, ₽"
+                type="number"
+              />
+              <Input
+                name="usage_limit"
+                value={promoForm.usage_limit}
+                onChange={e => setPromoForm({...promoForm, usage_limit: e.target.value})}
+                placeholder="Лимит использований (необязательно)"
+                type="number"
+              />
+
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Срок действия</label>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setPromoForm({ ...promoForm, expires_at: '' })}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                      !promoForm.expires_at
+                        ? 'bg-amber-500 text-white shadow-sm'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Не ограничен
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyPromoPreset(1)}
+                    className="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                  >
+                    +1 день
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyPromoPreset(7)}
+                    className="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                  >
+                    +7 дней
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyPromoPreset(30)}
+                    className="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                  >
+                    +30 дней
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyPromoPreset(90)}
+                    className="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                  >
+                    +90 дней
+                  </button>
+                </div>
+                <input
+                  type="datetime-local"
+                  value={promoForm.expires_at}
+                  onChange={e => setPromoForm({...promoForm, expires_at: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+                />
+                <p className="mt-2 text-xs text-gray-500">
+                  Если оставить пустым — промокод будет бессрочным
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 mt-6">
+                <input
+                  type="checkbox"
+                  id="promo_active"
+                  checked={Number(promoForm.is_active) === 1}
+                  onChange={e => setPromoForm({...promoForm, is_active: e.target.checked ? 1 : 0})}
+                  className="w-5 h-5 accent-amber-500"
+                />
+                <label htmlFor="promo_active" className="text-sm font-medium text-gray-700 cursor-pointer">
+                  Активен
+                </label>
+              </div>
+
+              <Button type="submit" variant="primary" className="col-span-2">{editingPromo ? 'Обновить' : 'Добавить'}</Button>
+              {editingPromo && <Button variant="secondary" className="col-span-2" onClick={() => { setEditingPromo(null); setPromoForm(emptyPromoForm); }}>Отменить</Button>}
+            </form>
+          </div>
+
+          <div className="bg-white rounded-xl shadow p-4 mb-4 flex flex-col sm:flex-row gap-3">
+            <Input
+              value={promoSearch}
+              onChange={e => setPromoSearch(e.target.value)}
+              placeholder="Поиск по коду..."
+              className="flex-1"
+            />
+            <select
+              value={promoStatusFilter}
+              onChange={e => setPromoStatusFilter(e.target.value)}
+              className="border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            >
+              <option value="">Все статусы</option>
+              <option value="active">Активные</option>
+              <option value="inactive">Неактивные</option>
+            </select>
+          </div>
+
+          <div className="overflow-x-auto bg-white rounded-xl shadow">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-3 text-left">ID</th>
+                  <th>Код</th>
+                  <th>Скидка</th>
+                  <th>Мин. сумма</th>
+                  <th>Срок действия</th>
+                  <th>Использован</th>
+                  <th>Тип</th>
+                  <th>Статус</th>
+                  <th>Действия</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredPromos.map(p => {
+                  const isPersonal = !!p.user_login;
+                  const usedInfo = p.usage_limit
+                    ? `${p.used_count || 0} / ${p.usage_limit}`
+                    : `${p.used_count || 0}`;
+                  const discountText = p.discount_type === 'percent'
+                    ? `${p.discount_value}%`
+                    : `${p.discount_value} ₽`;
+                  const expires = formatExpires(p.expires_at);
+                  return (
+                    <tr key={p.id} className="border-t">
+                      <td className="p-3">{p.id}</td>
+                      <td className="font-mono font-medium">{p.code}</td>
+                      <td>{discountText}</td>
+                      <td>{p.min_order_amount} ₽</td>
+                      <td className={`text-sm font-medium ${expires.color}`}>
+                        {expires.text}
+                      </td>
+                      <td>{usedInfo}</td>
+                      <td>
+                        {isPersonal
+                          ? <Badge variant="info">Личный</Badge>
+                          : <Badge variant="default">Общий</Badge>}
+                      </td>
+                      <td>
+                        {Number(p.is_active) === 1
+                          ? <Badge variant="success">Активен</Badge>
+                          : <Badge variant="danger">Выключен</Badge>}
+                      </td>
+                      <td className="flex gap-2 flex-wrap">
+                        <Button variant="outline" onClick={() => handleEditPromo(p)} className="px-3 py-1 text-sm">✎</Button>
+                        <Button
+                          variant={Number(p.is_active) === 1 ? 'secondary' : 'primary'}
+                          onClick={() => handleTogglePromo(p.id)}
+                          className="px-3 py-1 text-xs"
+                        >
+                          {Number(p.is_active) === 1 ? 'Выкл' : 'Вкл'}
+                        </Button>
+                        <Button variant="danger" onClick={() => handleDeletePromo(p.id)} className="px-3 py-1 text-sm">✕</Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {filteredPromos.length === 0 && (
+              <div className="p-6 text-center text-gray-500">Ничего не найдено</div>
+            )}
+          </div>
         </div>
       )}
 

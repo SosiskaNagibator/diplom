@@ -198,7 +198,7 @@ function Home({ addToCart }) {
             className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
           >
             <img
-              src={`${STATIC_HOME}italian-recipes.jpg`}
+              src={`${STATIC_HOME}italian-recipes.webp`}
               alt="Итальянские рецепты"
               className="w-full h-48 object-cover"
               loading="lazy"
@@ -219,7 +219,7 @@ function Home({ addToCart }) {
             className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
           >
             <img
-              src={`${STATIC_HOME}fast-delivery.jpg`}
+              src={`${STATIC_HOME}fast-delivery.webp`}
               alt="Быстрая доставка пиццы"
               className="w-full h-48 object-cover"
               loading="lazy"
@@ -240,7 +240,7 @@ function Home({ addToCart }) {
             className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
           >
             <img
-              src={`${STATIC_HOME}fresh-products.jpg`}
+              src={`${STATIC_HOME}fresh-products.webp`}
               alt="Свежие продукты"
               className="w-full h-48 object-cover"
               loading="lazy"

@@ -78,6 +78,21 @@ function handleAdminAction($pdo, $action) {
             require_once __DIR__ . '/seo.php';
             updatePageSeo($pdo);
             break;
+        case 'admin_get_promos':
+            getPromos($pdo);
+            break;
+        case 'admin_add_promo':
+            addPromo($pdo);
+            break;
+        case 'admin_update_promo':
+            updatePromo($pdo);
+            break;
+        case 'admin_delete_promo':
+            deletePromo($pdo);
+            break;
+        case 'admin_toggle_promo':
+            togglePromo($pdo);
+            break;
         default:
             echo json_encode(['status' => 'error', 'message' => 'Неизвестное админ-действие']);
     }
@@ -616,5 +631,159 @@ function deleteCategory($pdo) {
         echo json_encode(['status' => 'success', 'message' => 'Категория удалена']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления']);
+    }
+}
+
+function getPromos($pdo) {
+    $stmt = $pdo->query("SELECT id, code, discount_type, discount_value, max_discount, min_order_amount, expires_at, usage_limit, used_count, is_active, created_at, user_login, level_id, is_used FROM promo_codes ORDER BY id DESC");
+    $promos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo json_encode(['status' => 'success', 'promos' => $promos]);
+}
+
+function addPromo($pdo) {
+    $code = strtoupper(trim($_POST['code'] ?? ''));
+    $discountType = $_POST['discount_type'] ?? 'percent';
+    $discountValue = (float)($_POST['discount_value'] ?? 0);
+    $maxDiscount = trim($_POST['max_discount'] ?? '');
+    $minOrderAmount = (float)($_POST['min_order_amount'] ?? 0);
+    $expiresAt = trim($_POST['expires_at'] ?? '');
+    $usageLimit = trim($_POST['usage_limit'] ?? '');
+    $isActive = (int)($_POST['is_active'] ?? 1);
+
+    if (empty($code)) {
+        echo json_encode(['status' => 'error', 'message' => 'Введите код промокода']);
+        return;
+    }
+    if (!in_array($discountType, ['percent', 'fixed'])) {
+        echo json_encode(['status' => 'error', 'message' => 'Неверный тип скидки']);
+        return;
+    }
+    if ($discountValue <= 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Размер скидки должен быть больше 0']);
+        return;
+    }
+    if ($discountType === 'percent' && $discountValue > 100) {
+        echo json_encode(['status' => 'error', 'message' => 'Процент скидки не может быть больше 100']);
+        return;
+    }
+
+    $stmt = $pdo->prepare("SELECT id FROM promo_codes WHERE code = ?");
+    $stmt->execute([$code]);
+    if ($stmt->fetch()) {
+        echo json_encode(['status' => 'error', 'message' => 'Промокод с таким кодом уже существует']);
+        return;
+    }
+
+    $expiresAtFormatted = null;
+    if (!empty($expiresAt)) {
+        $expiresAtFormatted = str_replace('T', ' ', $expiresAt);
+        if (strlen($expiresAtFormatted) === 16) {
+            $expiresAtFormatted .= ':00';
+        }
+    }
+
+    $stmt = $pdo->prepare("INSERT INTO promo_codes (code, discount_type, discount_value, max_discount, min_order_amount, expires_at, usage_limit, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    if ($stmt->execute([
+        $code,
+        $discountType,
+        $discountValue,
+        $maxDiscount !== '' ? (float)$maxDiscount : null,
+        $minOrderAmount,
+        $expiresAtFormatted,
+        $usageLimit !== '' ? (int)$usageLimit : null,
+        $isActive
+    ])) {
+        echo json_encode(['status' => 'success', 'message' => 'Промокод добавлен', 'id' => $pdo->lastInsertId()]);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления']);
+    }
+}
+
+function updatePromo($pdo) {
+    $id = (int)($_POST['id'] ?? 0);
+    $code = strtoupper(trim($_POST['code'] ?? ''));
+    $discountType = $_POST['discount_type'] ?? 'percent';
+    $discountValue = (float)($_POST['discount_value'] ?? 0);
+    $maxDiscount = trim($_POST['max_discount'] ?? '');
+    $minOrderAmount = (float)($_POST['min_order_amount'] ?? 0);
+    $expiresAt = trim($_POST['expires_at'] ?? '');
+    $usageLimit = trim($_POST['usage_limit'] ?? '');
+    $isActive = (int)($_POST['is_active'] ?? 1);
+
+    if (!$id || empty($code)) {
+        echo json_encode(['status' => 'error', 'message' => 'Неверные данные']);
+        return;
+    }
+    if (!in_array($discountType, ['percent', 'fixed'])) {
+        echo json_encode(['status' => 'error', 'message' => 'Неверный тип скидки']);
+        return;
+    }
+    if ($discountValue <= 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Размер скидки должен быть больше 0']);
+        return;
+    }
+    if ($discountType === 'percent' && $discountValue > 100) {
+        echo json_encode(['status' => 'error', 'message' => 'Процент скидки не может быть больше 100']);
+        return;
+    }
+
+    $stmt = $pdo->prepare("SELECT id FROM promo_codes WHERE code = ? AND id != ?");
+    $stmt->execute([$code, $id]);
+    if ($stmt->fetch()) {
+        echo json_encode(['status' => 'error', 'message' => 'Промокод с таким кодом уже существует']);
+        return;
+    }
+
+    $expiresAtFormatted = null;
+    if (!empty($expiresAt)) {
+        $expiresAtFormatted = str_replace('T', ' ', $expiresAt);
+        if (strlen($expiresAtFormatted) === 16) {
+            $expiresAtFormatted .= ':00';
+        }
+    }
+
+    $stmt = $pdo->prepare("UPDATE promo_codes SET code=?, discount_type=?, discount_value=?, max_discount=?, min_order_amount=?, expires_at=?, usage_limit=?, is_active=? WHERE id=?");
+    if ($stmt->execute([
+        $code,
+        $discountType,
+        $discountValue,
+        $maxDiscount !== '' ? (float)$maxDiscount : null,
+        $minOrderAmount,
+        $expiresAtFormatted,
+        $usageLimit !== '' ? (int)$usageLimit : null,
+        $isActive,
+        $id
+    ])) {
+        echo json_encode(['status' => 'success', 'message' => 'Промокод обновлён']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления']);
+    }
+}
+
+function deletePromo($pdo) {
+    $id = (int)($_POST['id'] ?? 0);
+    if (!$id) {
+        echo json_encode(['status' => 'error', 'message' => 'Не указан ID']);
+        return;
+    }
+    $stmt = $pdo->prepare("DELETE FROM promo_codes WHERE id = ?");
+    if ($stmt->execute([$id])) {
+        echo json_encode(['status' => 'success', 'message' => 'Промокод удалён']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Ошибка удаления']);
+    }
+}
+
+function togglePromo($pdo) {
+    $id = (int)($_POST['id'] ?? 0);
+    if (!$id) {
+        echo json_encode(['status' => 'error', 'message' => 'Не указан ID']);
+        return;
+    }
+    $stmt = $pdo->prepare("UPDATE promo_codes SET is_active = 1 - is_active WHERE id = ?");
+    if ($stmt->execute([$id])) {
+        echo json_encode(['status' => 'success', 'message' => 'Статус изменён']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления']);
     }
 }
