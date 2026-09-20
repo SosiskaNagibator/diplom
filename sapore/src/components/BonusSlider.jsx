@@ -47,6 +47,7 @@ const BonusSlider = memo(({ maxUsableBonus, bonusUsed, onFinalChange, initialVal
             onChange={handleChange}
             onMouseUp={handleEnd}
             onTouchEnd={handleEnd}
+            onKeyUp={handleEnd}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             style={{ zIndex: 2 }}
           />

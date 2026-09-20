@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
@@ -18,7 +18,6 @@ function Tracking() {
   const queryClient = useQueryClient();
 
   const [expandedItems, setExpandedItems] = useState({});
-  const guestIntervalRef = useRef(null);
 
   const { data: orders = [], isLoading, error } = useOrders(userLogin);
 
@@ -51,15 +50,6 @@ function Tracking() {
     setGuestOrders(localOrders);
     setLoadingGuest(false);
   }, [isGuest]);
-
-  useEffect(() => {
-    if (!isGuest || guestOrders.length === 0) return;
-    if (guestIntervalRef.current) clearInterval(guestIntervalRef.current);
-    guestIntervalRef.current = setInterval(() => {
-      console.log('Автообновление статуса для гостя (заглушка)');
-    }, 10000);
-    return () => clearInterval(guestIntervalRef.current);
-  }, [isGuest, guestOrders]);
 
   useEffect(() => {
     if (!userLogin) return;
@@ -241,9 +231,6 @@ function Tracking() {
               <FaTag className="text-amber-500 flex-shrink-0" />
               <span>Промокод: {order.promoCode} (скидка {order.discountAmount} ₽)</span>
             </div>
-          )}
-          {order.finalTotal && order.finalTotal !== order.total && (
-            <div className="mt-1 text-sm text-green-600">Итого к оплате: {order.finalTotal} ₽</div>
           )}
           {order.customerName && (
             <div className="mt-1 text-sm text-gray-500 flex items-center gap-1">

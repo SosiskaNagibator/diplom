@@ -33,6 +33,18 @@ function ScrollManager() {
   return null;
 }
 
+const pageVariants = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -20 },
+};
+
+const pageTransition = {
+  type: 'tween',
+  ease: 'easeInOut',
+  duration: 0.3,
+};
+
 function App() {
   const { addToCart } = useCart();
   const [showNotification, setShowNotification] = useState(false);
@@ -47,111 +59,40 @@ function App() {
     setTimeout(() => setShowNotification(false), 2000);
   };
 
-  const pageVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -20 },
-  };
-
-  const pageTransition = {
-    type: 'tween',
-    ease: 'easeInOut',
-    duration: 0.3,
-  };
-
   return (
     <div className="flex flex-col min-h-screen">
       <ScrollManager />
       <Header />
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 w-full">
         <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
-            <Route path="/" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <Home addToCart={handleAddToCart} />
-              </motion.div>
-            } />
-            <Route path="/catalog" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <Catalog addToCart={handleAddToCart} />
-              </motion.div>
-            } />
-            <Route path="/category/:slug" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <CategoryPage addToCart={handleAddToCart} />
-              </motion.div>
-            } />
-            <Route path="/product/:slug" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <PizzaDetails addToCart={handleAddToCart} />
-              </motion.div>
-            } />
-            <Route path="/pizza/:id" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <PizzaDetails addToCart={handleAddToCart} />
-              </motion.div>
-            } />
-            <Route path="/constructor" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <Constructor addToCart={handleAddToCart} />
-              </motion.div>
-            } />
-            <Route path="/cart" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <Cart />
-              </motion.div>
-            } />
-            <Route path="/profile" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <Profile />
-              </motion.div>
-            } />
-            <Route path="/tracking" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <Tracking />
-              </motion.div>
-            } />
-            <Route path="/admin" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <Admin />
-              </motion.div>
-            } />
-            <Route path="/contacts" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <Contacts />
-              </motion.div>
-            } />
-            <Route path="/wishlist" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <Wishlist />
-              </motion.div>
-            } />
-            <Route path="/forgot-password" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <ForgotPassword />
-              </motion.div>
-            } />
-            <Route path="/reset-password" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <ResetPassword />
-              </motion.div>
-            } />
-            <Route path="/privacy" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <Privacy />
-              </motion.div>
-            } />
-            <Route path="/offer" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <Offer />
-              </motion.div>
-            } />
-            <Route path="*" element={
-              <motion.div initial="initial" animate="animate" exit="exit" variants={pageVariants} transition={pageTransition}>
-                <NotFound />
-              </motion.div>
-            } />
-          </Routes>
+          <motion.div
+            key={location.pathname}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={pageVariants}
+            transition={pageTransition}
+          >
+            <Routes location={location}>
+              <Route path="/" element={<Home addToCart={handleAddToCart} />} />
+              <Route path="/catalog" element={<Catalog addToCart={handleAddToCart} />} />
+              <Route path="/category/:slug" element={<CategoryPage addToCart={handleAddToCart} />} />
+              <Route path="/product/:slug" element={<PizzaDetails addToCart={handleAddToCart} />} />
+              <Route path="/pizza/:id" element={<PizzaDetails addToCart={handleAddToCart} />} />
+              <Route path="/constructor" element={<Constructor addToCart={handleAddToCart} />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/tracking" element={<Tracking />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/contacts" element={<Contacts />} />
+              <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/offer" element={<Offer />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </motion.div>
         </AnimatePresence>
       </main>
       <Footer />

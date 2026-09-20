@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import MapPicker from '../components/MapPicker/MapPicker';
 import { Button, Input } from '../components/ui';
-import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaTelegramPlane, FaVk, FaYoutube } from 'react-icons/fa';
+import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaTelegramPlane, FaVk, FaYoutube, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import { API_BASE } from '../constants/api';
 import { usePageSeo } from '../hooks/usePageSeo';
 import SEO from '../components/SEO';
@@ -40,13 +40,13 @@ function Contacts() {
       });
       const data = await response.json();
       if (data.status === 'success') {
-        setStatus({ type: 'success', text: '✅ Сообщение отправлено! Мы свяжемся с вами.' });
+        setStatus({ type: 'success', text: 'Сообщение отправлено! Мы свяжемся с вами.' });
         setFormData({ name: '', email: '', message: '' });
       } else {
-        setStatus({ type: 'error', text: '❌ ' + data.message });
+        setStatus({ type: 'error', text: data.message });
       }
     } catch (err) {
-      setStatus({ type: 'error', text: '❌ Ошибка соединения с сервером' });
+      setStatus({ type: 'error', text: 'Ошибка соединения с сервером' });
     } finally {
       setLoading(false);
     }
@@ -209,8 +209,11 @@ function Contacts() {
               </Button>
             </motion.div>
             {status.text && (
-              <div className={`text-sm p-3 rounded-xl ${status.type === 'success' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                {status.text}
+              <div className={`flex items-start gap-2 text-sm p-3 rounded-xl ${status.type === 'success' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                {status.type === 'success'
+                  ? <FaCheckCircle className="text-lg flex-shrink-0 mt-0.5" />
+                  : <FaExclamationCircle className="text-lg flex-shrink-0 mt-0.5" />}
+                <span>{status.text}</span>
               </div>
             )}
           </form>

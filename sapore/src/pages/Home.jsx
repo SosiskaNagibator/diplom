@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaPlus, FaStar } from 'react-icons/fa';
+import { FaStar } from 'react-icons/fa';
 import { API_CATALOG, STATIC_HOME } from '../constants/api';
 import { getPriceWithSize } from '../utils/priceUtils';
 import { Button, Card } from '../components/ui';
@@ -293,7 +293,7 @@ function Home({ addToCart }) {
                     <img
                       src={getImageUrl(pizza.image, 'medium')}
                       srcSet={`${getImageUrl(pizza.image, 'thumb')} 400w, ${getImageUrl(pizza.image, 'medium')} 800w, ${getImageUrl(pizza.image, 'large')} 1200w`}
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 320px"
                       alt={pizza.name}
                       className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                       loading="lazy"
@@ -330,7 +330,7 @@ function Home({ addToCart }) {
                         {getPrice(pizza)} ₽
                       </span>
                       <Button variant="primary" onClick={(e) => handleAddToCart(e, pizza)}>
-                        <FaPlus className="inline mr-1 text-xs" /> В корзину
+                        В корзину
                       </Button>
                     </div>
                   </div>

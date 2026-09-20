@@ -10,8 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit(0);
 }
 
-header('Cache-Control: public, max-age=600');
-header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 600) . ' GMT');
+header('Cache-Control: public, max-age=60');
+header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 60) . ' GMT');
 
 try {
     $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);

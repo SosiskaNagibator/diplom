@@ -12,6 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import ConsentCheckbox from '../components/ConsentCheckbox';
 import SEO from '../components/SEO';
+import { InputMask } from '@react-input/mask';
 import {
     FaPhone, FaEnvelope, FaUsers, FaGift, FaChartLine, FaCoins, FaInfoCircle, FaGem,
     FaPercent, FaPlus, FaTruck, FaUtensils, FaStar, FaChevronRight, FaCheckCircle,
@@ -727,13 +728,14 @@ function Profile() {
                 style={{ animationDelay: '0.3s' }}
                 required
               />
-              <Input
-                type="tel"
-                placeholder="+7 999 123-45-67"
+              <InputMask
+                mask="+7 (___) ___-__-__"
+                replacement={{ _: /\d/ }}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="slide-in-right"
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all duration-200 slide-in-right"
                 style={{ animationDelay: '0.35s' }}
+                placeholder="+7 (999) 999-99-99"
                 required
               />
               <Input

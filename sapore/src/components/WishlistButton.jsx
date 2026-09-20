@@ -20,11 +20,12 @@ const WishlistButton = ({ pizzaId, className = '' }) => {
 
   return (
     <motion.button
+      key={isFavorite ? 'fav' : 'not-fav'}
       onClick={handleClick}
       className={`p-2 rounded-full transition-colors duration-200 ${isFavorite ? 'text-red-500' : 'text-gray-400 hover:text-red-400'} ${className}`}
       aria-label={isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'}
       whileTap={{ scale: 0.7 }}
-      animate={isFavorite ? { scale: [1, 1.2, 1] } : {}}
+      animate={isFavorite ? { scale: [1, 1.2, 1] } : { scale: 1 }}
       transition={{ duration: 0.3 }}
     >
       <svg
