@@ -159,6 +159,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             handleCheckFreeDelivery($pdo);
             exit;
 
+        case 'logout':
+            session_destroy();
+            echo json_encode(['status' => 'success', 'message' => 'Выход выполнен']);
+            exit;
+
         default:
             echo json_encode(['status' => 'error', 'message' => 'Неизвестное действие для GET']);
             exit;
@@ -171,6 +176,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'register':
             require_api_file('auth.php');
             handleAuth($pdo);
+            exit;
+
+        case 'logout':
+            session_destroy();
+            echo json_encode(['status' => 'success', 'message' => 'Выход выполнен']);
             exit;
 
         case 'contact':

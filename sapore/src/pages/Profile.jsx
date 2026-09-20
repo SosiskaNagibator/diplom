@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { API_BASE, LEVELS_BASE } from '../constants/api';
 import { STORAGE_KEYS } from '../constants/storage';
@@ -51,6 +51,7 @@ const usePromoCode = (login) => {
 
 function Profile() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { userLogin, userProfile, login, logout, loading: authLoading } = useAuth();
 
   const { data: bonuses = 0, isLoading: isBonusesLoading } = useBonuses(userLogin);
@@ -84,6 +85,14 @@ function Profile() {
 
   const levelRefs = useRef({});
   const travelContainerRef = useRef(null);
+
+  useEffect(() => {
+    const ref = searchParams.get('ref');
+    if (ref && !userLogin) {
+      setReferralCodeInput(ref);
+      setIsRegister(true);
+    }
+  }, [searchParams, userLogin]);
 
   useEffect(() => {
     if (currentLevelData && levelRefs.current[currentLevelData.id]) {
@@ -167,6 +176,10 @@ function Profile() {
         setConsentPersonal(false);
         setConsentOffer(false);
         setReferralCodeInput('');
+        if (searchParams.get('ref')) {
+          searchParams.delete('ref');
+          setSearchParams(searchParams, { replace: true });
+        }
         if (result.data?.role === 'admin') {
           navigate('/admin');
         }
@@ -178,8 +191,8 @@ function Profile() {
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     showMessage('Вы вышли из аккаунта', 'success');
   };
 
@@ -568,12 +581,12 @@ function Profile() {
                     <div className="font-semibold text-gray-700 mb-3 flex items-center gap-1">
                       <FaUsers /> Реферальная программа
                     </div>
-                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div>
-                          <div className="text-sm text-gray-600">Ваш реферальный код:</div>
-                          <div 
-                            className="text-xl font-mono font-bold text-amber-600 select-all cursor-pointer hover:text-amber-700 transition"
+                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-4">
+                      <div>
+                        <div className="text-sm text-gray-600 mb-1">Ваш реферальный код:</div>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <div
+                            className="flex-1 text-xl font-mono font-bold text-amber-600 select-all cursor-pointer hover:text-amber-700 transition"
                             onClick={() => {
                               const code = referralInfo.referral_code || '';
                               copyToClipboard(code, 'Реферальный код скопирован!');
@@ -581,18 +594,46 @@ function Profile() {
                           >
                             {referralInfo.referral_code}
                           </div>
+                          <button
+                            onClick={() => {
+                              const code = referralInfo.referral_code || '';
+                              copyToClipboard(code, 'Реферальный код скопирован!');
+                            }}
+                            className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm whitespace-nowrap"
+                          >
+                            Скопировать код
+                          </button>
                         </div>
-                        <button
-                          onClick={() => {
-                            const code = referralInfo.referral_code || '';
-                            copyToClipboard(code, 'Реферальный код скопирован!');
-                          }}
-                          className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm"
-                        >
-                          Скопировать код
-                        </button>
                       </div>
-                      <div className="mt-3 flex gap-6 text-sm">
+
+                      <div>
+                        <div className="text-sm text-gray-600 mb-1">Ссылка для приглашения друга:</div>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <div
+                            className="flex-1 text-sm font-mono text-amber-700 select-all cursor-pointer hover:text-amber-800 transition bg-white px-3 py-2 rounded-lg border border-amber-200 break-all"
+                            onClick={() => {
+                              const link = referralInfo.referral_link || '';
+                              copyToClipboard(link, 'Ссылка скопирована!');
+                            }}
+                          >
+                            {referralInfo.referral_link}
+                          </div>
+                          <button
+                            onClick={() => {
+                              const link = referralInfo.referral_link || '';
+                              copyToClipboard(link, 'Ссылка скопирована!');
+                            }}
+                            className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition text-sm whitespace-nowrap"
+                          >
+                            Скопировать ссылку
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Отправьте эту ссылку другу — он зарегистрируется, а вы получите бонус после его первого заказа.
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap gap-6 text-sm pt-2 border-t border-amber-200">
                         <span>Приглашено: <strong>{referralInfo.total_referrals}</strong></span>
                         <span>Завершено: <strong>{referralInfo.completed_referrals}</strong></span>
                         <span>Бонус за реферала: <strong>{referralInfo.bonus_per_referral} ₽</strong></span>

@@ -352,10 +352,18 @@ function updateUserBonus($pdo) {
         echo json_encode(['status' => 'error', 'message' => 'Неверные данные']);
         return;
     }
+
+    $stmt = $pdo->prepare("SELECT balance FROM bonuses WHERE login = ?");
+    $stmt->execute([$login]);
+    $currentBalance = (int)($stmt->fetchColumn() ?: 0);
+    $delta = $newBalance - $currentBalance;
+
     $stmt = $pdo->prepare("UPDATE bonuses SET balance = ? WHERE login = ?");
     if ($stmt->execute([$newBalance, $login])) {
-        $stmt = $pdo->prepare("INSERT INTO bonus_history (login, amount, description) VALUES (?, ?, ?)");
-        $stmt->execute([$login, $newBalance, 'Админ изменил баланс']);
+        if ($delta !== 0) {
+            $stmt = $pdo->prepare("INSERT INTO bonus_history (login, amount, description) VALUES (?, ?, ?)");
+            $stmt->execute([$login, $delta, 'Админ изменил баланс']);
+        }
 
         require_once __DIR__ . '/levels.php';
         updateUserLevel($pdo, $login);

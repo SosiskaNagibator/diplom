@@ -29,7 +29,7 @@ function handleReferralInfo($pdo) {
         $bonusAmount = $baseBonus + (int)($baseBonus * ($referralExtra / 100));
     }
 
-    $referralLink = "http://vladskv.xsph.ru/register?ref=" . $code;
+    $referralLink = SITE_URL . "/profile?ref=" . $code;
 
     echo json_encode([
         'status' => 'success',

@@ -6,6 +6,7 @@ import { STORAGE_KEYS } from '../constants/storage';
 import { Button, Input, Badge, LoadingSpinner } from '../components/ui';
 import { getImageUrl } from '../utils/imageUtils';
 import SEO from '../components/SEO';
+import { useAuth } from '../contexts/AuthContext';
 
 const pluralize = (n, forms) => {
   const abs = Math.abs(n) % 100;
@@ -48,6 +49,7 @@ const formatExpires = (expiresAt) => {
 
 function Admin() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState('pizzas');
   const [pizzas, setPizzas] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -117,6 +119,20 @@ function Admin() {
   const [editingDelivery, setEditingDelivery] = useState(null);
   const [deliveryForm, setDeliveryForm] = useState(emptyDeliveryForm);
 
+  const handleAuthError = () => {
+    localStorage.removeItem(STORAGE_KEYS.USER_ROLE);
+    localStorage.removeItem(STORAGE_KEYS.USER_LOGIN);
+    navigate('/profile');
+  };
+
+  const checkResponseStatus = (res) => {
+    if (res.status === 403) {
+      handleAuthError();
+      return false;
+    }
+    return true;
+  };
+
   useEffect(() => {
     const role = localStorage.getItem(STORAGE_KEYS.USER_ROLE);
     if (role !== 'admin') {
@@ -146,6 +162,7 @@ function Admin() {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ action: 'admin_get_pizzas' })
     });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     if (data.status === 'success') setPizzas(data.pizzas);
   };
@@ -156,6 +173,7 @@ function Admin() {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ action: 'admin_get_orders' })
     });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     if (data.status === 'success') setOrders(data.orders);
   };
@@ -166,6 +184,7 @@ function Admin() {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ action: 'admin_get_users' })
     });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     if (data.status === 'success') setUsers(data.users);
   };
@@ -176,6 +195,7 @@ function Admin() {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ action: 'admin_get_sizes' })
     });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     if (data.status === 'success') setSizes(data.sizes);
   };
@@ -186,6 +206,7 @@ function Admin() {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ action: 'admin_get_toppings' })
     });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     if (data.status === 'success') setToppings(data.toppings);
   };
@@ -196,6 +217,7 @@ function Admin() {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ action: 'admin_get_categories' })
     });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     if (data.status === 'success') setCategories(data.categories);
   };
@@ -206,6 +228,7 @@ function Admin() {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ action: 'admin_get_pages_seo' })
     });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     if (data.status === 'success') setPagesSeo(data.pages);
   };
@@ -216,6 +239,7 @@ function Admin() {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ action: 'admin_get_promos' })
     });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     if (data.status === 'success') setPromos(data.promos);
   };
@@ -226,6 +250,7 @@ function Admin() {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ action: 'admin_get_delivery_rules' })
     });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     if (data.status === 'success') setDeliveryRules(data.rules);
   };
@@ -308,6 +333,7 @@ function Admin() {
       method: 'POST',
       body: formData,
     });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') {
@@ -339,6 +365,7 @@ function Admin() {
     if (!confirm('Удалить товар?')) return;
     const payload = new URLSearchParams({ action: 'admin_delete_pizza', id });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') fetchPizzas();
@@ -354,14 +381,16 @@ function Admin() {
         phone,
         email
       });
-      await fetch(API_BASE, { method: 'POST', body: profilePayload });
+      const profileRes = await fetch(API_BASE, { method: 'POST', body: profilePayload });
+      if (!checkResponseStatus(profileRes)) return;
       if (balance !== undefined && balance !== null) {
         const bonusPayload = new URLSearchParams({
           action: 'admin_update_user_bonus',
           login,
           balance
         });
-        await fetch(API_BASE, { method: 'POST', body: bonusPayload });
+        const bonusRes = await fetch(API_BASE, { method: 'POST', body: bonusPayload });
+        if (!checkResponseStatus(bonusRes)) return;
       }
       alert('Данные обновлены');
       fetchUsers();
@@ -376,6 +405,7 @@ function Admin() {
     const payload = new URLSearchParams({ action, ...sizeForm });
     if (editingSize) payload.append('id', editingSize.id);
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') {
@@ -394,6 +424,7 @@ function Admin() {
     if (!confirm('Удалить размер?')) return;
     const payload = new URLSearchParams({ action: 'admin_delete_size', id });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') fetchSizes();
@@ -411,6 +442,7 @@ function Admin() {
     if (selectedToppingFile) formData.append('image', selectedToppingFile);
 
     const res = await fetch(API_BASE, { method: 'POST', body: formData });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') {
@@ -436,6 +468,7 @@ function Admin() {
     if (!confirm('Удалить начинку?')) return;
     const payload = new URLSearchParams({ action: 'admin_delete_topping', id });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') fetchToppings();
@@ -454,6 +487,7 @@ function Admin() {
     });
     if (editingCategory) payload.append('id', editingCategory.id);
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') {
@@ -478,6 +512,7 @@ function Admin() {
     if (!confirm('Удалить категорию? Все товары с этой категорией потеряют связь.')) return;
     const payload = new URLSearchParams({ action: 'admin_delete_category', id });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') fetchCategories();
@@ -497,6 +532,7 @@ function Admin() {
     e.preventDefault();
     const payload = new URLSearchParams({ action: 'admin_update_page_seo', ...pageForm });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') {
@@ -522,6 +558,7 @@ function Admin() {
     });
     if (editingPromo) payload.append('id', editingPromo.id);
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') {
@@ -553,6 +590,7 @@ function Admin() {
     if (!confirm('Удалить промокод?')) return;
     const payload = new URLSearchParams({ action: 'admin_delete_promo', id });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') fetchPromos();
@@ -561,6 +599,7 @@ function Admin() {
   const handleTogglePromo = async (id) => {
     const payload = new URLSearchParams({ action: 'admin_toggle_promo', id });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     if (data.status === 'success') fetchPromos();
     else alert(data.message);
@@ -572,6 +611,7 @@ function Admin() {
     const payload = new URLSearchParams({ action, ...deliveryForm });
     if (editingDelivery) payload.append('id', editingDelivery.id);
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') {
@@ -594,6 +634,7 @@ function Admin() {
     if (!confirm('Удалить правило доставки?')) return;
     const payload = new URLSearchParams({ action: 'admin_delete_delivery_rule', id });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') fetchDeliveryRules();
@@ -602,23 +643,14 @@ function Admin() {
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
     const payload = new URLSearchParams({ action: 'admin_update_order_status', order_id: orderId, status: newStatus });
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
+    if (!checkResponseStatus(res)) return;
     const data = await res.json();
     alert(data.message);
     if (data.status === 'success') fetchOrders();
   };
 
   const handleLogout = async () => {
-    try {
-      await fetch(API_BASE, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ action: 'admin_logout' })
-      });
-    } catch (e) {
-      console.error(e);
-    }
-    localStorage.removeItem(STORAGE_KEYS.USER_ROLE);
-    localStorage.removeItem(STORAGE_KEYS.USER_LOGIN);
+    await logout();
     navigate('/profile');
   };
 

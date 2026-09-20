@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserData = useCallback(async (login) => {
     try {
-      const res = await fetch(`${API_BASE}?action=get_user_profile&login=${encodeURIComponent(login)}`);
+      const res = await fetch(`${API_BASE}?action=get_user_profile`);
       const data = await res.json();
       if (data.status === 'success') {
         setUserProfile({
@@ -34,6 +34,11 @@ export const AuthProvider = ({ children }) => {
           email: data.user.email || ''
         });
         setBonuses(data.bonuses || 0);
+      } else {
+        localStorage.removeItem('userLogin');
+        localStorage.removeItem('userRole');
+        setUserLogin(null);
+        setRole(null);
       }
     } catch (err) {
       console.error('Ошибка загрузки данных пользователя:', err);
@@ -95,7 +100,16 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await fetch(API_BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ action: 'logout' }).toString(),
+      });
+    } catch (err) {
+      console.error('Ошибка выхода:', err);
+    }
     localStorage.removeItem('userLogin');
     localStorage.removeItem('userRole');
     setUserLogin(null);
@@ -128,4 +142,4 @@ export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
-};
+};  

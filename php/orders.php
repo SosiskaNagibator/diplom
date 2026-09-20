@@ -147,7 +147,7 @@ function handleSaveOrder($pdo, $input) {
                 echo json_encode(['status' => 'error', 'message' => 'Промокод недействителен или не принадлежит вам']);
                 return;
             }
-            $stmt = $pdo->prepare("UPDATE promo_codes SET used_count = used_count + 1 WHERE code = ?");
+            $stmt = $pdo->prepare("UPDATE promo_codes SET used_count = used_count + 1, is_used = IF(user_login IS NOT NULL, 1, is_used) WHERE code = ?");
             $stmt->execute([$promoCode]);
         }
 

@@ -194,8 +194,10 @@ function Cart() {
 
   const [consentPersonal, setConsentPersonal] = useState(false);
 
+  const levelDiscount = discountData?.discount_amount || 0;
+
   const effectivePromoDiscount = appliedPromo ? promoDiscount : 0;
-  const finalTotalAfterDiscount = total - effectivePromoDiscount;
+  const finalTotalAfterDiscount = total - effectivePromoDiscount - levelDiscount;
 
   const baseDeliveryCost = useMemo(
     () => calculateDeliveryCost(deliveryRules, total),
@@ -404,7 +406,7 @@ function Cart() {
       deliveryAddress: fullAddress,
       deliveryTime: deliveryTimeValue,
       promoCode: appliedPromo,
-      discountAmount: effectivePromoDiscount,
+      discountAmount: effectivePromoDiscount + levelDiscount,
       finalTotal: finalTotal,
       deliveryCost: deliveryCost,
       customerName: isGuest ? customerName.trim() : userProfile.fullName,
@@ -423,38 +425,46 @@ function Cart() {
           setShowLevelUp(true);
         }
 
+        const serverFinalTotal = data.finalTotal !== undefined ? data.finalTotal : finalTotal;
+        const serverDeliveryCost = data.deliveryCost !== undefined ? data.deliveryCost : deliveryCost;
+
         const order = {
           id: data.orderId,
           orderNumber: data.orderNumber,
           items: cart,
-          total: finalTotal,
-          deliveryCost: data.deliveryCost || deliveryCost,
+          total: serverFinalTotal,
+          deliveryCost: serverDeliveryCost,
           date: new Date().toLocaleString(),
           status: 'Принят',
           deliveryAddress: fullAddress,
           deliveryTime: deliveryTimeValue,
           promoCode: appliedPromo,
-          discountAmount: effectivePromoDiscount,
+          discountAmount: effectivePromoDiscount + levelDiscount,
           customerName: isGuest ? customerName.trim() : userProfile.fullName,
           customerPhone: isGuest ? customerPhone.trim() : userProfile.phone,
           customerEmail: isGuest ? customerEmail.trim() : userProfile.email,
         };
-        const stored = localStorage.getItem('orders');
-        let guestOrders = [];
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            if (parsed.orders && Array.isArray(parsed.orders) && parsed.timestamp) {
-              guestOrders = parsed.orders;
-            } else {
-              guestOrders = parsed;
+
+        if (isGuest) {
+          const stored = localStorage.getItem('orders');
+          let guestOrders = [];
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored);
+              if (parsed.orders && Array.isArray(parsed.orders) && parsed.timestamp) {
+                guestOrders = parsed.orders;
+              } else {
+                guestOrders = parsed;
+              }
+            } catch {
+              guestOrders = [];
             }
-          } catch {
-            guestOrders = [];
           }
+          guestOrders.unshift(order);
+          if (guestOrders.length > 10) guestOrders = guestOrders.slice(0, 10);
+          localStorage.setItem('orders', JSON.stringify({ orders: guestOrders, timestamp: Date.now() }));
         }
-        guestOrders.unshift(order);
-        localStorage.setItem('orders', JSON.stringify({ orders: guestOrders, timestamp: Date.now() }));
+
         clearCart();
         navigate('/tracking', { replace: true });
         return true;
@@ -466,7 +476,7 @@ function Cart() {
       alert('Произошла ошибка при оформлении заказа. Попробуйте еще раз.');
       return false;
     }
-  }, [isSaving, cart, isGuest, customerName, customerPhone, customerEmail, deliveryAddress, apartment, deliveryMode, selectedHour, selectedMinute, total, finalTotal, bonusUsed, effectivePromoDiscount, appliedPromo, consentPersonal, navigate, clearCart, userLogin, userProfile, saveOrder, refetchUserLevel, deliveryCost]);
+  }, [isSaving, cart, isGuest, customerName, customerPhone, customerEmail, deliveryAddress, apartment, deliveryMode, selectedHour, selectedMinute, total, finalTotal, bonusUsed, effectivePromoDiscount, levelDiscount, appliedPromo, consentPersonal, navigate, clearCart, userLogin, userProfile, saveOrder, refetchUserLevel, deliveryCost]);
 
   if (cart.length === 0) {
     return (
@@ -658,6 +668,12 @@ function Cart() {
               <span>Товары</span>
               <span>{total} ₽</span>
             </div>
+            {levelDiscount > 0 && (
+              <div className="flex justify-between text-amber-600">
+                <span>Скидка уровня ({discountData?.discount_percent}%)</span>
+                <span>-{levelDiscount} ₽</span>
+              </div>
+            )}
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Доставка</span>
               {deliveryWasFree ? (
