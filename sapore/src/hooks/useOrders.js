@@ -18,6 +18,13 @@ export const useOrders = (login) => {
           date: order.date || new Date().toLocaleString(),
           status: order.status || 'Принят',
           deliveryAddress: order.deliveryAddress || '',
+          deliveryTime: order.deliveryTime || '',
+          promoCode: order.promoCode || '',
+          discountAmount: order.discountAmount || 0,
+          finalTotal: order.finalTotal || order.total,
+          customerName: order.customerName || '',
+          customerPhone: order.customerPhone || '',
+          customerEmail: order.customerEmail || '',
           created_at: order.created_at || new Date().toISOString()
         }));
       }
@@ -45,7 +52,7 @@ export const useUpdateOrderStatus = () => {
       if (data.status !== 'success') throw new Error(data.message || 'Ошибка обновления');
       return data;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] });
     },
   });

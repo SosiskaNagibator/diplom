@@ -14,9 +14,13 @@ export const useSaveOrder = () => {
       if (data.status !== 'success') throw new Error(data.message || 'Ошибка сохранения заказа');
       return data;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bonuses'] });
+      queryClient.invalidateQueries({ queryKey: ['bonusHistory'] });
       queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['userLevel'] });
+      queryClient.invalidateQueries({ queryKey: ['referral'] });
+      queryClient.invalidateQueries({ queryKey: ['promo'] });
     },
   });
 };

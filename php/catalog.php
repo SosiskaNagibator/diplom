@@ -81,6 +81,72 @@ if ($id > 0 || $slug !== '') {
     exit;
 }
 
+$ids = isset($_GET['ids']) ? trim($_GET['ids']) : '';
+if ($ids !== '') {
+    $idArray = array_values(array_filter(array_map('intval', explode(',', $ids)), function($v) {
+        return $v > 0;
+    }));
+    if (empty($idArray)) {
+        echo json_encode(['status' => 'success', 'pizzas' => []]);
+        $conn->close();
+        exit;
+    }
+
+    $sizesResult = $conn->query("SELECT id, name, label, price_multiplier FROM pizza_sizes ORDER BY sort_order");
+    $sizes = [];
+    while ($row = $sizesResult->fetch_assoc()) {
+        $sizes[] = $row;
+    }
+
+    $placeholders = implode(',', array_fill(0, count($idArray), '?'));
+    $types = str_repeat('i', count($idArray));
+    $sql = "SELECT id, name, slug, category, description, price, image, sizes, category_id,
+                   calories, protein, fat, carbs, seo_title, seo_description, seo_h1
+            FROM items
+            WHERE id IN ($placeholders)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param($types, ...$idArray);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $pizzas = [];
+    while ($row = $result->fetch_assoc()) {
+        $row['id'] = (int)$row['id'];
+        $row['price'] = (int)$row['price'];
+        $row['category_id'] = (int)$row['category_id'];
+        $row['calories'] = (int)$row['calories'];
+        $row['protein'] = (float)$row['protein'];
+        $row['fat'] = (float)$row['fat'];
+        $row['carbs'] = (float)$row['carbs'];
+
+        $availableSizes = [];
+        if ($row['sizes']) {
+            $sizeIds = explode(',', $row['sizes']);
+            foreach ($sizes as $size) {
+                if (in_array($size['id'], $sizeIds)) {
+                    $availableSizes[] = [
+                        'id' => $size['id'],
+                        'name' => $size['name'],
+                        'label' => $size['label'],
+                        'price_multiplier' => (float)$size['price_multiplier']
+                    ];
+                }
+            }
+        }
+        $row['available_sizes'] = $availableSizes;
+        $pizzas[] = $row;
+    }
+
+    $orderMap = array_flip($idArray);
+    usort($pizzas, function($a, $b) use ($orderMap) {
+        return ($orderMap[$a['id']] ?? 0) - ($orderMap[$b['id']] ?? 0);
+    });
+
+    echo json_encode(['status' => 'success', 'pizzas' => $pizzas]);
+    $conn->close();
+    exit;
+}
+
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 9;
 $offset = ($page - 1) * $limit;

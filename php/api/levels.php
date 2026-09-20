@@ -104,7 +104,6 @@ function updateUserLevel($pdo, $login) {
 function getUserActiveBonuses($pdo, $login) {
     if (empty($login) || $login === 'guest') {
         return [
-            'discount' => 0,
             'bonus_multiplier' => 1.0,
             'referral_extra' => 0,
             'review_extra' => 0,
@@ -124,7 +123,6 @@ function getUserActiveBonuses($pdo, $login) {
     $levels = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $bonuses = [
-        'discount' => 0,
         'bonus_multiplier' => 1.0,
         'referral_extra' => 0,
         'review_extra' => 0,
@@ -137,11 +135,6 @@ function getUserActiveBonuses($pdo, $login) {
         $type = $level['bonus_type'];
         $value = (float)$level['bonus_value'];
         switch ($type) {
-            case 'discount':
-                if ($value > $bonuses['discount']) {
-                    $bonuses['discount'] = $value;
-                }
-                break;
             case 'bonus_multiplier':
                 if ($value > $bonuses['bonus_multiplier']) {
                     $bonuses['bonus_multiplier'] = $value;
@@ -177,20 +170,11 @@ function getUserActiveBonuses($pdo, $login) {
 function calculateCartDiscount($pdo, $login, $cartTotal) {
     $bonuses = getUserActiveBonuses($pdo, $login);
 
-    $discountPercent = (float)$bonuses['discount'];
-    $discountAmount = 0;
-    if ($discountPercent > 0) {
-        $discountAmount = round($cartTotal * ($discountPercent / 100), 2);
-    }
-
     $freeDelivery = $bonuses['free_delivery'];
     $cashbackPercent = (float)$bonuses['cashback'];
     $bonusMultiplier = (float)$bonuses['bonus_multiplier'];
 
     $applied = [];
-    if ($discountPercent > 0) {
-        $applied[] = "Скидка $discountPercent% от уровня";
-    }
     if ($freeDelivery) {
         $applied[] = "Бесплатная доставка";
     }
@@ -202,9 +186,9 @@ function calculateCartDiscount($pdo, $login, $cartTotal) {
     }
 
     return [
-        'discount_percent' => $discountPercent,
-        'discount_amount' => $discountAmount,
-        'final_total' => round($cartTotal - $discountAmount, 2),
+        'discount_percent' => 0,
+        'discount_amount' => 0,
+        'final_total' => round($cartTotal, 2),
         'free_delivery' => $freeDelivery,
         'cashback_percent' => $cashbackPercent,
         'bonus_multiplier' => $bonusMultiplier,

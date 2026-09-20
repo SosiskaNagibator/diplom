@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWishlist } from '../hooks/useWishlist';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { API_CATALOG } from '../constants/api';
 import { Link } from 'react-router-dom';
 import { getImageUrl } from '../utils/imageUtils';
@@ -14,11 +14,10 @@ const gridStyle = { gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))'
 
 const fetchPizzasByIds = async (ids) => {
   if (!ids || ids.length === 0) return [];
-  const promises = ids.map(id => fetch(`${API_CATALOG}?id=${id}`).then(r => r.json()));
-  const results = await Promise.all(promises);
-  return results
-    .filter(r => r && r.pizza && r.pizza.id)
-    .map(r => r.pizza);
+  const res = await fetch(`${API_CATALOG}?ids=${ids.join(',')}`);
+  if (!res.ok) throw new Error('Ошибка загрузки избранного');
+  const data = await res.json();
+  return data.pizzas || [];
 };
 
 const Wishlist = () => {
@@ -27,6 +26,7 @@ const Wishlist = () => {
     queryKey: ['wishlistPizzas', wishlistIds],
     queryFn: () => fetchPizzasByIds(wishlistIds),
     enabled: wishlistIds.length > 0,
+    placeholderData: keepPreviousData,
   });
 
   const cardVariants = {

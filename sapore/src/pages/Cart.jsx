@@ -134,38 +134,6 @@ function Cart() {
   const allLevels = userLevelData?.all_levels || [];
   const ordersSum = userLevelData?.orders_sum || 0;
 
-  const [discountData, setDiscountData] = useState(null);
-  const [loadingDiscount, setLoadingDiscount] = useState(false);
-
-  const fetchDiscount = useCallback(async (total) => {
-    if (isGuest || total === 0) {
-      setDiscountData(null);
-      return;
-    }
-    setLoadingDiscount(true);
-    try {
-      const url = `${API_BASE}?action=get_cart_discount&total=${total}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.status === 'success') {
-        setDiscountData(data.data);
-      } else {
-        setDiscountData(null);
-      }
-    } catch (err) {
-      console.error('Ошибка получения скидки:', err);
-      setDiscountData(null);
-    } finally {
-      setLoadingDiscount(false);
-    }
-  }, [isGuest]);
-
-  const total = useMemo(() => getTotal(), [cart, getTotal]);
-
-  useEffect(() => {
-    fetchDiscount(total);
-  }, [total, fetchDiscount]);
-
   const [useBonus, setUseBonus] = useState(false);
   const [bonusPercentage, setBonusPercentage] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -194,10 +162,10 @@ function Cart() {
 
   const [consentPersonal, setConsentPersonal] = useState(false);
 
-  const levelDiscount = discountData?.discount_amount || 0;
+  const total = useMemo(() => getTotal(), [cart, getTotal]);
 
   const effectivePromoDiscount = appliedPromo ? promoDiscount : 0;
-  const finalTotalAfterDiscount = total - effectivePromoDiscount - levelDiscount;
+  const finalTotalAfterDiscount = total - effectivePromoDiscount;
 
   const baseDeliveryCost = useMemo(
     () => calculateDeliveryCost(deliveryRules, total),
@@ -406,7 +374,7 @@ function Cart() {
       deliveryAddress: fullAddress,
       deliveryTime: deliveryTimeValue,
       promoCode: appliedPromo,
-      discountAmount: effectivePromoDiscount + levelDiscount,
+      discountAmount: effectivePromoDiscount,
       finalTotal: finalTotal,
       deliveryCost: deliveryCost,
       customerName: isGuest ? customerName.trim() : userProfile.fullName,
@@ -439,7 +407,7 @@ function Cart() {
           deliveryAddress: fullAddress,
           deliveryTime: deliveryTimeValue,
           promoCode: appliedPromo,
-          discountAmount: effectivePromoDiscount + levelDiscount,
+          discountAmount: effectivePromoDiscount,
           customerName: isGuest ? customerName.trim() : userProfile.fullName,
           customerPhone: isGuest ? customerPhone.trim() : userProfile.phone,
           customerEmail: isGuest ? customerEmail.trim() : userProfile.email,
@@ -476,7 +444,7 @@ function Cart() {
       alert('Произошла ошибка при оформлении заказа. Попробуйте еще раз.');
       return false;
     }
-  }, [isSaving, cart, isGuest, customerName, customerPhone, customerEmail, deliveryAddress, apartment, deliveryMode, selectedHour, selectedMinute, total, finalTotal, bonusUsed, effectivePromoDiscount, levelDiscount, appliedPromo, consentPersonal, navigate, clearCart, userLogin, userProfile, saveOrder, refetchUserLevel, deliveryCost]);
+  }, [isSaving, cart, isGuest, customerName, customerPhone, customerEmail, deliveryAddress, apartment, deliveryMode, selectedHour, selectedMinute, total, finalTotal, bonusUsed, effectivePromoDiscount, appliedPromo, consentPersonal, navigate, clearCart, userLogin, userProfile, saveOrder, refetchUserLevel, deliveryCost]);
 
   if (cart.length === 0) {
     return (
@@ -668,12 +636,6 @@ function Cart() {
               <span>Товары</span>
               <span>{total} ₽</span>
             </div>
-            {levelDiscount > 0 && (
-              <div className="flex justify-between text-amber-600">
-                <span>Скидка уровня ({discountData?.discount_percent}%)</span>
-                <span>-{levelDiscount} ₽</span>
-              </div>
-            )}
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Доставка</span>
               {deliveryWasFree ? (

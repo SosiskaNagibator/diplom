@@ -29,8 +29,25 @@ export const useWishlist = () => {
       const res = await fetch(API_BASE, { method: 'POST', body: formData });
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['wishlist', userLogin]);
+    onMutate: async (pizzaId) => {
+      await queryClient.cancelQueries({ queryKey: ['wishlist', userLogin] });
+      const previous = queryClient.getQueryData(['wishlist', userLogin]);
+      queryClient.setQueryData(['wishlist', userLogin], (old = []) => {
+        const idStr = String(pizzaId);
+        return old.includes(idStr)
+          ? old.filter(id => id !== idStr)
+          : [...old, idStr];
+      });
+      return { previous };
+    },
+    onError: (err, pizzaId, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(['wishlist', userLogin], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['wishlist', userLogin] });
+      queryClient.invalidateQueries({ queryKey: ['wishlistPizzas'] });
     },
   });
 

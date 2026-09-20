@@ -122,11 +122,6 @@ function handleSaveOrder($pdo, $input) {
         $pdo->beginTransaction();
 
         $bonuses = getUserActiveBonuses($pdo, $userLogin);
-        $discountPercent = $bonuses['discount'];
-        $serverDiscount = 0;
-        if ($discountPercent > 0) {
-            $serverDiscount = $originalTotal * ($discountPercent / 100);
-        }
 
         $freeDelivery = false;
         if ($bonuses['free_delivery'] && $userLogin !== 'guest') {
@@ -157,7 +152,7 @@ function handleSaveOrder($pdo, $input) {
             $deliveryCost = 0;
         }
 
-        $baseForBonus = $originalTotal - $serverDiscount - $discount;
+        $baseForBonus = $originalTotal - $discount;
         if ($baseForBonus < 0) $baseForBonus = 0;
         $maxByPercent = (int)floor($baseForBonus * 0.20);
 
@@ -171,7 +166,7 @@ function handleSaveOrder($pdo, $input) {
         $bonusUsed = min($bonusUsed, $maxByPercent, $currentBalance);
         if ($bonusUsed < 0) $bonusUsed = 0;
 
-        $finalTotal = $originalTotal - $serverDiscount - $discount - $bonusUsed + $deliveryCost;
+        $finalTotal = $originalTotal - $discount - $bonusUsed + $deliveryCost;
         if ($finalTotal < 0) $finalTotal = 0;
 
         $itemsJson = json_encode($items, JSON_UNESCAPED_UNICODE);
@@ -184,7 +179,7 @@ function handleSaveOrder($pdo, $input) {
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             $orderNumber, $originalTotal, $status, $itemsJson, $userLogin,
-            $deliveryAddress, $deliveryTime, $promoCode, $serverDiscount + $discount + $bonusUsed, $finalTotal,
+            $deliveryAddress, $deliveryTime, $promoCode, $discount + $bonusUsed, $finalTotal,
             $customerName, $customerPhone, $customerEmail
         ]);
         $orderId = $pdo->lastInsertId();
@@ -263,12 +258,11 @@ function handleSaveOrder($pdo, $input) {
             'orderId' => $orderId,
             'orderNumber' => $orderNumber,
             'newBalance' => $earnedBonuses,
-            'discount' => $serverDiscount + $discount,
+            'discount' => $discount,
             'deliveryCost' => $deliveryCost,
             'finalTotal' => $finalTotal,
             'bonusUsed' => $bonusUsed,
             'new_level' => $newLevel,
-            'applied_discount_percent' => $discountPercent,
             'free_delivery' => $freeDelivery,
             'earned_bonuses' => $earnedBonuses,
         ]);
