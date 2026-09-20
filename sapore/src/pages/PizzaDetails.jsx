@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useProduct } from '../hooks/useProduct';
 import { useQuery } from '@tanstack/react-query';
 import { getImageUrl } from '../utils/imageUtils';
@@ -17,6 +17,7 @@ import NutritionModal from '../components/NutritionModal';
 import ToppingCard from '../components/constructor/ToppingCard';
 
 const PIZZA_CATEGORIES = ['klassika', 'myasnye', 'vegetarianskie', 'ostrye', 'sladkie', 'rybnye'];
+const relatedGridStyle = { gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' };
 
 const fetchRelated = async (categorySlug, excludeId) => {
   if (!categorySlug) return [];
@@ -161,10 +162,11 @@ const PizzaDetails = ({ addToCart }) => {
             <div className="relative aspect-square rounded-xl overflow-hidden">
               <img
                 src={getImageUrl(pizza.image, 'large')}
+                srcSet={`${getImageUrl(pizza.image, 'medium')} 800w, ${getImageUrl(pizza.image, 'large')} 1200w`}
+                sizes="(max-width: 768px) 100vw, 50vw"
                 alt={pizza.name}
                 className="w-full h-full object-cover"
                 loading="lazy"
-                decoding="async"
               />
               <div className="absolute top-3 right-3 z-10">
                 <WishlistButton pizzaId={pizza.id} />
@@ -223,7 +225,7 @@ const PizzaDetails = ({ addToCart }) => {
                     </span>
                   )}
                 </div>
-                <div className="max-h-[160px] overflow-y-auto custom-scrollbar rounded-lg -mx-1 px-1">
+                <div className="max-h-[150px] overflow-y-auto custom-scrollbar rounded-lg -mx-1 px-1">
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 py-1">
                     {allToppings.map(topping => {
                       const selected = !!selectedToppings.find(t => t.id === topping.id);
@@ -272,8 +274,8 @@ const PizzaDetails = ({ addToCart }) => {
 
       {related.length > 0 && (
         <section className="mt-12">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Похожие товары</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="text-2xl font-bold text-gray-800 mb-4">Похожие товары</div>
+          <div className="grid gap-4" style={relatedGridStyle}>
             {related.map(item => (
               <Link
                 key={item.id}
@@ -283,10 +285,11 @@ const PizzaDetails = ({ addToCart }) => {
                 <div className="relative aspect-square bg-gray-50">
                   <img
                     src={getImageUrl(item.image, 'thumb')}
+                    srcSet={`${getImageUrl(item.image, 'thumb')} 400w, ${getImageUrl(item.image, 'medium')} 800w`}
+                    sizes="(max-width: 640px) 50vw, 25vw"
                     alt={item.name}
                     className="absolute inset-0 w-full h-full object-cover"
                     loading="lazy"
-                    decoding="async"
                   />
                 </div>
                 <div className="p-3">

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button, Input } from '../components/ui';
 import { API_BASE } from '../constants/api';
 import { motion } from 'framer-motion';
+import SEO from '../components/SEO';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -29,6 +30,12 @@ const ForgotPassword = () => {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-sm mx-auto mt-16">
+      <SEO
+        title="Восстановление пароля"
+        description="Восстановление пароля в Sapore"
+        url="/forgot-password"
+        noindex
+      />
       <h1 className="text-2xl font-bold text-center mb-6">Восстановление пароля</h1>
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow">
         <Input

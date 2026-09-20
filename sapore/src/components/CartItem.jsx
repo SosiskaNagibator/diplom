@@ -51,7 +51,6 @@ const CartItem = memo(({ item, index, onUpdateQuantity, onRemove }) => {
         alt={name}
         className="w-20 h-20 object-cover rounded-lg"
         loading="lazy"
-        decoding="async"
       />
 
       <div className="flex-1 min-w-[120px]">

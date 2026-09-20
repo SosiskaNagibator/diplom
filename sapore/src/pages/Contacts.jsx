@@ -86,7 +86,7 @@ function Contacts() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <motion.div initial="hidden" animate="visible" variants={cardVariants} custom={0} className="space-y-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Свяжитесь с нами</h2>
+            <div className="text-xl font-semibold text-gray-800 mb-4">Свяжитесь с нами</div>
             <ul className="space-y-4 text-gray-700">
               <motion.li
                 initial={{ opacity: 0, x: -20 }}
@@ -148,7 +148,7 @@ function Contacts() {
             transition={{ delay: 0.6 }}
             className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
           >
-            <h3 className="font-semibold text-gray-800 mb-3">Мы в соцсетях</h3>
+            <div className="font-semibold text-gray-800 mb-3">Мы в соцсетях</div>
             <div className="flex gap-5 text-2xl text-gray-500">
               <a href={socialLink} target="_blank" rel="noopener noreferrer" className="hover:text-amber-500 transition-colors duration-200 hover:scale-110 transform" aria-label="VK">
                 <FaVk />
@@ -170,7 +170,7 @@ function Contacts() {
           custom={1}
           className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
         >
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Напишите нам</h2>
+          <div className="text-xl font-semibold text-gray-800 mb-4">Напишите нам</div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
               <Input
@@ -223,7 +223,7 @@ function Contacts() {
         transition={{ delay: 0.7, duration: 0.5 }}
         className="mt-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
       >
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Мы на карте</h2>
+        <div className="text-xl font-semibold text-gray-800 mb-4">Мы на карте</div>
         <div className="h-64 rounded-xl overflow-hidden">
           <MapPicker onAddressSelect={() => {}} initialAddress="г. Ростов-на-Дону, ул. Социалистическая, 141" />
         </div>

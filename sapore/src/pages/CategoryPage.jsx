@@ -12,6 +12,8 @@ import Breadcrumbs from '../components/Breadcrumbs';
 import WishlistButton from '../components/WishlistButton';
 import PizzaSkeleton from '../components/PizzaSkeleton';
 
+const gridStyle = { gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' };
+
 const fetchCategory = async (slug) => {
   const res = await fetch(`${API_CATALOG}?category_slug=${encodeURIComponent(slug)}&limit=100`);
   if (!res.ok) throw new Error('Ошибка загрузки');
@@ -85,7 +87,7 @@ const CategoryPage = ({ addToCart }) => {
     return (
       <div className="fade-in">
         <div className="h-8 bg-gray-200 rounded w-1/3 mb-6 animate-pulse" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid gap-6" style={gridStyle}>
           {Array.from({ length: 6 }).map((_, i) => <PizzaSkeleton key={i} />)}
         </div>
       </div>
@@ -122,7 +124,7 @@ const CategoryPage = ({ addToCart }) => {
       <h1 className="text-3xl font-bold text-gray-800 mb-2">{categoryName}</h1>
       <p className="text-gray-600 mb-8 max-w-3xl">{seo.description}</p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid gap-6" style={gridStyle}>
         {items.map((pizza, index) => (
           <motion.div
             key={pizza.id}
@@ -138,17 +140,14 @@ const CategoryPage = ({ addToCart }) => {
             >
               <Card hover className="overflow-hidden border border-gray-100 relative h-full flex flex-col">
                 <div className="relative overflow-hidden flex-shrink-0 aspect-square bg-gray-50">
-                  <picture>
-                    <source srcSet={getImageUrl(pizza.image, 'thumb')} media="(max-width: 640px)" />
-                    <source srcSet={getImageUrl(pizza.image, 'medium')} media="(min-width: 641px)" />
-                    <img
-                      src={getImageUrl(pizza.image, 'medium')}
-                      alt={pizza.name}
-                      className="absolute inset-0 w-full h-full object-cover"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  </picture>
+                  <img
+                    src={getImageUrl(pizza.image, 'medium')}
+                    srcSet={`${getImageUrl(pizza.image, 'thumb')} 400w, ${getImageUrl(pizza.image, 'medium')} 800w, ${getImageUrl(pizza.image, 'large')} 1200w`}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    alt={pizza.name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    loading="lazy"
+                  />
                 </div>
                 <div className="p-4 flex-1 flex flex-col">
                   <div className="font-semibold text-gray-800 text-lg">{pizza.name}</div>

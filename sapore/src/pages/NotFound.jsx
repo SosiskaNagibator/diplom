@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import SEO from '../components/SEO';
 
 const NotFound = () => {
   return (
@@ -9,6 +10,12 @@ const NotFound = () => {
       transition={{ duration: 0.5 }}
       className="flex flex-col items-center justify-center text-center py-20 min-h-[60vh]"
     >
+      <SEO
+        title="Страница не найдена"
+        description="Страница не найдена на сайте Sapore"
+        url="/404"
+        noindex
+      />
       <motion.h1
         initial={{ scale: 0.8 }}
         animate={{ scale: 1 }}
@@ -17,7 +24,7 @@ const NotFound = () => {
       >
         404
       </motion.h1>
-      <h2 className="text-2xl font-semibold text-gray-700 mb-2">Страница не найдена</h2>
+      <div className="text-2xl font-semibold text-gray-700 mb-2">Страница не найдена</div>
       <p className="text-gray-500 max-w-md mb-8">
         Кажется, вы забрели в неизведанный уголок. Возможно, пицца уже в пути, но страница потерялась.
       </p>

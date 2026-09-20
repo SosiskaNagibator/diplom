@@ -9,6 +9,7 @@ import { getStatusIndex } from '../utils/statusUtils';
 import { Button } from '../components/ui';
 import TrackingSkeleton from '../components/skeletons/TrackingSkeleton';
 import { FaBox, FaClock, FaTag, FaUser, FaMapMarkerAlt, FaTruck } from 'react-icons/fa';
+import SEO from '../components/SEO';
 
 function Tracking() {
   const navigate = useNavigate();
@@ -259,6 +260,12 @@ function Tracking() {
     if (loadingGuest) return <TrackingSkeleton />;
     return (
       <div className="fade-in">
+        <SEO
+          title="Мои заказы"
+          description="Отслеживание заказов Sapore"
+          url="/tracking"
+          noindex
+        />
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Мои заказы</h1>
         {guestOrders.length === 0 ? (
           <motion.div initial="hidden" animate="visible" variants={emptyStateVariants} className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
@@ -291,6 +298,12 @@ function Tracking() {
   if (orders.length === 0) {
     return (
       <div className="fade-in">
+        <SEO
+          title="Мои заказы"
+          description="Отслеживание заказов Sapore"
+          url="/tracking"
+          noindex
+        />
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Мои заказы</h1>
         <motion.div initial="hidden" animate="visible" variants={emptyStateVariants} className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
           <div className="flex justify-center mb-4">
@@ -306,6 +319,12 @@ function Tracking() {
 
   return (
     <div className="fade-in">
+      <SEO
+        title="Мои заказы"
+        description="Отслеживание заказов Sapore"
+        url="/tracking"
+        noindex
+      />
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Мои заказы</h1>
       <div className="space-y-8">
         <AnimatePresence>

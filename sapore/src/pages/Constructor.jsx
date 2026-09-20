@@ -259,7 +259,7 @@ function Constructor({ addToCart }) {
             animate="visible"
             className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
           >
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Размер</h2>
+            <div className="text-lg font-semibold text-gray-800 mb-4">Размер</div>
             <motion.div
               variants={sizesContainerVariants}
               initial="hidden"
@@ -286,7 +286,7 @@ function Constructor({ addToCart }) {
             className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
           >
             <div className="flex items-baseline justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-800">Начинки</h2>
+              <div className="text-lg font-semibold text-gray-800">Начинки</div>
               <motion.span
                 key={selectedToppings.length}
                 initial={{ scale: 1 }}
@@ -393,7 +393,7 @@ function Constructor({ addToCart }) {
                   >
                     <FaCheck className="text-green-600 text-3xl" />
                   </motion.div>
-                  <h3 className="text-lg font-bold text-gray-800">Пицца добавлена в корзину</h3>
+                  <div className="text-lg font-bold text-gray-800">Пицца добавлена в корзину</div>
                   <p className="text-sm text-gray-500 mt-1">Что делаем дальше?</p>
                 </div>
 

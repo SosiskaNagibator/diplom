@@ -114,7 +114,6 @@ const SearchBar = () => {
                   alt={pizza.name}
                   className="w-10 h-10 object-cover rounded"
                   loading="lazy"
-                  decoding="async"
                 />
                 <div>
                   <div className="font-medium text-gray-800">{pizza.name}</div>

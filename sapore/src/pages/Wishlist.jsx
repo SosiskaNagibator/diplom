@@ -10,6 +10,8 @@ import WishlistSkeleton from '../components/skeletons/WishlistSkeleton';
 import { FaHeart } from 'react-icons/fa';
 import SEO from '../components/SEO';
 
+const gridStyle = { gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' };
+
 const fetchPizzasByIds = async (ids) => {
   if (!ids || ids.length === 0) return [];
   const promises = ids.map(id => fetch(`${API_CATALOG}?id=${id}`).then(r => r.json()));
@@ -49,9 +51,14 @@ const Wishlist = () => {
   if (!wishlistIds.length) {
     return (
       <div className="text-center py-16">
-        <SEO title="Избранное" description="Ваши любимые пиццы в Sapore" url="/wishlist" />
+        <SEO
+          title="Избранное"
+          description="Ваши любимые пиццы в Sapore"
+          url="/wishlist"
+          noindex
+        />
         <FaHeart className="text-6xl text-gray-300 mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-gray-800">Избранное пусто</h2>
+        <div className="text-2xl font-bold text-gray-800">Избранное пусто</div>
         <p className="text-gray-500 mt-2">Добавляйте пиццы, которые вам понравились</p>
         <Link to="/catalog"><Button variant="primary" className="mt-6">В каталог</Button></Link>
       </div>
@@ -60,11 +67,16 @@ const Wishlist = () => {
 
   return (
     <div className="fade-in">
-      <SEO title="Избранное" description="Ваши любимые пиццы в Sapore" url="/wishlist" />
+      <SEO
+        title="Избранное"
+        description="Ваши любимые пиццы в Sapore"
+        url="/wishlist"
+        noindex
+      />
       <h1 className="text-3xl font-bold text-gray-800 mb-6">
         <FaHeart className="inline text-red-500 mr-2" /> Избранное
       </h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid gap-6" style={gridStyle}>
         <AnimatePresence mode="popLayout">
           {pizzas?.filter(pizza => pizza && pizza.id)?.map((pizza, index) => (
             <motion.div
@@ -84,7 +96,6 @@ const Wishlist = () => {
                       alt={pizza.name}
                       className="absolute inset-0 w-full h-full object-cover"
                       loading="lazy"
-                      decoding="async"
                     />
                   </div>
                   <div className="p-4">

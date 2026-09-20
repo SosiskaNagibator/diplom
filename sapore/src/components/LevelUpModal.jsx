@@ -27,10 +27,10 @@ const LevelUpModal = ({ level, onClose, ordersSum }) => {
 
                     <div className="relative -mt-12 px-6 pb-6">
                         <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
-                            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                            <div className="text-2xl font-bold text-gray-800 flex items-center gap-2">
                                 <FaStar className="text-amber-500" />
                                 Поздравляем!
-                            </h2>
+                            </div>
                             <p className="text-lg text-gray-700 mt-2">
                                 Вы открыли <strong>{level.region} – {level.name}</strong>
                             </p>

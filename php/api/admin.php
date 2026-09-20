@@ -122,14 +122,14 @@ function generateImageSizes($sourcePath, $uploadDir, $filename) {
         return false;
     }
     $sizes = [
-        'thumb' => ['width' => 300, 'quality' => 75],
-        'medium' => ['width' => 600, 'quality' => 80],
+        'thumb' => ['width' => 400, 'quality' => 78],
+        'medium' => ['width' => 800, 'quality' => 82],
         'large' => ['width' => 1200, 'quality' => 85],
         '' => ['width' => null, 'quality' => 90]
     ];
     foreach ($sizes as $prefix => $params) {
         $img = clone $image;
-        if ($params['width'] !== null) {
+        if ($params['width'] !== null && $image->width() > $params['width']) {
             $img->scale(width: $params['width']);
         }
         $saveName = $prefix ? $prefix . '_' . $filename : $filename;

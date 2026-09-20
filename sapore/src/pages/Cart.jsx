@@ -17,6 +17,7 @@ import { API_ORDERS, API_BASE } from '../constants/api';
 import { FaBolt, FaClock, FaPizzaSlice, FaClipboardList, FaGift, FaCoins, FaCheck, FaTimes } from 'react-icons/fa';
 import LevelUpModal from '../components/LevelUpModal';
 import { useUserLevel } from '../hooks/useLevels';
+import SEO from '../components/SEO';
 
 const MemoMapPicker = memo(MapPicker);
 
@@ -470,6 +471,12 @@ function Cart() {
   if (cart.length === 0) {
     return (
       <div className="fade-in">
+        <SEO
+          title="Корзина"
+          description="Корзина покупок Sapore"
+          url="/cart"
+          noindex
+        />
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Корзина</h1>
         <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-100">
           <div className="flex justify-center mb-4">
@@ -487,6 +494,13 @@ function Cart() {
 
   return (
     <div className="fade-in">
+      <SEO
+        title="Корзина"
+        description="Корзина покупок Sapore"
+        url="/cart"
+        noindex
+      />
+
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Корзина</h1>
       <AnimatePresence mode="popLayout">
         {cart.map((item, index) => (

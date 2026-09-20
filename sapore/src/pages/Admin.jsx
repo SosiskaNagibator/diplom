@@ -5,6 +5,7 @@ import { ORDER_STATUSES } from '../constants/statuses';
 import { STORAGE_KEYS } from '../constants/storage';
 import { Button, Input, Badge, LoadingSpinner } from '../components/ui';
 import { getImageUrl } from '../utils/imageUtils';
+import SEO from '../components/SEO';
 
 const pluralize = (n, forms) => {
   const abs = Math.abs(n) % 100;
@@ -625,6 +626,13 @@ function Admin() {
 
   return (
     <div className="fade-in">
+      <SEO
+        title="Админ-панель"
+        description="Панель администратора Sapore"
+        url="/admin"
+        noindex
+      />
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Админ-панель</h1>
         <Button variant="danger" onClick={handleLogout}>Выйти из админки</Button>
@@ -654,7 +662,7 @@ function Admin() {
       {activeTab === 'pizzas' && (
         <div>
           <div className="bg-white rounded-xl shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">{editingPizza ? 'Редактировать товар' : 'Добавить товар'}</h2>
+            <div className="text-xl font-semibold mb-4">{editingPizza ? 'Редактировать товар' : 'Добавить товар'}</div>
             <form onSubmit={handlePizzaSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input name="name" value={pizzaForm.name} onChange={e => setPizzaForm({...pizzaForm, name: e.target.value})} placeholder="Название" required />
               <select
@@ -694,8 +702,8 @@ function Admin() {
               </div>
               <textarea name="description" value={pizzaForm.description} onChange={e => setPizzaForm({...pizzaForm, description: e.target.value})} placeholder="Описание" className="border p-2 rounded col-span-2" rows="2" />
 
-              <div className="col-span-2 border-t border-gray-200 pt-4 mt-2">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">SEO (мета-теги)</h3>
+              <div className="col-span-2 border-t border-gray-100 pt-4 mt-2">
+                <div className="text-sm font-semibold text-gray-700 mb-3">SEO (мета-теги)</div>
                 <div className="grid grid-cols-1 gap-3">
                   <Input
                     name="seo_title"
@@ -861,7 +869,7 @@ function Admin() {
       {activeTab === 'promos' && (
         <div>
           <div className="bg-white rounded-xl shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">{editingPromo ? 'Редактировать промокод' : 'Добавить промокод'}</h2>
+            <div className="text-xl font-semibold mb-4">{editingPromo ? 'Редактировать промокод' : 'Добавить промокод'}</div>
             <form onSubmit={handlePromoSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 name="code"
@@ -1069,7 +1077,7 @@ function Admin() {
       {activeTab === 'delivery' && (
         <div>
           <div className="bg-white rounded-xl shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">{editingDelivery ? 'Редактировать правило' : 'Добавить правило доставки'}</h2>
+            <div className="text-xl font-semibold mb-4">{editingDelivery ? 'Редактировать правило' : 'Добавить правило доставки'}</div>
             <p className="text-sm text-gray-500 mb-4">
               Стоимость доставки определяется по сумме заказа. Система выбирает правило с наибольшим порогом, который не превышает сумму.
             </p>
@@ -1137,7 +1145,7 @@ function Admin() {
       {activeTab === 'sizes' && (
         <div>
           <div className="bg-white rounded-xl shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">{editingSize ? 'Редактировать размер' : 'Добавить размер'}</h2>
+            <div className="text-xl font-semibold mb-4">{editingSize ? 'Редактировать размер' : 'Добавить размер'}</div>
             <form onSubmit={handleSizeSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input name="name" value={sizeForm.name} onChange={e => setSizeForm({...sizeForm, name: e.target.value})} placeholder="Название" required />
               <Input name="label" value={sizeForm.label} onChange={e => setSizeForm({...sizeForm, label: e.target.value})} placeholder="Метка" required />
@@ -1160,7 +1168,7 @@ function Admin() {
       {activeTab === 'toppings' && (
         <div>
           <div className="bg-white rounded-xl shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">{editingTopping ? 'Редактировать начинку' : 'Добавить начинку'}</h2>
+            <div className="text-xl font-semibold mb-4">{editingTopping ? 'Редактировать начинку' : 'Добавить начинку'}</div>
             <form onSubmit={handleToppingSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input name="name" value={toppingForm.name} onChange={e => setToppingForm({...toppingForm, name: e.target.value})} placeholder="Название" required />
               <Input name="price" value={toppingForm.price} onChange={e => setToppingForm({...toppingForm, price: e.target.value})} placeholder="Цена" type="number" />
@@ -1219,13 +1227,13 @@ function Admin() {
       {activeTab === 'categories' && (
         <div>
           <div className="bg-white rounded-xl shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">{editingCategory ? 'Редактировать категорию' : 'Добавить категорию'}</h2>
+            <div className="text-xl font-semibold mb-4">{editingCategory ? 'Редактировать категорию' : 'Добавить категорию'}</div>
             <form onSubmit={handleCategorySubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input name="name" value={categoryForm.name} onChange={e => setCategoryForm({...categoryForm, name: e.target.value})} placeholder="Название" required />
               <Input name="sort_order" value={categoryForm.sort_order} onChange={e => setCategoryForm({...categoryForm, sort_order: parseInt(e.target.value) || 0})} placeholder="Порядок" type="number" />
 
-              <div className="col-span-2 border-t border-gray-200 pt-4 mt-2">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">SEO (мета-теги)</h3>
+              <div className="col-span-2 border-t border-gray-100 pt-4 mt-2">
+                <div className="text-sm font-semibold text-gray-700 mb-3">SEO (мета-теги)</div>
                 <div className="grid grid-cols-1 gap-3">
                   <Input
                     name="seo_title"
@@ -1283,7 +1291,7 @@ function Admin() {
         <div>
           {editingPage && (
             <div className="bg-white rounded-xl shadow p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4">Редактировать SEO: {editingPage.page_key}</h2>
+              <div className="text-xl font-semibold mb-4">Редактировать SEO: {editingPage.page_key}</div>
               <form onSubmit={handlePageSeoSubmit} className="grid grid-cols-1 gap-3">
                 <Input
                   name="seo_title"
@@ -1315,7 +1323,7 @@ function Admin() {
           )}
 
           <div className="bg-white rounded-xl shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">SEO статических страниц</h2>
+            <div className="text-xl font-semibold mb-4">SEO статических страниц</div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-100">
@@ -1343,7 +1351,7 @@ function Admin() {
           </div>
 
           <div className="bg-white rounded-xl shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">SEO категорий</h2>
+            <div className="text-xl font-semibold mb-4">SEO категорий</div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-100">

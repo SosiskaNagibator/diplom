@@ -14,9 +14,10 @@ export const AuthProvider = ({ children }) => {
     const savedLogin = localStorage.getItem('userLogin');
     const savedRole = localStorage.getItem('userRole');
     if (savedLogin) {
-      setUserLogin(savedLogin);
+      const normalizedLogin = savedLogin.trim().toLowerCase();
+      setUserLogin(normalizedLogin);
       setRole(savedRole || null);
-      fetchUserData(savedLogin);
+      fetchUserData(normalizedLogin);
     } else {
       setLoading(false);
     }
@@ -41,10 +42,12 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = useCallback(async (login, password, isRegister = false, profileData = {}, referralCode = '') => {
+  const login = useCallback(async (loginInput, password, isRegister = false, profileData = {}, referralCode = '') => {
+    const normalizedLogin = loginInput.trim().toLowerCase();
+
     try {
       const formData = new URLSearchParams();
-      formData.append('Login', login);
+      formData.append('Login', normalizedLogin);
       formData.append('Password', password);
       formData.append('action', isRegister ? 'register' : 'login');
       if (isRegister) {
@@ -65,8 +68,9 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (data.status === 'success' || data.status === 'registered') {
-        localStorage.setItem('userLogin', login);
-        setUserLogin(login);
+        const savedLogin = data.user?.login?.trim().toLowerCase() || normalizedLogin;
+        localStorage.setItem('userLogin', savedLogin);
+        setUserLogin(savedLogin);
         if (data.role === 'admin') {
           localStorage.setItem('userRole', 'admin');
           setRole('admin');
@@ -105,15 +109,15 @@ export const AuthProvider = ({ children }) => {
   }, [fetchUserData]);
 
   return (
-    <AuthContext.Provider value={{ 
-      userLogin, 
-      role, 
-      bonuses, 
-      userProfile, 
-      loading, 
-      login, 
-      logout, 
-      updateBonuses 
+    <AuthContext.Provider value={{
+      userLogin,
+      role,
+      bonuses,
+      userProfile,
+      loading,
+      login,
+      logout,
+      updateBonuses
     }}>
       {children}
     </AuthContext.Provider>

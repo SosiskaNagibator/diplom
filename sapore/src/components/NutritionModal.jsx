@@ -24,10 +24,10 @@ const NutritionModal = ({ isOpen, onClose, name, calories, protein, fat, carbs, 
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-gray-100">
-            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <div className="text-lg font-bold text-gray-800 flex items-center gap-2">
               <FaInfoCircle className="text-amber-500" />
               Пищевая ценность
-            </h3>
+            </div>
             <button
               type="button"
               onClick={onClose}
@@ -77,7 +77,7 @@ const NutritionModal = ({ isOpen, onClose, name, calories, protein, fat, carbs, 
 
             {description && (
               <div className="mt-5">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Состав</h4>
+                <div className="text-sm font-semibold text-gray-700 mb-2">Состав</div>
                 <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
               </div>
             )}

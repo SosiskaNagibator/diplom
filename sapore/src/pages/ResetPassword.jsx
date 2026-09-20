@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button, Input } from '../components/ui';
 import { API_BASE } from '../constants/api';
+import SEO from '../components/SEO';
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -51,11 +52,27 @@ const ResetPassword = () => {
   };
 
   if (!token || !email) {
-    return <div className="text-center py-12 text-red-500">Неверная ссылка</div>;
+    return (
+      <div className="text-center py-12 text-red-500">
+        <SEO
+          title="Новый пароль"
+          description="Установка нового пароля Sapore"
+          url="/reset-password"
+          noindex
+        />
+        Неверная ссылка
+      </div>
+    );
   }
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-sm mx-auto mt-16">
+      <SEO
+        title="Новый пароль"
+        description="Установка нового пароля Sapore"
+        url="/reset-password"
+        noindex
+      />
       <h1 className="text-2xl font-bold text-center mb-6">Новый пароль</h1>
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow">
         <Input

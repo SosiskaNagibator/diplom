@@ -6,7 +6,7 @@ const SITE_NAME = 'Sapore';
 const SITE_URL = 'http://vladskv.xsph.ru';
 const DEFAULT_IMAGE = `${SITE_URL}/uploads/home/italian-recipes.jpg`;
 
-const SEO = ({ title, description, image, url, type = 'website' }) => {
+const SEO = ({ title, description, image, url, type = 'website', noindex = false }) => {
   const fullTitle = title?.trim()
     ? `${title} | ${SITE_NAME}`
     : DEFAULT_TITLE;
@@ -19,6 +19,8 @@ const SEO = ({ title, description, image, url, type = 'website' }) => {
       <title>{fullTitle}</title>
       <meta name="description" content={fullDescription} />
       <link rel="canonical" href={fullUrl} />
+
+      {noindex && <meta name="robots" content="noindex, nofollow" />}
 
       <meta property="og:type" content={type} />
       <meta property="og:title" content={fullTitle} />

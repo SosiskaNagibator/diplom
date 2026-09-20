@@ -21,6 +21,8 @@ const fetchCatalog = async (search) => {
   return res.json();
 };
 
+const gridStyle = { gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' };
+
 const sectionVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -204,25 +206,16 @@ function Catalog({ addToCart }) {
             className="overflow-hidden border border-gray-100 relative h-full flex flex-col"
           >
             <div className="relative overflow-hidden flex-shrink-0 aspect-square bg-gray-50">
-              <picture>
-                <source
-                  srcSet={getImageUrl(pizza.image, 'thumb')}
-                  media="(max-width: 640px)"
-                />
-                <source
-                  srcSet={getImageUrl(pizza.image, 'medium')}
-                  media="(min-width: 641px)"
-                />
-                <motion.img
-                  src={getImageUrl(pizza.image, 'medium')}
-                  alt={pizza.name}
-                  whileHover={{ scale: 1.08 }}
-                  transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </picture>
+              <motion.img
+                src={getImageUrl(pizza.image, 'medium')}
+                srcSet={`${getImageUrl(pizza.image, 'thumb')} 400w, ${getImageUrl(pizza.image, 'medium')} 800w, ${getImageUrl(pizza.image, 'large')} 1200w`}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                alt={pizza.name}
+                whileHover={{ scale: 1.08 }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
+                className="absolute inset-0 w-full h-full object-cover"
+                loading="lazy"
+              />
             </div>
             <div className="p-4 flex-1 flex flex-col">
               <div className="font-semibold text-gray-800 text-lg">
@@ -340,7 +333,7 @@ function Catalog({ addToCart }) {
           </motion.div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid gap-6" style={gridStyle}>
               {Array.from({ length: 6 }).map((_, i) => (
                 <PizzaSkeleton key={i} />
               ))}
@@ -367,7 +360,8 @@ function Catalog({ addToCart }) {
               variants={gridContainerVariants}
               initial="hidden"
               animate="visible"
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+              className="grid gap-6"
+              style={gridStyle}
             >
               {items.map((pizza) => renderCard(pizza))}
             </motion.div>
@@ -385,7 +379,7 @@ function Catalog({ addToCart }) {
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid gap-6" style={gridStyle}>
             {Array.from({ length: 9 }).map((_, i) => (
               <PizzaSkeleton key={i} />
             ))}
@@ -456,7 +450,8 @@ function Catalog({ addToCart }) {
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, margin: '-50px' }}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+                  className="grid gap-6"
+                  style={gridStyle}
                 >
                   {group.items.map((pizza) => renderCard(pizza))}
                 </motion.div>

@@ -1,6 +1,6 @@
 <?php
 function handleAuth($pdo) {
-    $login = sanitize($_POST['Login'] ?? '');
+    $login = strtolower(sanitize($_POST['Login'] ?? ''));
     $password = $_POST['Password'] ?? '';
     $fullName = sanitize($_POST['FullName'] ?? '');
     $phone = sanitize($_POST['Phone'] ?? '');

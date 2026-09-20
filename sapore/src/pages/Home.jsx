@@ -11,6 +11,8 @@ import HomeSkeleton from '../components/skeletons/HomeSkeleton';
 import SEO from '../components/SEO';
 import { usePageSeo } from '../hooks/usePageSeo';
 
+const popularGridStyle = { gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' };
+
 function Home({ addToCart }) {
   const [popularPizzas, setPopularPizzas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -130,7 +132,6 @@ function Home({ addToCart }) {
           alt="Итальянская пицца из дровяной печи Sapore"
           className="absolute inset-0 w-full h-full object-cover"
           loading="eager"
-          decoding="async"
         />
 
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/30" />
@@ -202,10 +203,9 @@ function Home({ addToCart }) {
               alt="Итальянские рецепты"
               className="w-full h-48 object-cover"
               loading="lazy"
-              decoding="async"
             />
             <div className="p-5 text-center">
-              <h3 className="font-semibold text-lg text-gray-800">Итальянские рецепты</h3>
+              <div className="font-semibold text-lg text-gray-800">Итальянские рецепты</div>
               <p className="text-gray-500 text-sm mt-1 leading-relaxed">
                 Готовим по традиционным рецептам с любовью
               </p>
@@ -223,10 +223,9 @@ function Home({ addToCart }) {
               alt="Быстрая доставка пиццы"
               className="w-full h-48 object-cover"
               loading="lazy"
-              decoding="async"
             />
             <div className="p-5 text-center">
-              <h3 className="font-semibold text-lg text-gray-800">Быстрая доставка</h3>
+              <div className="font-semibold text-lg text-gray-800">Быстрая доставка</div>
               <p className="text-gray-500 text-sm mt-1 leading-relaxed">
                 Привезём горячую пиццу за 30 минут
               </p>
@@ -244,10 +243,9 @@ function Home({ addToCart }) {
               alt="Свежие продукты"
               className="w-full h-48 object-cover"
               loading="lazy"
-              decoding="async"
             />
             <div className="p-5 text-center">
-              <h3 className="font-semibold text-lg text-gray-800">Свежие продукты</h3>
+              <div className="font-semibold text-lg text-gray-800">Свежие продукты</div>
               <p className="text-gray-500 text-sm mt-1 leading-relaxed">
                 Только натуральные ингредиенты высокого качества
               </p>
@@ -276,7 +274,7 @@ function Home({ addToCart }) {
             </Link>
           </motion.div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid gap-6" style={popularGridStyle}>
           {popularPizzas.map((pizza, index) => (
             <motion.div
               key={pizza.id}
@@ -292,23 +290,14 @@ function Home({ addToCart }) {
               >
                 <Card hover className="overflow-hidden border border-gray-100 relative">
                   <div className="relative overflow-hidden aspect-square bg-gray-50">
-                    <picture>
-                      <source
-                        srcSet={getImageUrl(pizza.image, 'thumb')}
-                        media="(max-width: 640px)"
-                      />
-                      <source
-                        srcSet={getImageUrl(pizza.image, 'medium')}
-                        media="(min-width: 641px)"
-                      />
-                      <img
-                        src={getImageUrl(pizza.image, 'medium')}
-                        alt={pizza.name}
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    </picture>
+                    <img
+                      src={getImageUrl(pizza.image, 'medium')}
+                      srcSet={`${getImageUrl(pizza.image, 'thumb')} 400w, ${getImageUrl(pizza.image, 'medium')} 800w, ${getImageUrl(pizza.image, 'large')} 1200w`}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      alt={pizza.name}
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                      loading="lazy"
+                    />
                     {index === 0 && (
                       <span className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                         Хит

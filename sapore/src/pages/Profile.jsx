@@ -11,6 +11,7 @@ import ProfileSkeleton from '../components/skeletons/ProfileSkeleton';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import ConsentCheckbox from '../components/ConsentCheckbox';
+import SEO from '../components/SEO';
 import {
     FaPhone, FaEnvelope, FaUsers, FaGift, FaChartLine, FaCoins, FaInfoCircle, FaGem,
     FaPercent, FaPlus, FaTruck, FaUtensils, FaStar, FaChevronRight, FaCheckCircle,
@@ -207,6 +208,12 @@ function Profile() {
   if (isLoggedIn) {
     return (
       <div className="fade-in py-8">
+        <SEO
+          title="Профиль"
+          description="Личный кабинет Sapore"
+          url="/profile"
+          noindex
+        />
         <div className="max-w-2xl mx-auto">
           <motion.h1
             initial={{ opacity: 0, y: -20 }}
@@ -268,7 +275,7 @@ function Profile() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
                     <div className="absolute inset-0 flex flex-col justify-end p-6 text-white">
-                      <h2 className="text-3xl font-bold drop-shadow-lg">{currentLevelData.region} – {currentLevelData.name}</h2>
+                      <div className="text-3xl font-bold drop-shadow-lg">{currentLevelData.region} – {currentLevelData.name}</div>
                       <p className="text-sm opacity-95 drop-shadow">{currentLevelData.fact}</p>
                       
                       <div className="mt-3">
@@ -322,10 +329,10 @@ function Profile() {
                   className="border-t border-gray-100 pt-4"
                 >
                   <div className="flex items-center gap-1 mb-3 flex-wrap">
-                    <h3 className="font-semibold text-gray-700 flex items-center gap-2">
+                    <div className="font-semibold text-gray-700 flex items-center gap-2">
                       <FaGift className="text-amber-500" />
                       Ваши активные бонусы
-                    </h3>
+                    </div>
                     <button
                       className="relative inline-flex items-center justify-center transition hover:text-amber-500 ml-0.5 self-center"
                       onMouseEnter={() => setShowBonusTooltip(true)}
@@ -407,10 +414,10 @@ function Profile() {
                   transition={{ delay: 0.5 }}
                   className="border-t border-gray-100 pt-4"
                 >
-                  <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <div className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                     <FaMapMarkerAlt className="text-amber-500" />
                     Карта путешествия
-                  </h3>
+                  </div>
                   <div 
                     ref={travelContainerRef}
                     className="space-y-2 max-h-60 overflow-y-auto overflow-x-visible px-3 py-2 custom-scrollbar"
@@ -481,10 +488,10 @@ function Profile() {
                     transition={{ delay: 0.45 }}
                     className="border-t border-gray-100 pt-4 mt-4"
                   >
-                    <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                    <div className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                       <FaTag className="text-amber-500" />
                       Ваш промокод на скидку
-                    </h3>
+                    </div>
                     <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
@@ -522,7 +529,7 @@ function Profile() {
                   transition={{ delay: 0.6 }}
                   className="border-t border-gray-100 pt-4"
                 >
-                  <h3 className="font-semibold text-gray-700 mb-3">История бонусов</h3>
+                  <div className="font-semibold text-gray-700 mb-3">История бонусов</div>
                   {bonusHistory.length === 0 ? (
                     <div className="text-sm text-gray-500">История бонусов пуста</div>
                   ) : (
@@ -558,9 +565,9 @@ function Profile() {
                     transition={{ delay: 0.7 }}
                     className="border-t border-gray-100 pt-4 mt-4"
                   >
-                    <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-1">
+                    <div className="font-semibold text-gray-700 mb-3 flex items-center gap-1">
                       <FaUsers /> Реферальная программа
-                    </h3>
+                    </div>
                     <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div>
@@ -613,6 +620,12 @@ function Profile() {
 
   return (
     <div className="fade-in py-8">
+      <SEO
+        title={isRegister ? 'Регистрация' : 'Вход'}
+        description="Вход в личный кабинет Sapore"
+        url="/profile"
+        noindex
+      />
       <div className="max-w-sm mx-auto">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
