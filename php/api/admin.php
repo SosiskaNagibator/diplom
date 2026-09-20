@@ -214,7 +214,7 @@ function addPizza($pdo) {
 
     $slug = uniqueSlug($pdo, 'items', slugify($name));
 
-    $uploadDir = __DIR__ . '/uploads/pizzas/';
+    $uploadDir = __DIR__ . '/../uploads/pizzas/';
     if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
     $imageName = '';
@@ -275,7 +275,7 @@ function updatePizza($pdo) {
     }
     $category = $cat['name'];
 
-    $uploadDir = __DIR__ . '/uploads/pizzas/';
+    $uploadDir = __DIR__ . '/../uploads/pizzas/';
     if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
     $imageName = '';
@@ -327,7 +327,7 @@ function deletePizza($pdo) {
     $stmt->execute([$id]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($row && $row['image']) {
-        $uploadDir = __DIR__ . '/uploads/pizzas/';
+        $uploadDir = __DIR__ . '/../uploads/pizzas/';
         $base = pathinfo($row['image'], PATHINFO_FILENAME);
         deleteImageSizes($uploadDir, $base);
     }
@@ -471,7 +471,7 @@ function addTopping($pdo) {
         return;
     }
 
-    $uploadDir = __DIR__ . '/uploads/constructor/toppings/';
+    $uploadDir = __DIR__ . '/../uploads/constructor/toppings/';
     if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
     $filename = uniqid();
@@ -508,7 +508,7 @@ function updateTopping($pdo) {
         return;
     }
 
-    $uploadDir = __DIR__ . '/uploads/constructor/toppings/';
+    $uploadDir = __DIR__ . '/../uploads/constructor/toppings/';
     if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
     $stmt = $pdo->prepare("SELECT image FROM constructor_toppings WHERE id = ?");
@@ -563,7 +563,7 @@ function deleteTopping($pdo) {
     $stmt->execute([$id]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($row && $row['image']) {
-        $uploadDir = __DIR__ . '/uploads/constructor/toppings/';
+        $uploadDir = __DIR__ . '/../uploads/constructor/toppings/';
         $filePath = $uploadDir . $row['image'];
         if (file_exists($filePath)) unlink($filePath);
     }

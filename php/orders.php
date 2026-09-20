@@ -68,6 +68,7 @@ function handleSaveOrder($pdo, $input) {
     $total = (float)$input['total'];
     $originalTotal = (float)($input['originalTotal'] ?? $total);
     $bonusUsed = (int)($input['bonusUsed'] ?? 0);
+    if ($bonusUsed < 0) $bonusUsed = 0;
     $status = $input['status'] ?? 'Принят';
     $deliveryAddress = trim($input['deliveryAddress'] ?? '');
     $deliveryTime = trim($input['deliveryTime'] ?? '');
@@ -156,6 +157,20 @@ function handleSaveOrder($pdo, $input) {
             $deliveryCost = 0;
         }
 
+        $baseForBonus = $originalTotal - $serverDiscount - $discount;
+        if ($baseForBonus < 0) $baseForBonus = 0;
+        $maxByPercent = (int)floor($baseForBonus * 0.20);
+
+        $currentBalance = 0;
+        if ($userLogin !== 'guest') {
+            $stmt = $pdo->prepare("SELECT balance FROM bonuses WHERE login = ?");
+            $stmt->execute([$userLogin]);
+            $currentBalance = (int)($stmt->fetchColumn() ?: 0);
+        }
+
+        $bonusUsed = min($bonusUsed, $maxByPercent, $currentBalance);
+        if ($bonusUsed < 0) $bonusUsed = 0;
+
         $finalTotal = $originalTotal - $serverDiscount - $discount - $bonusUsed + $deliveryCost;
         if ($finalTotal < 0) $finalTotal = 0;
 
@@ -169,10 +184,17 @@ function handleSaveOrder($pdo, $input) {
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             $orderNumber, $originalTotal, $status, $itemsJson, $userLogin,
-            $deliveryAddress, $deliveryTime, $promoCode, $serverDiscount + $discount, $finalTotal,
+            $deliveryAddress, $deliveryTime, $promoCode, $serverDiscount + $discount + $bonusUsed, $finalTotal,
             $customerName, $customerPhone, $customerEmail
         ]);
         $orderId = $pdo->lastInsertId();
+
+        if ($userLogin !== 'guest' && $bonusUsed > 0) {
+            $stmt = $pdo->prepare("UPDATE bonuses SET balance = balance - ? WHERE login = ?");
+            $stmt->execute([$bonusUsed, $userLogin]);
+            $stmt = $pdo->prepare("INSERT INTO bonus_history (login, amount, description, order_id) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$userLogin, -$bonusUsed, "Списание бонусов за заказ #$orderNumber", $orderId]);
+        }
 
         $earnedBonuses = 0;
         if ($userLogin !== 'guest' && empty($promoCode)) {
@@ -244,6 +266,7 @@ function handleSaveOrder($pdo, $input) {
             'discount' => $serverDiscount + $discount,
             'deliveryCost' => $deliveryCost,
             'finalTotal' => $finalTotal,
+            'bonusUsed' => $bonusUsed,
             'new_level' => $newLevel,
             'applied_discount_percent' => $discountPercent,
             'free_delivery' => $freeDelivery,
