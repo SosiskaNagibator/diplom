@@ -17,6 +17,11 @@ function slugify($text) {
 }
 
 function uniqueSlug($pdo, $table, $slug, $excludeId = null) {
+    $allowedTables = ['items', 'categories'];
+    if (!in_array($table, $allowedTables, true)) {
+        return $slug;
+    }
+
     $base = $slug;
     $i = 1;
     while (true) {

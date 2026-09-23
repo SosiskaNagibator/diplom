@@ -31,7 +31,7 @@ try {
     $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4", DB_USER, DB_PASS);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch(PDOException $e) {
-    echo json_encode(['status' => 'error', 'message' => 'Ошибка подключения к БД: ' . $e->getMessage()]);
+    echo json_encode(['status' => 'error', 'message' => 'Ошибка подключения к БД']);
     exit;
 }
 
@@ -54,27 +54,128 @@ switch($action) {
         handleApplyPromo($pdo, $input);
         break;
     default:
-        echo json_encode(['status' => 'error', 'message' => 'Неизвестное действие: ' . $action]);
+        echo json_encode(['status' => 'error', 'message' => 'Неизвестное действие']);
+}
+
+function validateAndCalcItems($pdo, $items) {
+    if (!is_array($items) || count($items) === 0 || count($items) > 50) {
+        return null;
+    }
+
+    $sizeStmt = $pdo->query("SELECT label, price_multiplier FROM pizza_sizes");
+    $sizeMap = [];
+    while ($s = $sizeStmt->fetch(PDO::FETCH_ASSOC)) {
+        $sizeMap[$s['label']] = (float)$s['price_multiplier'];
+    }
+
+    $serverTotal = 0;
+    $validatedItems = [];
+
+    foreach ($items as $item) {
+        if (!is_array($item)) return null;
+
+        $id = isset($item['id']) ? (int)$item['id'] : 0;
+        $quantity = isset($item['quantity']) ? (int)$item['quantity'] : 0;
+
+        if ($quantity < 1 || $quantity > 20) return null;
+
+        $name = isset($item['name']) ? (string)$item['name'] : '';
+        $sizeLabel = isset($item['size_label']) ? trim((string)$item['size_label']) : '';
+
+        if ($name === 'Пицца на заказ') {
+            $clientPrice = isset($item['price']) ? (int)$item['price'] : 0;
+            if ($clientPrice < 100 || $clientPrice > 5000) return null;
+
+            $serverTotal += $clientPrice * $quantity;
+
+            $validatedItems[] = [
+                'id' => $id,
+                'name' => 'Пицца на заказ',
+                'price' => $clientPrice,
+                'quantity' => $quantity,
+                'size_label' => $sizeLabel,
+                'size' => isset($item['size']) ? (string)$item['size'] : '',
+                'toppings' => $item['toppings'] ?? '',
+                'description' => isset($item['description']) ? (string)$item['description'] : '',
+                'image' => isset($item['image']) ? (string)$item['image'] : '',
+            ];
+            continue;
+        }
+
+        if ($id < 1) return null;
+
+        $stmt = $pdo->prepare("SELECT id, name, price, sizes, image FROM items WHERE id = ?");
+        $stmt->execute([$id]);
+        $dbItem = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$dbItem) return null;
+
+        $basePrice = (int)$dbItem['price'];
+        $itemSizes = trim($dbItem['sizes'] ?? '');
+
+        if (!empty($itemSizes) && !empty($sizeLabel) && isset($sizeMap[$sizeLabel])) {
+            $basePrice = (int)round($basePrice * $sizeMap[$sizeLabel]);
+        }
+
+        $toppingsPrice = 0;
+        $toppingsForSave = $item['toppings'] ?? [];
+
+        if (is_array($toppingsForSave)) {
+            foreach ($toppingsForSave as $t) {
+                if (!is_array($t) || !isset($t['id'])) continue;
+                $tId = (int)$t['id'];
+                if ($tId < 1) continue;
+                $stmt = $pdo->prepare("SELECT price FROM constructor_toppings WHERE id = ?");
+                $stmt->execute([$tId]);
+                $dbTop = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($dbTop) {
+                    $toppingsPrice += (int)$dbTop['price'];
+                }
+            }
+        }
+
+        $unitPrice = $basePrice + $toppingsPrice;
+        $serverTotal += $unitPrice * $quantity;
+
+        $validatedItems[] = [
+            'id' => $id,
+            'name' => $dbItem['name'],
+            'price' => $unitPrice,
+            'quantity' => $quantity,
+            'size_label' => $sizeLabel,
+            'size' => isset($item['size']) ? (string)$item['size'] : '',
+            'toppings' => $toppingsForSave,
+            'description' => isset($item['description']) ? (string)$item['description'] : '',
+            'image' => $dbItem['image'] ?? '',
+        ];
+    }
+
+    return ['total' => $serverTotal, 'items' => $validatedItems];
 }
 
 function handleSaveOrder($pdo, $input) {
-    if (!isset($input['items']) || !isset($input['total'])) {
-        echo json_encode(['status' => 'error', 'message' => 'Неверные данные заказа']);
+    $rawItems = $input['items'] ?? null;
+
+    $validation = validateAndCalcItems($pdo, $rawItems);
+    if ($validation === null) {
+        echo json_encode(['status' => 'error', 'message' => 'Некорректные данные заказа']);
+        return;
+    }
+
+    $items = $validation['items'];
+    $originalTotal = $validation['total'];
+
+    if ($originalTotal <= 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Сумма заказа некорректна']);
         return;
     }
 
     $userLogin = $_SESSION['user_login'] ?? 'guest';
-    $items = $input['items'];
-    $total = (float)$input['total'];
-    $originalTotal = (float)($input['originalTotal'] ?? $total);
     $bonusUsed = (int)($input['bonusUsed'] ?? 0);
     if ($bonusUsed < 0) $bonusUsed = 0;
-    $status = $input['status'] ?? 'Принят';
+    $status = 'Принят';
     $deliveryAddress = trim($input['deliveryAddress'] ?? '');
     $deliveryTime = trim($input['deliveryTime'] ?? '');
     $promoCode = trim($input['promoCode'] ?? '');
-    $discountAmount = (float)($input['discountAmount'] ?? 0);
-    $finalTotal = (float)($input['finalTotal'] ?? $total);
 
     $customerName = trim($input['customerName'] ?? '');
     $customerPhone = trim($input['customerPhone'] ?? '');
@@ -113,25 +214,21 @@ function handleSaveOrder($pdo, $input) {
         $deliveryTime = null;
     }
 
-    $stmt = $pdo->query("SELECT MAX(id) as max_id FROM orders");
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    $nextId = ($result['max_id'] ?? 0) + 1;
-    $orderNumber = $nextId;
-
     try {
         $pdo->beginTransaction();
+
+        $stmt = $pdo->query("SELECT MAX(id) as max_id FROM orders FOR UPDATE");
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $orderNumber = ((int)($result['max_id'] ?? 0)) + 1;
 
         $bonuses = getUserActiveBonuses($pdo, $userLogin);
 
         $freeDelivery = false;
         if ($bonuses['free_delivery'] && $userLogin !== 'guest') {
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM free_delivery_usage WHERE user_login = ? AND used_at >= DATE_FORMAT(NOW(), '%Y-%m-01')");
+            $stmt = $pdo->prepare("INSERT IGNORE INTO free_delivery_usage (user_login, used_at) VALUES (?, CURDATE())");
             $stmt->execute([$userLogin]);
-            $usedThisMonth = $stmt->fetchColumn();
-            if ($usedThisMonth == 0) {
+            if ($stmt->rowCount() > 0) {
                 $freeDelivery = true;
-                $stmt = $pdo->prepare("INSERT INTO free_delivery_usage (user_login, used_at) VALUES (?, CURDATE())");
-                $stmt->execute([$userLogin]);
             }
         }
 
@@ -139,6 +236,7 @@ function handleSaveOrder($pdo, $input) {
         if (!empty($promoCode)) {
             $discount = applyPromoCode($pdo, $promoCode, $userLogin, $originalTotal);
             if ($discount === false) {
+                $pdo->rollBack();
                 echo json_encode(['status' => 'error', 'message' => 'Промокод недействителен или не принадлежит вам']);
                 return;
             }
@@ -270,7 +368,11 @@ function handleSaveOrder($pdo, $input) {
     } catch (PDOException $e) {
         $pdo->rollBack();
         error_log("Ошибка в handleSaveOrder: " . $e->getMessage());
-        echo json_encode(['status' => 'error', 'message' => 'Ошибка сохранения заказа: ' . $e->getMessage()]);
+        if ($e->getCode() === '23000') {
+            echo json_encode(['status' => 'error', 'message' => 'Конфликт при сохранении заказа. Попробуйте снова.']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Ошибка сохранения заказа']);
+        }
     }
 }
 
@@ -314,7 +416,7 @@ function handleGetOrders($pdo, $input) {
         }
         echo json_encode(['status' => 'success', 'orders' => $result]);
     } catch(PDOException $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Ошибка получения заказов: ' . $e->getMessage()]);
+        echo json_encode(['status' => 'error', 'message' => 'Ошибка получения заказов']);
     }
 }
 

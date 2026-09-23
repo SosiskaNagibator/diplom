@@ -1,5 +1,5 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { useState, useLayoutEffect } from 'react';
+import { useState, useLayoutEffect, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 import Header from './components/Header';
@@ -23,12 +23,33 @@ import Offer from './pages/Offer';
 import NotFound from './pages/NotFound';
 import { useCart } from './contexts/CartContext';
 
+const YM_COUNTER_ID = 112842737;
+
 function ScrollManager() {
   const location = useLocation();
 
   useLayoutEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [location.pathname]);
+
+  return null;
+}
+
+function MetrikaTracker() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (typeof window.ym !== 'function') return;
+
+    const timer = setTimeout(() => {
+      window.ym(YM_COUNTER_ID, 'hit', window.location.href, {
+        title: document.title,
+        referrer: document.referrer,
+      });
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [location.pathname, location.search]);
 
   return null;
 }
@@ -62,6 +83,7 @@ function App() {
   return (
     <div className="flex flex-col min-h-screen">
       <ScrollManager />
+      <MetrikaTracker />
       <Header />
       <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 w-full">
         <AnimatePresence mode="wait">

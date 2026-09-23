@@ -5,6 +5,9 @@ function handleAuth($pdo) {
     $fullName = sanitize($_POST['FullName'] ?? '');
     $phone = sanitize($_POST['Phone'] ?? '');
     $email = sanitize($_POST['Email'] ?? '');
+    if ($email === '') {
+        $email = null;
+    }
     $referralCode = sanitize($_POST['ReferralCode'] ?? '');
     $action = $_POST['action'] ?? 'login';
 
@@ -24,6 +27,14 @@ function handleAuth($pdo) {
         if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             echo json_encode(['status' => 'error', 'message' => 'Некорректный email']);
             return;
+        }
+        if (!empty($email)) {
+            $stmt = $pdo->prepare("SELECT Login FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            if ($stmt->fetch()) {
+                echo json_encode(['status' => 'error', 'message' => 'Этот email уже используется']);
+                return;
+            }
         }
         $phoneDigits = preg_replace('/[^0-9]/', '', $phone);
         if (strlen($phoneDigits) < 10 || strlen($phoneDigits) > 11) {
@@ -47,7 +58,23 @@ function handleAuth($pdo) {
             return;
         }
 
-        $userReferralCode = strtoupper(substr(md5($login . time()), 0, 8));
+        $userReferralCode = '';
+        $attempts = 0;
+        while ($attempts < 5) {
+            $candidate = strtoupper(bin2hex(random_bytes(4)));
+            $stmt = $pdo->prepare("SELECT Login FROM users WHERE referral_code = ?");
+            $stmt->execute([$candidate]);
+            if (!$stmt->fetch()) {
+                $userReferralCode = $candidate;
+                break;
+            }
+            $attempts++;
+        }
+        if (empty($userReferralCode)) {
+            echo json_encode(['status' => 'error', 'message' => 'Ошибка генерации реферального кода. Попробуйте снова.']);
+            return;
+        }
+
         $referrer = null;
         if (!empty($referralCode)) {
             $stmt = $pdo->prepare("SELECT Login FROM users WHERE referral_code = ?");
@@ -83,7 +110,7 @@ function handleAuth($pdo) {
                 'login' => $login,
                 'fullName' => $fullName,
                 'phone' => $phone,
-                'email' => $email
+                'email' => $email ?? ''
             ]
         ]);
         return;

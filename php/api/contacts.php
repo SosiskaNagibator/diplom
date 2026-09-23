@@ -24,6 +24,13 @@ function handleContact($pdo) {
         return;
     }
 
+    try {
+        $stmt = $pdo->prepare("INSERT INTO contacts_messages (name, email, message) VALUES (?, ?, ?)");
+        $stmt->execute([$name, $email, $message]);
+    } catch (PDOException $e) {
+        error_log('Contact save error: ' . $e->getMessage());
+    }
+
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
@@ -47,6 +54,7 @@ function handleContact($pdo) {
         $mail->send();
         echo json_encode(['status' => 'success', 'message' => 'Сообщение отправлено! Мы свяжемся с вами.']);
     } catch (Exception $e) {
-        echo json_encode(['status' => 'error', 'message' => 'Ошибка отправки: ' . $mail->ErrorInfo]);
+        error_log('Contact mail error: ' . $mail->ErrorInfo);
+        echo json_encode(['status' => 'error', 'message' => 'Не удалось отправить сообщение. Попробуйте позже.']);
     }
 }

@@ -158,10 +158,14 @@ function getOrders($pdo) {
 function updateOrderStatus($pdo) {
     $orderId = (int)($_POST['order_id'] ?? 0);
     $newStatus = sanitize($_POST['status'] ?? '');
-    if (!$orderId || !$newStatus) {
-        echo json_encode(['status' => 'error', 'message' => 'Неверные данные']);
+
+    $allowed = ['Принят', 'Готовится', 'В пути', 'Доставлен'];
+
+    if (!$orderId || !in_array($newStatus, $allowed, true)) {
+        echo json_encode(['status' => 'error', 'message' => 'Неверный статус']);
         return;
     }
+
     $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
     if ($stmt->execute([$newStatus, $orderId])) {
         echo json_encode(['status' => 'success', 'message' => 'Статус обновлён']);
