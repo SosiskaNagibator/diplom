@@ -26,7 +26,7 @@ $slug = isset($_GET['slug']) ? trim($_GET['slug']) : '';
 
 if ($id > 0 || $slug !== '') {
     if ($id > 0) {
-        $stmt = $conn->prepare("SELECT i.id, i.name, i.slug, i.category, i.description, i.price, i.image, i.sizes, i.category_id,
+        $stmt = $conn->prepare("SELECT i.id, i.name, i.slug, c.name AS category, i.description, i.price, i.image, i.sizes, i.category_id,
                                        i.calories, i.protein, i.fat, i.carbs, i.seo_title, i.seo_description, i.seo_h1,
                                        c.slug AS category_slug
                                 FROM items i
@@ -34,7 +34,7 @@ if ($id > 0 || $slug !== '') {
                                 WHERE i.id = ?");
         $stmt->bind_param("i", $id);
     } else {
-        $stmt = $conn->prepare("SELECT i.id, i.name, i.slug, i.category, i.description, i.price, i.image, i.sizes, i.category_id,
+        $stmt = $conn->prepare("SELECT i.id, i.name, i.slug, c.name AS category, i.description, i.price, i.image, i.sizes, i.category_id,
                                        i.calories, i.protein, i.fat, i.carbs, i.seo_title, i.seo_description, i.seo_h1,
                                        c.slug AS category_slug
                                 FROM items i
@@ -100,10 +100,11 @@ if ($ids !== '') {
 
     $placeholders = implode(',', array_fill(0, count($idArray), '?'));
     $types = str_repeat('i', count($idArray));
-    $sql = "SELECT id, name, slug, category, description, price, image, sizes, category_id,
-                   calories, protein, fat, carbs, seo_title, seo_description, seo_h1
-            FROM items
-            WHERE id IN ($placeholders)";
+    $sql = "SELECT i.id, i.name, i.slug, c.name AS category, i.description, i.price, i.image, i.sizes, i.category_id,
+                   i.calories, i.protein, i.fat, i.carbs, i.seo_title, i.seo_description, i.seo_h1
+            FROM items i
+            LEFT JOIN categories c ON c.id = i.category_id
+            WHERE i.id IN ($placeholders)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param($types, ...$idArray);
     $stmt->execute();
@@ -192,7 +193,7 @@ $params = [];
 $types = '';
 
 if ($categoryId > 0) {
-    $where = " WHERE category_id = ?";
+    $where = " WHERE i.category_id = ?";
     $params[] = $categoryId;
     $types .= 'i';
 } elseif ($categoryId === -1) {
@@ -202,9 +203,9 @@ if ($categoryId > 0) {
 if (!empty($search)) {
     $like = '%' . $search . '%';
     if ($where) {
-        $where .= " AND (name LIKE ? OR description LIKE ? OR category LIKE ?)";
+        $where .= " AND (i.name LIKE ? OR i.description LIKE ? OR c.name LIKE ?)";
     } else {
-        $where = " WHERE (name LIKE ? OR description LIKE ? OR category LIKE ?)";
+        $where = " WHERE (i.name LIKE ? OR i.description LIKE ? OR c.name LIKE ?)";
     }
     $params[] = $like;
     $params[] = $like;
@@ -212,7 +213,7 @@ if (!empty($search)) {
     $types .= 'sss';
 }
 
-$countSql = "SELECT COUNT(*) as total FROM items" . $where;
+$countSql = "SELECT COUNT(*) as total FROM items i LEFT JOIN categories c ON c.id = i.category_id" . $where;
 $countStmt = $conn->prepare($countSql);
 if (!empty($params)) {
     $countStmt->bind_param($types, ...$params);
@@ -222,9 +223,10 @@ $countResult = $countStmt->get_result();
 $totalRow = $countResult->fetch_assoc();
 $total = (int)$totalRow['total'];
 
-$sql = "SELECT id, name, slug, category, description, price, image, sizes, category_id,
-               calories, protein, fat, carbs, seo_title, seo_description, seo_h1
-        FROM items" . $where . " ORDER BY id LIMIT ? OFFSET ?";
+$sql = "SELECT i.id, i.name, i.slug, c.name AS category, i.description, i.price, i.image, i.sizes, i.category_id,
+               i.calories, i.protein, i.fat, i.carbs, i.seo_title, i.seo_description, i.seo_h1
+        FROM items i
+        LEFT JOIN categories c ON c.id = i.category_id" . $where . " ORDER BY i.id LIMIT ? OFFSET ?";
 $params[] = $limit;
 $params[] = $offset;
 $types .= 'ii';

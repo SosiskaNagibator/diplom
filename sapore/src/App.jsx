@@ -100,7 +100,6 @@ function App() {
               <Route path="/catalog" element={<Catalog addToCart={handleAddToCart} />} />
               <Route path="/category/:slug" element={<CategoryPage addToCart={handleAddToCart} />} />
               <Route path="/product/:slug" element={<PizzaDetails addToCart={handleAddToCart} />} />
-              <Route path="/pizza/:id" element={<PizzaDetails addToCart={handleAddToCart} />} />
               <Route path="/constructor" element={<Constructor addToCart={handleAddToCart} />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/profile" element={<Profile />} />

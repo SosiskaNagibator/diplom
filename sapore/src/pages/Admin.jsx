@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { API_BASE, CONSTRUCTOR_TOPPINGS_BASE } from '../constants/api';
 import { ORDER_STATUSES } from '../constants/statuses';
 import { STORAGE_KEYS } from '../constants/storage';
-import { Button, Input, Badge, LoadingSpinner } from '../components/ui';
+import { Button, Input, Badge, LoadingSpinner, ConfirmModal } from '../components/ui';
 import { getImageUrl } from '../utils/imageUtils';
 import SEO from '../components/SEO';
 import { useAuth } from '../contexts/AuthContext';
@@ -70,6 +71,9 @@ function Admin() {
   const [promoSearch, setPromoSearch] = useState('');
   const [promoStatusFilter, setPromoStatusFilter] = useState('');
 
+  const [confirmState, setConfirmState] = useState({ isOpen: false, message: '', onConfirm: null });
+  const [editingUsers, setEditingUsers] = useState({});
+
   const emptyPizzaForm = {
     name: '',
     category: '',
@@ -131,6 +135,14 @@ function Admin() {
       return false;
     }
     return true;
+  };
+
+  const confirmAction = (message, onConfirm) => {
+    setConfirmState({ isOpen: true, message, onConfirm });
+  };
+
+  const closeConfirm = () => {
+    setConfirmState({ isOpen: false, message: '', onConfirm: null });
   };
 
   useEffect(() => {
@@ -335,12 +347,14 @@ function Admin() {
     });
     if (!checkResponseStatus(res)) return;
     const data = await res.json();
-    alert(data.message);
     if (data.status === 'success') {
+      toast.success(data.message || 'Сохранено');
       setPizzaForm(emptyPizzaForm);
       setEditingPizza(null);
       setSelectedImageFile(null);
       fetchPizzas();
+    } else {
+      toast.error(data.message || 'Ошибка');
     }
   };
 
@@ -348,7 +362,7 @@ function Admin() {
     setEditingPizza(p);
     setPizzaForm({
       name: p.name || '',
-      category: p.category || '',
+      category: p.category || p.category_name || '',
       category_id: p.category_id || '',
       description: p.description || '',
       price: p.price || '',
@@ -361,18 +375,23 @@ function Admin() {
     setSelectedImageFile(null);
   };
 
-  const handleDeletePizza = async (id) => {
-    if (!confirm('Удалить товар?')) return;
-    const payload = new URLSearchParams({ action: 'admin_delete_pizza', id });
-    const res = await fetch(API_BASE, { method: 'POST', body: payload });
-    if (!checkResponseStatus(res)) return;
-    const data = await res.json();
-    alert(data.message);
-    if (data.status === 'success') fetchPizzas();
+  const handleDeletePizza = (id) => {
+    confirmAction('Удалить товар?', async () => {
+      const payload = new URLSearchParams({ action: 'admin_delete_pizza', id });
+      const res = await fetch(API_BASE, { method: 'POST', body: payload });
+      if (!checkResponseStatus(res)) { closeConfirm(); return; }
+      const data = await res.json();
+      if (data.status === 'success') {
+        toast.success(data.message || 'Товар удалён');
+        fetchPizzas();
+      } else {
+        toast.error(data.message || 'Ошибка удаления');
+      }
+      closeConfirm();
+    });
   };
 
   const handleUpdateUser = async (login, fullName, phone, email, balance) => {
-    if (!confirm(`Обновить данные пользователя ${login}?`)) return;
     try {
       const profilePayload = new URLSearchParams({
         action: 'admin_update_user',
@@ -383,6 +402,12 @@ function Admin() {
       });
       const profileRes = await fetch(API_BASE, { method: 'POST', body: profilePayload });
       if (!checkResponseStatus(profileRes)) return;
+      const profileData = await profileRes.json();
+      if (profileData.status !== 'success') {
+        toast.error(profileData.message || 'Ошибка обновления профиля');
+        return;
+      }
+
       if (balance !== undefined && balance !== null) {
         const bonusPayload = new URLSearchParams({
           action: 'admin_update_user_bonus',
@@ -391,11 +416,22 @@ function Admin() {
         });
         const bonusRes = await fetch(API_BASE, { method: 'POST', body: bonusPayload });
         if (!checkResponseStatus(bonusRes)) return;
+        const bonusData = await bonusRes.json();
+        if (bonusData.status !== 'success') {
+          toast.error(bonusData.message || 'Ошибка обновления бонусов');
+          return;
+        }
       }
-      alert('Данные обновлены');
+
+      toast.success('Данные обновлены');
+      setEditingUsers(prev => {
+        const copy = { ...prev };
+        delete copy[login];
+        return copy;
+      });
       fetchUsers();
     } catch (err) {
-      alert('Ошибка обновления');
+      toast.error('Ошибка обновления');
     }
   };
 
@@ -407,11 +443,13 @@ function Admin() {
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     if (!checkResponseStatus(res)) return;
     const data = await res.json();
-    alert(data.message);
     if (data.status === 'success') {
+      toast.success(data.message || 'Сохранено');
       setSizeForm({ name: '', label: '', circle_size: '', price: '0', sort_order: '0' });
       setEditingSize(null);
       fetchSizes();
+    } else {
+      toast.error(data.message || 'Ошибка');
     }
   };
 
@@ -420,14 +458,20 @@ function Admin() {
     setSizeForm(s);
   };
 
-  const handleDeleteSize = async (id) => {
-    if (!confirm('Удалить размер?')) return;
-    const payload = new URLSearchParams({ action: 'admin_delete_size', id });
-    const res = await fetch(API_BASE, { method: 'POST', body: payload });
-    if (!checkResponseStatus(res)) return;
-    const data = await res.json();
-    alert(data.message);
-    if (data.status === 'success') fetchSizes();
+  const handleDeleteSize = (id) => {
+    confirmAction('Удалить размер?', async () => {
+      const payload = new URLSearchParams({ action: 'admin_delete_size', id });
+      const res = await fetch(API_BASE, { method: 'POST', body: payload });
+      if (!checkResponseStatus(res)) { closeConfirm(); return; }
+      const data = await res.json();
+      if (data.status === 'success') {
+        toast.success(data.message || 'Размер удалён');
+        fetchSizes();
+      } else {
+        toast.error(data.message || 'Ошибка удаления');
+      }
+      closeConfirm();
+    });
   };
 
   const handleToppingSubmit = async (e) => {
@@ -444,12 +488,14 @@ function Admin() {
     const res = await fetch(API_BASE, { method: 'POST', body: formData });
     if (!checkResponseStatus(res)) return;
     const data = await res.json();
-    alert(data.message);
     if (data.status === 'success') {
+      toast.success(data.message || 'Сохранено');
       setToppingForm(emptyToppingForm);
       setEditingTopping(null);
       setSelectedToppingFile(null);
       fetchToppings();
+    } else {
+      toast.error(data.message || 'Ошибка');
     }
   };
 
@@ -464,14 +510,20 @@ function Admin() {
     setSelectedToppingFile(null);
   };
 
-  const handleDeleteTopping = async (id) => {
-    if (!confirm('Удалить начинку?')) return;
-    const payload = new URLSearchParams({ action: 'admin_delete_topping', id });
-    const res = await fetch(API_BASE, { method: 'POST', body: payload });
-    if (!checkResponseStatus(res)) return;
-    const data = await res.json();
-    alert(data.message);
-    if (data.status === 'success') fetchToppings();
+  const handleDeleteTopping = (id) => {
+    confirmAction('Удалить начинку?', async () => {
+      const payload = new URLSearchParams({ action: 'admin_delete_topping', id });
+      const res = await fetch(API_BASE, { method: 'POST', body: payload });
+      if (!checkResponseStatus(res)) { closeConfirm(); return; }
+      const data = await res.json();
+      if (data.status === 'success') {
+        toast.success(data.message || 'Начинка удалена');
+        fetchToppings();
+      } else {
+        toast.error(data.message || 'Ошибка удаления');
+      }
+      closeConfirm();
+    });
   };
 
   const handleCategorySubmit = async (e) => {
@@ -489,11 +541,13 @@ function Admin() {
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     if (!checkResponseStatus(res)) return;
     const data = await res.json();
-    alert(data.message);
     if (data.status === 'success') {
+      toast.success(data.message || 'Сохранено');
       setCategoryForm(emptyCategoryForm);
       setEditingCategory(null);
       fetchCategories();
+    } else {
+      toast.error(data.message || 'Ошибка');
     }
   };
 
@@ -508,14 +562,20 @@ function Admin() {
     });
   };
 
-  const handleDeleteCategory = async (id) => {
-    if (!confirm('Удалить категорию? Все товары с этой категорией потеряют связь.')) return;
-    const payload = new URLSearchParams({ action: 'admin_delete_category', id });
-    const res = await fetch(API_BASE, { method: 'POST', body: payload });
-    if (!checkResponseStatus(res)) return;
-    const data = await res.json();
-    alert(data.message);
-    if (data.status === 'success') fetchCategories();
+  const handleDeleteCategory = (id) => {
+    confirmAction('Удалить категорию? Все товары с этой категорией потеряют связь.', async () => {
+      const payload = new URLSearchParams({ action: 'admin_delete_category', id });
+      const res = await fetch(API_BASE, { method: 'POST', body: payload });
+      if (!checkResponseStatus(res)) { closeConfirm(); return; }
+      const data = await res.json();
+      if (data.status === 'success') {
+        toast.success(data.message || 'Категория удалена');
+        fetchCategories();
+      } else {
+        toast.error(data.message || 'Ошибка удаления');
+      }
+      closeConfirm();
+    });
   };
 
   const handlePageSeoEdit = (p) => {
@@ -534,11 +594,13 @@ function Admin() {
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     if (!checkResponseStatus(res)) return;
     const data = await res.json();
-    alert(data.message);
     if (data.status === 'success') {
+      toast.success(data.message || 'Сохранено');
       setEditingPage(null);
       setPageForm(emptyPageForm);
       fetchPagesSeo();
+    } else {
+      toast.error(data.message || 'Ошибка');
     }
   };
 
@@ -560,11 +622,13 @@ function Admin() {
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     if (!checkResponseStatus(res)) return;
     const data = await res.json();
-    alert(data.message);
     if (data.status === 'success') {
+      toast.success(data.message || 'Сохранено');
       setPromoForm(emptyPromoForm);
       setEditingPromo(null);
       fetchPromos();
+    } else {
+      toast.error(data.message || 'Ошибка');
     }
   };
 
@@ -586,14 +650,20 @@ function Admin() {
     });
   };
 
-  const handleDeletePromo = async (id) => {
-    if (!confirm('Удалить промокод?')) return;
-    const payload = new URLSearchParams({ action: 'admin_delete_promo', id });
-    const res = await fetch(API_BASE, { method: 'POST', body: payload });
-    if (!checkResponseStatus(res)) return;
-    const data = await res.json();
-    alert(data.message);
-    if (data.status === 'success') fetchPromos();
+  const handleDeletePromo = (id) => {
+    confirmAction('Удалить промокод?', async () => {
+      const payload = new URLSearchParams({ action: 'admin_delete_promo', id });
+      const res = await fetch(API_BASE, { method: 'POST', body: payload });
+      if (!checkResponseStatus(res)) { closeConfirm(); return; }
+      const data = await res.json();
+      if (data.status === 'success') {
+        toast.success(data.message || 'Промокод удалён');
+        fetchPromos();
+      } else {
+        toast.error(data.message || 'Ошибка удаления');
+      }
+      closeConfirm();
+    });
   };
 
   const handleTogglePromo = async (id) => {
@@ -601,8 +671,12 @@ function Admin() {
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     if (!checkResponseStatus(res)) return;
     const data = await res.json();
-    if (data.status === 'success') fetchPromos();
-    else alert(data.message);
+    if (data.status === 'success') {
+      toast.success(data.message || 'Статус изменён');
+      fetchPromos();
+    } else {
+      toast.error(data.message || 'Ошибка');
+    }
   };
 
   const handleDeliverySubmit = async (e) => {
@@ -613,11 +687,13 @@ function Admin() {
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     if (!checkResponseStatus(res)) return;
     const data = await res.json();
-    alert(data.message);
     if (data.status === 'success') {
+      toast.success(data.message || 'Сохранено');
       setDeliveryForm(emptyDeliveryForm);
       setEditingDelivery(null);
       fetchDeliveryRules();
+    } else {
+      toast.error(data.message || 'Ошибка');
     }
   };
 
@@ -630,14 +706,20 @@ function Admin() {
     });
   };
 
-  const handleDeleteDelivery = async (id) => {
-    if (!confirm('Удалить правило доставки?')) return;
-    const payload = new URLSearchParams({ action: 'admin_delete_delivery_rule', id });
-    const res = await fetch(API_BASE, { method: 'POST', body: payload });
-    if (!checkResponseStatus(res)) return;
-    const data = await res.json();
-    alert(data.message);
-    if (data.status === 'success') fetchDeliveryRules();
+  const handleDeleteDelivery = (id) => {
+    confirmAction('Удалить правило доставки?', async () => {
+      const payload = new URLSearchParams({ action: 'admin_delete_delivery_rule', id });
+      const res = await fetch(API_BASE, { method: 'POST', body: payload });
+      if (!checkResponseStatus(res)) { closeConfirm(); return; }
+      const data = await res.json();
+      if (data.status === 'success') {
+        toast.success(data.message || 'Правило удалено');
+        fetchDeliveryRules();
+      } else {
+        toast.error(data.message || 'Ошибка удаления');
+      }
+      closeConfirm();
+    });
   };
 
   const handleUpdateOrderStatus = async (orderId, newStatus) => {
@@ -645,8 +727,12 @@ function Admin() {
     const res = await fetch(API_BASE, { method: 'POST', body: payload });
     if (!checkResponseStatus(res)) return;
     const data = await res.json();
-    alert(data.message);
-    if (data.status === 'success') fetchOrders();
+    if (data.status === 'success') {
+      toast.success(data.message || 'Статус обновлён');
+      fetchOrders();
+    } else {
+      toast.error(data.message || 'Ошибка');
+    }
   };
 
   const handleLogout = async () => {
@@ -792,7 +878,7 @@ function Admin() {
                 <tr key={p.id} className="border-t">
                   <td className="p-3">{p.id}</td>
                   <td>{p.name}</td>
-                  <td>{p.category}</td>
+                  <td>{p.category_name || p.category || '—'}</td>
                   <td>{p.price} ₽</td>
                   <td>{p.image && <img src={getImageUrl(p.image)} alt={p.name} className="h-12 w-12 object-cover rounded-lg" />}</td>
                   <td className="flex gap-2">
@@ -871,24 +957,56 @@ function Admin() {
             <table className="w-full text-sm">
               <thead className="bg-gray-100"><tr><th>Логин</th><th>Имя</th><th>Телефон</th><th>Email</th><th>Бонусы</th><th>Действия</th></tr></thead>
               <tbody>
-                {filteredUsers.map(u => (
-                  <tr key={u.Login} className="border-t">
-                    <td className="p-3">{u.Login}</td>
-                    <td><Input type="text" defaultValue={u.full_name || ''} id={`name-${u.Login}`} className="w-32" /></td>
-                    <td><Input type="text" defaultValue={u.phone || ''} id={`phone-${u.Login}`} className="w-32" /></td>
-                    <td><Input type="email" defaultValue={u.email || ''} id={`email-${u.Login}`} className="w-32" /></td>
-                    <td><Input type="number" defaultValue={u.balance} id={`bonus-${u.Login}`} className="w-24" /></td>
-                    <td>
-                      <Button variant="primary" onClick={() => {
-                        const name = document.getElementById(`name-${u.Login}`).value;
-                        const phone = document.getElementById(`phone-${u.Login}`).value;
-                        const email = document.getElementById(`email-${u.Login}`).value;
-                        const balance = parseInt(document.getElementById(`bonus-${u.Login}`).value);
-                        if (!isNaN(balance)) handleUpdateUser(u.Login, name, phone, email, balance);
-                      }} className="px-3 py-1 text-sm">Сохранить</Button>
-                    </td>
-                  </tr>
-                ))}
+                {filteredUsers.map(u => {
+                  const edit = editingUsers[u.Login] || {};
+                  return (
+                    <tr key={u.Login} className="border-t">
+                      <td className="p-3">{u.Login}</td>
+                      <td>
+                        <Input
+                          type="text"
+                          value={edit.full_name !== undefined ? edit.full_name : (u.full_name || '')}
+                          onChange={(e) => setEditingUsers(prev => ({ ...prev, [u.Login]: { ...prev[u.Login], full_name: e.target.value } }))}
+                          className="w-32"
+                        />
+                      </td>
+                      <td>
+                        <Input
+                          type="text"
+                          value={edit.phone !== undefined ? edit.phone : (u.phone || '')}
+                          onChange={(e) => setEditingUsers(prev => ({ ...prev, [u.Login]: { ...prev[u.Login], phone: e.target.value } }))}
+                          className="w-32"
+                        />
+                      </td>
+                      <td>
+                        <Input
+                          type="email"
+                          value={edit.email !== undefined ? edit.email : (u.email || '')}
+                          onChange={(e) => setEditingUsers(prev => ({ ...prev, [u.Login]: { ...prev[u.Login], email: e.target.value } }))}
+                          className="w-32"
+                        />
+                      </td>
+                      <td>
+                        <Input
+                          type="number"
+                          value={edit.balance !== undefined ? edit.balance : (u.balance ?? 0)}
+                          onChange={(e) => setEditingUsers(prev => ({ ...prev, [u.Login]: { ...prev[u.Login], balance: e.target.value } }))}
+                          className="w-24"
+                        />
+                      </td>
+                      <td>
+                        <Button variant="primary" onClick={() => {
+                          const name = edit.full_name !== undefined ? edit.full_name : (u.full_name || '');
+                          const phone = edit.phone !== undefined ? edit.phone : (u.phone || '');
+                          const email = edit.email !== undefined ? edit.email : (u.email || '');
+                          const balanceRaw = edit.balance !== undefined ? edit.balance : (u.balance ?? 0);
+                          const balance = parseInt(balanceRaw);
+                          if (!isNaN(balance)) handleUpdateUser(u.Login, name, phone, email, balance);
+                        }} className="px-3 py-1 text-sm">Сохранить</Button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             {filteredUsers.length === 0 && (
@@ -1408,6 +1526,13 @@ function Admin() {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmState.isOpen}
+        message={confirmState.message}
+        onConfirm={confirmState.onConfirm}
+        onCancel={closeConfirm}
+      />
     </div>
   );
 }

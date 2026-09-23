@@ -175,7 +175,7 @@ function updateOrderStatus($pdo) {
 }
 
 function getPizzas($pdo) {
-    $stmt = $pdo->query("SELECT * FROM items ORDER BY id");
+    $stmt = $pdo->query("SELECT i.*, c.name AS category_name FROM items i LEFT JOIN categories c ON c.id = i.category_id ORDER BY i.id");
     $pizzas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     echo json_encode(['status' => 'success', 'pizzas' => $pizzas]);
 }
@@ -207,14 +207,12 @@ function addPizza($pdo) {
         return;
     }
 
-    $stmt = $pdo->prepare("SELECT name FROM categories WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT id FROM categories WHERE id = ?");
     $stmt->execute([$categoryId]);
-    $cat = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$cat) {
+    if (!$stmt->fetch()) {
         echo json_encode(['status' => 'error', 'message' => 'Категория не найдена']);
         return;
     }
-    $category = $cat['name'];
 
     $slug = uniqueSlug($pdo, 'items', slugify($name));
 
@@ -238,8 +236,8 @@ function addPizza($pdo) {
         $imageName = $filename . '.webp';
     }
 
-    $stmt = $pdo->prepare("INSERT INTO items (name, slug, category, category_id, description, price, image, sizes, calories, protein, fat, carbs, seo_title, seo_description, seo_h1) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    if ($stmt->execute([$name, $slug, $category, $categoryId, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs, $seoTitle ?: null, $seoDescription ?: null, $seoH1 ?: null])) {
+    $stmt = $pdo->prepare("INSERT INTO items (name, slug, category_id, description, price, image, sizes, calories, protein, fat, carbs, seo_title, seo_description, seo_h1) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    if ($stmt->execute([$name, $slug, $categoryId, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs, $seoTitle ?: null, $seoDescription ?: null, $seoH1 ?: null])) {
         echo json_encode(['status' => 'success', 'message' => 'Товар добавлен', 'id' => $pdo->lastInsertId(), 'slug' => $slug]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка добавления']);
@@ -270,14 +268,12 @@ function updatePizza($pdo) {
         return;
     }
 
-    $stmt = $pdo->prepare("SELECT name FROM categories WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT id FROM categories WHERE id = ?");
     $stmt->execute([$categoryId]);
-    $cat = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$cat) {
+    if (!$stmt->fetch()) {
         echo json_encode(['status' => 'error', 'message' => 'Категория не найдена']);
         return;
     }
-    $category = $cat['name'];
 
     $uploadDir = __DIR__ . '/../uploads/pizzas/';
     if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
@@ -313,8 +309,8 @@ function updatePizza($pdo) {
         $imageName = $oldImage;
     }
 
-    $stmt = $pdo->prepare("UPDATE items SET name=?, slug=?, category=?, category_id=?, description=?, price=?, image=?, sizes=?, calories=?, protein=?, fat=?, carbs=?, seo_title=?, seo_description=?, seo_h1=? WHERE id=?");
-    if ($stmt->execute([$name, $slug, $category, $categoryId, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs, $seoTitle ?: null, $seoDescription ?: null, $seoH1 ?: null, $id])) {
+    $stmt = $pdo->prepare("UPDATE items SET name=?, slug=?, category_id=?, description=?, price=?, image=?, sizes=?, calories=?, protein=?, fat=?, carbs=?, seo_title=?, seo_description=?, seo_h1=? WHERE id=?");
+    if ($stmt->execute([$name, $slug, $categoryId, $description, $price, $imageName, $sizes, $calories, $protein, $fat, $carbs, $seoTitle ?: null, $seoDescription ?: null, $seoH1 ?: null, $id])) {
         echo json_encode(['status' => 'success', 'message' => 'Товар обновлён', 'slug' => $slug]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Ошибка обновления']);
@@ -383,6 +379,9 @@ function updateUser($pdo) {
     $fullName = sanitize($_POST['fullName'] ?? '');
     $phone = sanitize($_POST['phone'] ?? '');
     $email = sanitize($_POST['email'] ?? '');
+    if ($email === '') {
+        $email = null;
+    }
     if (empty($login) || $login === 'admin') {
         echo json_encode(['status' => 'error', 'message' => 'Неверные данные']);
         return;

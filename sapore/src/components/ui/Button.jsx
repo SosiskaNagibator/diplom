@@ -1,5 +1,5 @@
 export const Button = ({ children, variant = 'primary', type = 'button', className = '', disabled = false, onClick, ...props }) => {
-  const base = 'px-6 py-3 rounded-full font-semibold transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed';
+  const base = 'px-6 py-3 rounded-full font-semibold transition-[transform,box-shadow,background-color] duration-200 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transform-gpu antialiased';
   const variants = {
     primary: 'bg-amber-500 hover:bg-amber-600 text-white',
     secondary: 'bg-white hover:bg-gray-50 text-gray-800 border-2 border-amber-200',

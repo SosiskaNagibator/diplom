@@ -141,9 +141,9 @@ const CategoryPage = ({ addToCart }) => {
               <Card hover className="overflow-hidden border border-gray-100 relative h-full flex flex-col">
                 <div className="relative overflow-hidden flex-shrink-0 aspect-square bg-gray-50">
                   <img
-                    src={getImageUrl(pizza.image, 'medium')}
+                    src={getImageUrl(pizza.image, 'thumb')}
                     srcSet={`${getImageUrl(pizza.image, 'thumb')} 400w, ${getImageUrl(pizza.image, 'medium')} 800w, ${getImageUrl(pizza.image, 'large')} 1200w`}
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 340px"
                     alt={pizza.name}
                     className="absolute inset-0 w-full h-full object-cover"
                     loading="lazy"

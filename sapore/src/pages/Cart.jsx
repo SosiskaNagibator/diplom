@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useCallback, useMemo, memo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 import MapPicker from '../components/MapPicker/MapPicker';
 import AddressSelector from '../components/AddressSelector';
 import BonusSlider from '../components/BonusSlider';
@@ -15,7 +16,6 @@ import { useDeliveryRules, useFreeDeliveryCheck, calculateDeliveryCost } from '.
 import CartItem from '../components/CartItem';
 import { API_ORDERS, API_BASE } from '../constants/api';
 import { FaBolt, FaClock, FaPizzaSlice, FaClipboardList, FaGift, FaCoins, FaCheck, FaTimes } from 'react-icons/fa';
-import LevelUpModal from '../components/LevelUpModal';
 import { useUserLevel } from '../hooks/useLevels';
 import SEO from '../components/SEO';
 
@@ -128,11 +128,9 @@ function Cart() {
   const isGuest = !userLogin;
 
   const { data: availableBonuses = 0 } = useBonuses(userLogin);
-  const { data: userLevelData, refetch: refetchUserLevel } = useUserLevel(userLogin);
+  const { refetch: refetchUserLevel } = useUserLevel(userLogin);
   const { data: deliveryRules = [] } = useDeliveryRules();
   const { data: freeDeliveryData } = useFreeDeliveryCheck(userLogin);
-  const allLevels = userLevelData?.all_levels || [];
-  const ordersSum = userLevelData?.orders_sum || 0;
 
   const [useBonus, setUseBonus] = useState(false);
   const [bonusPercentage, setBonusPercentage] = useState(0);
@@ -153,10 +151,6 @@ function Cart() {
   const [appliedPromo, setAppliedPromo] = useState('');
   const [promoMessage, setPromoMessage] = useState('');
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
-
-  const [showLevelUp, setShowLevelUp] = useState(false);
-  const [newLevel, setNewLevel] = useState(null);
-  const [ordersSumForModal, setOrdersSumForModal] = useState(0);
 
   const { mutateAsync: saveOrder, isPending: isSaving } = useSaveOrder();
 
@@ -298,6 +292,7 @@ function Cart() {
         setPromoDiscount(data.discount);
         setAppliedPromo(promoCode);
         setPromoMessage('');
+        toast.success('Промокод применён');
       } else {
         setPromoMessage(data.message);
         setPromoDiscount(0);
@@ -325,7 +320,7 @@ function Cart() {
 
     if (isGuest) {
       if (!customerName.trim()) {
-        alert('Пожалуйста, укажите имя');
+        toast.error('Пожалуйста, укажите имя');
         return false;
       }
       if (!customerPhone || !validatePhone(customerPhone)) {
@@ -335,18 +330,18 @@ function Cart() {
         setPhoneError('');
       }
       if (!consentPersonal) {
-        alert('Для оформления заказа необходимо дать согласие на обработку персональных данных');
+        toast.error('Для оформления заказа необходимо дать согласие на обработку персональных данных');
         return false;
       }
     }
 
     if (!deliveryAddress.trim()) {
-      alert('Пожалуйста, укажите адрес доставки');
+      toast.error('Пожалуйста, укажите адрес доставки');
       return false;
     }
 
     if (deliveryMode === 'choose' && (selectedHour === null || selectedMinute === null)) {
-      alert('Пожалуйста, выберите время доставки');
+      toast.error('Пожалуйста, выберите время доставки');
       return false;
     }
 
@@ -386,12 +381,6 @@ function Cart() {
       const data = await saveOrder(payload);
       if (data.status === 'success') {
         await refetchUserLevel();
-
-        if (data.new_level) {
-          setNewLevel(data.new_level);
-          setOrdersSumForModal(data.orders_sum || 0);
-          setShowLevelUp(true);
-        }
 
         const serverFinalTotal = data.finalTotal !== undefined ? data.finalTotal : finalTotal;
         const serverDeliveryCost = data.deliveryCost !== undefined ? data.deliveryCost : deliveryCost;
@@ -437,11 +426,11 @@ function Cart() {
         navigate('/tracking', { replace: true });
         return true;
       } else {
-        alert('Произошла ошибка при оформлении заказа. Попробуйте еще раз.');
+        toast.error('Произошла ошибка при оформлении заказа. Попробуйте еще раз.');
         return false;
       }
     } catch (err) {
-      alert('Произошла ошибка при оформлении заказа. Попробуйте еще раз.');
+      toast.error('Произошла ошибка при оформлении заказа. Попробуйте еще раз.');
       return false;
     }
   }, [isSaving, cart, isGuest, customerName, customerPhone, customerEmail, deliveryAddress, apartment, deliveryMode, selectedHour, selectedMinute, total, finalTotal, bonusUsed, effectivePromoDiscount, appliedPromo, consentPersonal, navigate, clearCart, userLogin, userProfile, saveOrder, refetchUserLevel, deliveryCost]);
@@ -746,8 +735,6 @@ function Cart() {
           </div>
         </div>
       </motion.div>
-
-      <LevelUpModal level={newLevel} onClose={() => setShowLevelUp(false)} ordersSum={ordersSumForModal} />
     </div>
   );
 }

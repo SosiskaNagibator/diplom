@@ -5,3 +5,4 @@ export { Badge } from './Badge';
 export { LoadingSpinner } from './LoadingSpinner';
 export { QuantityButton } from './QuantityButton';
 export { IconButton } from './IconButton';
+export { ConfirmModal } from './ConfirmModal';

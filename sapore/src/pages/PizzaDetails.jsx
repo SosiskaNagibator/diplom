@@ -163,7 +163,7 @@ const PizzaDetails = ({ addToCart }) => {
               <img
                 src={getImageUrl(pizza.image, 'large')}
                 srcSet={`${getImageUrl(pizza.image, 'medium')} 800w, ${getImageUrl(pizza.image, 'large')} 1200w`}
-                sizes="(max-width: 768px) 100vw, 50vw"
+                sizes="(max-width: 768px) 100vw, 450px"
                 alt={pizza.name}
                 className="w-full h-full object-cover"
                 loading="lazy"
@@ -286,7 +286,7 @@ const PizzaDetails = ({ addToCart }) => {
                   <img
                     src={getImageUrl(item.image, 'thumb')}
                     srcSet={`${getImageUrl(item.image, 'thumb')} 400w, ${getImageUrl(item.image, 'medium')} 800w`}
-                    sizes="(max-width: 640px) 50vw, 25vw"
+                    sizes="(max-width: 640px) 50vw, 200px"
                     alt={item.name}
                     className="absolute inset-0 w-full h-full object-cover"
                     loading="lazy"

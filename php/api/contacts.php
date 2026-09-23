@@ -24,13 +24,6 @@ function handleContact($pdo) {
         return;
     }
 
-    try {
-        $stmt = $pdo->prepare("INSERT INTO contacts_messages (name, email, message) VALUES (?, ?, ?)");
-        $stmt->execute([$name, $email, $message]);
-    } catch (PDOException $e) {
-        error_log('Contact save error: ' . $e->getMessage());
-    }
-
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
