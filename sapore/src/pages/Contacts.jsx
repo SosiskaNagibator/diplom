@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import MapPicker from '../components/MapPicker/MapPicker';
 import { Button, Input } from '../components/ui';
+import ConsentCheckbox from '../components/ConsentCheckbox';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock, FaTelegramPlane, FaVk, FaYoutube, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import { API_BASE } from '../constants/api';
 import { usePageSeo } from '../hooks/usePageSeo';
@@ -9,6 +10,7 @@ import SEO from '../components/SEO';
 
 function Contacts() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [consentPersonal, setConsentPersonal] = useState(false);
   const [status, setStatus] = useState({ type: '', text: '' });
   const [loading, setLoading] = useState(false);
   const socialLink = 'https://vk.com/video7266823_78234740';
@@ -31,17 +33,23 @@ function Contacts() {
       return;
     }
 
+    if (!consentPersonal) {
+      setStatus({ type: 'error', text: 'Необходимо согласие на обработку персональных данных' });
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch(API_BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'contact', ...formData }),
+        body: JSON.stringify({ action: 'contact', ...formData, consent: true }),
       });
       const data = await response.json();
       if (data.status === 'success') {
         setStatus({ type: 'success', text: 'Сообщение отправлено! Мы свяжемся с вами.' });
         setFormData({ name: '', email: '', message: '' });
+        setConsentPersonal(false);
       } else {
         setStatus({ type: 'error', text: data.message });
       }
@@ -201,6 +209,13 @@ function Contacts() {
                 rows="4"
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all duration-200"
                 required
+              />
+            </motion.div>
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.55 }}>
+              <ConsentCheckbox
+                type="personal"
+                checked={consentPersonal}
+                onChange={setConsentPersonal}
               />
             </motion.div>
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.6 }}>

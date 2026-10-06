@@ -80,6 +80,7 @@ function Profile() {
   const [email, setEmail] = useState('');
   const [consentPersonal, setConsentPersonal] = useState(false);
   const [consentOffer, setConsentOffer] = useState(false);
+  const [consentLogin, setConsentLogin] = useState(false);
   const [referralCodeInput, setReferralCodeInput] = useState('');
   const [showTooltip, setShowTooltip] = useState(false);
   const [showBonusTooltip, setShowBonusTooltip] = useState(false);
@@ -155,6 +156,11 @@ function Profile() {
         showMessage('Необходимо принять условия обработки данных и пользовательское соглашение', 'error');
         return;
       }
+    } else {
+      if (!consentLogin) {
+        showMessage('Необходимо согласие на обработку персональных данных', 'error');
+        return;
+      }
     }
 
     try {
@@ -176,6 +182,7 @@ function Profile() {
         setEmail('');
         setConsentPersonal(false);
         setConsentOffer(false);
+        setConsentLogin(false);
         setReferralCodeInput('');
         if (searchParams.get('ref')) {
           searchParams.delete('ref');
@@ -709,6 +716,14 @@ function Profile() {
             </div>
           )}
 
+          {!isRegister && (
+            <ConsentCheckbox
+              type="personal"
+              checked={consentLogin}
+              onChange={setConsentLogin}
+            />
+          )}
+
           {isRegister && (
             <>
               <Input
@@ -794,6 +809,7 @@ function Profile() {
               setEmail('');
               setConsentPersonal(false);
               setConsentOffer(false);
+              setConsentLogin(false);
               setReferralCodeInput('');
             }}
             className="w-full text-sm text-gray-500 hover:text-amber-600 transition-all duration-200 hover:scale-105"

@@ -212,6 +212,32 @@ tr:hover { background: #f9fafb; }
 }
 
 .leaflet-control-attribution {
+    font-size: 11px !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+    padding: 2px 6px !important;
+    border-radius: 4px 0 0 0 !important;
+    max-width: none !important;
+    width: auto !important;
+    height: auto !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+}
+
+.leaflet-control-attribution a[href*="leafletjs.com"] {
+    display: none !important;
+}
+
+.leaflet-control-attribution .leaflet-attribution-flag {
+    display: none !important;
+}
+
+.leaflet-control-attribution svg {
+    display: none !important;
+}
+
+.leaflet-control-attribution > span[aria-hidden="true"] {
     display: none !important;
 }
 
